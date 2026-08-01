@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('home.title') }} - R6AX:/Learn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <style>
+        :root {
+            --apple-blue: #0071e3;
+            --black: #000000;
+            --dark-gray: #1a1a1a;
+            --near-black: #0d0d0d;
+            --white: #ffffff;
+            --light-gray: #2a2a2a;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --text-disabled: rgba(255, 255, 255, 0.4);
+            --link-blue: #2997ff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--near-black);
+            color: var(--white);
+        }
+
+        .nav-glass {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--apple-blue);
+            color: var(--white);
+            font-size: 14px;
+            font-weight: 400;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0077ed;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--white);
+            font-size: 14px;
+            font-weight: 400;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .card {
+            background-color: var(--dark-gray);
+            border-radius: 8px;
+            box-shadow: rgba(0, 0, 0, 0.5) 3px 5px 30px 0px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .link-text {
+            color: var(--link-blue);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .link-text:hover {
+            text-decoration: underline;
+        }
+
+        .heading-display {
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 1.14;
+            letter-spacing: 0.196px;
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .input-field {
+            background-color: var(--light-gray);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 14px;
+            color: var(--white);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border: 2px solid var(--apple-blue);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-[#0d0d0d]">
+    <nav class="nav-glass fixed top-0 left-0 right-0 h-12 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+            <div class="flex items-center space-x-6">
+                <a href="/" class="text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
+                <a href="/projects" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('nav.projects') }}</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-white/80 text-sm">{{ t('home.welcome') }}, {{ user.username }}</span>
+                <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+        <div class="mb-8">
+            <h1 class="heading-display text-white">{{ t('home.welcome') }}</h1>
+            <p class="text-white/80 mt-2">{{ t('home.title') }}</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="card p-8 text-center cursor-pointer hover:border-blue-500/30 transition-colors" onclick="window.location.href='/projects'">
+                <div class="text-4xl mb-4 text-white/60">+</div>
+                <h3 class="text-lg font-medium text-white">{{ t('project.create') }}</h3>
+                <p class="text-white/40 text-sm mt-2">{{ t('project.name') }}</p>
+            </div>
+            
+            {% for project in projects %}
+            <div class="card p-6 hover:shadow-lg transition-shadow">
+                <h3 class="text-lg font-medium text-white">{{ project.name }}</h3>
+                <p class="text-white/40 text-sm mt-1">{{ project.description }}</p>
+                <div class="mt-4 flex space-x-4">
+                    <a href="/projects/{{ project.id }}" class="link-text">{{ t('project.detail') }}</a>
+                    <a href="#" class="text-white/60 hover:text-red-400 text-sm transition-colors">{{ t('project.edit') }}</a>
+                    <a href="#" class="text-white/60 hover:text-red-400 text-sm transition-colors">{{ t('common.delete') }}</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-blue-900/30 rounded-lg p-6 border border-blue-500/20">
+                <h3 class="text-lg font-medium text-blue-300">{{ t('teaching.session') }}</h3>
+                <p class="text-blue-400/70 text-sm mt-2">通过向 AI 讲解知识来巩固理解</p>
+            </div>
+            <div class="bg-green-900/30 rounded-lg p-6 border border-green-500/20">
+                <h3 class="text-lg font-medium text-green-300">{{ t('practice.practice') }}</h3>
+                <p class="text-green-400/70 text-sm mt-2">科学的复习计划，对抗遗忘</p>
+            </div>
+            <div class="bg-purple-900/30 rounded-lg p-6 border border-purple-500/20">
+                <h3 class="text-lg font-medium text-purple-300">{{ t('integration.graph') }}</h3>
+                <p class="text-purple-400/70 text-sm mt-2">可视化知识关联，构建知识体系</p>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

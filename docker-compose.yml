@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    container_name: r6ax-learn
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+    environment:
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+    restart: unless-stopped

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('auth.login') }} - R6AX:/Learn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-black min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-md">
+        <div class="bg-[#272729] rounded-lg p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-semibold text-white">R6AX:/Learn</h1>
+                <p class="text-white/70 mt-2 text-sm">{{ t('home.title') }}</p>
+            </div>
+            
+            {% if error %}
+                <div class="bg-red-900/50 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6">
+                    {{ error }}
+                </div>
+            {% endif %}
+            
+            <form action="/login" method="post">
+                <div class="mb-4">
+                    <label class="block text-white/70 text-sm font-medium mb-2">{{ t('auth.username') }}</label>
+                    <input type="text" name="username" placeholder="{{ t('auth.username') }}" class="w-full px-4 py-3 bg-[#272729] border border-white/04 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0071e3] placeholder-white/40" required>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-white/70 text-sm font-medium mb-2">{{ t('auth.password') }}</label>
+                    <input type="password" name="password" placeholder="{{ t('auth.password') }}" class="w-full px-4 py-3 bg-[#272729] border border-white/04 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0071e3] placeholder-white/40" required>
+                </div>
+                
+                <button type="submit" class="w-full bg-[#0071e3] text-white py-3 px-4 rounded-lg hover:bg-[#0077ed] transition-colors font-medium">
+                    {{ t('auth.login') }}
+                </button>
+            </form>
+            
+            <div class="flex justify-center mt-6">
+                <div class="flex space-x-2">
+                    <a href="?locale=zh_CN" class="text-sm text-[#2997ff] hover:underline">中文</a>
+                    <span class="text-white/40">|</span>
+                    <a href="?locale=en_US" class="text-sm text-[#2997ff] hover:underline">English</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,575 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Language: en_US\n"
+
+msgid "home.welcome"
+msgstr "Welcome to R6AX:/Learn"
+
+msgid "home.title"
+msgstr "AI-Assisted Learning Platform"
+
+msgid "common.save"
+msgstr "Save"
+
+msgid "common.cancel"
+msgstr "Cancel"
+
+msgid "common.delete"
+msgstr "Delete"
+
+msgid "auth.login"
+msgstr "Login"
+
+msgid "auth.register"
+msgstr "Register"
+
+msgid "auth.username"
+msgstr "Username"
+
+msgid "auth.password"
+msgstr "Password"
+
+msgid "auth.logout"
+msgstr "Logout"
+
+msgid "auth.password.confirm"
+msgstr "Confirm Password"
+
+msgid "project.create"
+msgstr "Create Project"
+
+msgid "project.delete"
+msgstr "Delete Project"
+
+msgid "project.delete-confirm"
+msgstr "Are you sure you want to delete project"
+
+msgid "project.name"
+msgstr "Project Name"
+
+msgid "project.description"
+msgstr "Project Description"
+
+msgid "project.list"
+msgstr "Project List"
+
+msgid "project.detail"
+msgstr "Project Detail"
+
+msgid "project.edit"
+msgstr "Edit"
+
+msgid "project.empty"
+msgstr "No projects yet, click the button above to create your first project"
+
+msgid "project.stats"
+msgstr "Project Stats"
+
+msgid "project.quick-start"
+msgstr "Quick Start"
+
+msgid "project.step-1"
+msgstr "Create Notes"
+
+msgid "project.step-1-desc"
+msgstr "First add your study notes in the Notes section"
+
+msgid "project.step-2"
+msgstr "Teach AI"
+
+msgid "project.step-2-desc"
+msgstr "Extract concepts from notes and explain to AI to reinforce understanding"
+
+msgid "project.step-3"
+msgstr "Build Knowledge Graph"
+
+msgid "project.step-3-desc"
+msgstr "Deposit mastered concepts into the knowledge graph"
+
+msgid "project.step-4"
+msgstr "Practice"
+
+msgid "project.step-4-desc"
+msgstr "The system will arrange review plans based on your learning progress"
+
+msgid "nav.navigation"
+msgstr "Navigation"
+
+msgid "input.notes"
+msgstr "Notes"
+
+msgid "input.directories"
+msgstr "Directories"
+
+msgid "input.create-directory"
+msgstr "Create Directory"
+
+msgid "input.no-directories"
+msgstr "No directories yet"
+
+msgid "input.all-notes"
+msgstr "All Notes"
+
+msgid "input.select-dir"
+msgstr "Please select a directory"
+
+msgid "input.no-notes"
+msgstr "No notes yet"
+
+msgid "input.create-note"
+msgstr "Create Note"
+
+msgid "input.note-title"
+msgstr "Note Title"
+
+msgid "input.note-content"
+msgstr "Note Content"
+
+msgid "teaching.session"
+msgstr "Teach AI"
+
+msgid "practice.practice"
+msgstr "Practice"
+
+msgid "integration.graph"
+msgstr "Knowledge Graph"
+
+msgid "error.username.exists"
+msgstr "Username already exists"
+
+msgid "error.password.mismatch"
+msgstr "Passwords do not match"
+
+msgid "error.login.failed"
+msgstr "Invalid username or password"
+
+msgid "nav.home"
+msgstr "Home"
+
+msgid "nav.projects"
+msgstr "Projects"
+
+msgid "nav.notes"
+msgstr "Notes"
+
+msgid "nav.teaching"
+msgstr "Teaching"
+
+msgid "nav.practice"
+msgstr "Practice"
+
+msgid "nav.graph"
+msgstr "Graph"
+
+msgid "input.select-dir"
+msgstr "Select a directory"
+
+msgid "input.no-notes"
+msgstr "No notes in this directory"
+
+msgid "input.create-note"
+msgstr "Create Note"
+
+msgid "input.note-title"
+msgstr "Note Title"
+
+msgid "input.note-content"
+msgstr "Note Content"
+
+msgid "input.extract-concepts"
+msgstr "Extract Concepts"
+
+msgid "input.delete-directory"
+msgstr "Delete Directory"
+
+msgid "input.delete-directory-confirm"
+msgstr "Are you sure you want to delete this directory? All notes under this directory will also be deleted."
+
+msgid "input.note-content-placeholder"
+msgstr "Supports Markdown, KaTeX math formulas ($...$), and Mermaid diagrams (```mermaid)"
+
+msgid "input.preview"
+msgstr "Preview"
+
+msgid "input.edit-note"
+msgstr "Edit Note"
+
+msgid "input.delete-note"
+msgstr "Delete Note"
+
+msgid "input.delete-note-confirm"
+msgstr "Are you sure you want to delete this note?"
+
+msgid "integration.relation-prereq"
+msgstr "Prerequisite"
+
+msgid "integration.relation-related"
+msgstr "Related"
+
+msgid "integration.relation-parent"
+msgstr "Parent"
+
+msgid "integration.confirm-delete-title"
+msgstr "Confirm Delete"
+
+msgid "integration.confirm-delete-warning"
+msgstr "Deleting a node will also delete all related edges. This action cannot be undone."
+
+msgid "integration.confirm-delete-node-msg"
+msgstr "Delete node"
+
+msgid "integration.confirm-delete-node"
+msgstr "Delete this node and its relations?"
+
+msgid "integration.node-deleted"
+msgstr "Node deleted"
+
+# ====== Common (补充) ======
+msgid "common.send"
+msgstr "Send"
+
+msgid "common.edit"
+msgstr "Edit"
+
+msgid "common.copy"
+msgstr "Copy"
+
+msgid "common.confirm"
+msgstr "Confirm"
+
+msgid "common.operation-failed"
+msgstr "Operation failed"
+
+msgid "common.delete-failed"
+msgstr "Delete failed"
+
+msgid "common.network-error"
+msgstr "Network error"
+
+# ====== Integration (补充) ======
+msgid "integration.add-node"
+msgstr "Add Node"
+
+msgid "integration.add-edge"
+msgstr "Add Edge"
+
+msgid "integration.fit-view"
+msgstr "Fit View"
+
+msgid "integration.tab-detail"
+msgstr "Details"
+
+msgid "integration.tab-edges"
+msgstr "Edges"
+
+msgid "integration.tab-promote"
+msgstr "Pending"
+
+msgid "integration.nodes"
+msgstr "Nodes"
+
+msgid "integration.click-node-hint"
+msgstr "Click nodes in graph to view details"
+
+msgid "integration.empty-graph"
+msgstr "Knowledge graph is empty"
+
+msgid "integration.empty-hint-1"
+msgstr "Promote concepts from teaching sessions"
+
+msgid "integration.empty-hint-2"
+msgstr "Or manually add nodes"
+
+msgid "integration.add-first-node"
+msgstr "Add first node"
+
+msgid "integration.mastery"
+msgstr "Mastery"
+
+msgid "integration.all-edges"
+msgstr "All Edges"
+
+msgid "integration.no-edges"
+msgstr "No edges yet"
+
+msgid "integration.no-edges-hint"
+msgstr "Add nodes then create connections"
+
+msgid "integration.promotable-title"
+msgstr "Promotable Concepts"
+
+msgid "integration.promotable-desc"
+msgstr "Mastered concepts not in graph"
+
+msgid "integration.status-mastered"
+msgstr "Mastered"
+
+msgid "integration.promote-selected"
+msgstr "Promote selected concepts"
+
+msgid "integration.no-promotable"
+msgstr "No promotable concepts"
+
+msgid "integration.no-promotable-hint"
+msgstr "Teach and mark as mastered first"
+
+msgid "integration.edit-node"
+msgstr "Edit Node"
+
+msgid "integration.label-name"
+msgstr "Name"
+
+msgid "integration.placeholder-node-example"
+msgstr "e.g., Sine function"
+
+msgid "integration.label-desc"
+msgstr "Description"
+
+msgid "integration.placeholder-desc"
+msgstr "Brief description..."
+
+msgid "integration.label-mastery"
+msgstr "Initial mastery"
+
+msgid "integration.label-source"
+msgstr "Source node"
+
+msgid "integration.label-target"
+msgstr "Target node"
+
+msgid "integration.label-relation"
+msgstr "Relation type"
+
+msgid "integration.label-edge-label"
+msgstr "Label (optional)"
+
+msgid "integration.placeholder-edge-example"
+msgstr "e.g., is the foundation of..."
+
+msgid "integration.select-placeholder"
+msgstr "Select..."
+
+msgid "integration.unnamed"
+msgstr "Unnamed"
+
+msgid "integration.error-create-graph"
+msgstr "Failed to create graph"
+
+msgid "integration.node-updated"
+msgstr "Node updated"
+
+msgid "integration.node-created"
+msgstr "Node created"
+
+msgid "integration.error-same-node"
+msgstr "Source and target cannot be the same"
+
+msgid "integration.edge-created"
+msgstr "Edge created"
+
+msgid "integration.confirm-delete-edge"
+msgstr "Delete this edge?"
+
+msgid "integration.edge-deleted"
+msgstr "Edge deleted"
+
+msgid "integration.select-concepts-first"
+msgstr "Please select concepts first"
+
+msgid "integration.promote-success"
+msgstr "Successfully promoted {} concepts"
+
+msgid "integration.promote-failed"
+msgstr "Promotion failed"
+
+# ====== Teaching: Promote ======
+msgid "teaching.promote-title"
+msgstr "Promote to Knowledge Graph"
+
+msgid "teaching.promote-hint"
+msgstr "Select mastered concepts to promote"
+
+msgid "teaching.concepts"
+msgstr "Concepts"
+
+msgid "teaching.no-mastered"
+msgstr "No mastered concepts yet"
+
+msgid "teaching.promote-btn"
+msgstr "Promote selected concepts"
+
+msgid "teaching.go-to-graph"
+msgstr "View Knowledge Graph"
+
+msgid "teaching.promoting"
+msgstr "Promoting"
+
+msgid "teaching.promote-success"
+msgstr "Concepts successfully promoted to knowledge graph!"
+
+msgid "teaching.promoted-count"
+msgstr "Promoted {} concept nodes"
+
+msgid "teaching.promote-failed"
+msgstr "Promotion failed, please try again"
+
+# ====== Integration: Multi-Graph ======
+msgid "integration.current-graph"
+msgstr "Current Graph"
+
+msgid "integration.no-graphs"
+msgstr "No graphs yet"
+
+msgid "integration.create-graph"
+msgstr "Create Graph"
+
+msgid "integration.default-graph-name"
+msgstr "Knowledge Graph"
+
+msgid "integration.graph-created"
+msgstr "Graph created successfully"
+
+msgid "integration.graph-name"
+msgstr "Graph Name"
+
+msgid "integration.link-directory"
+msgstr "Link Directory"
+
+msgid "integration.no-directory"
+msgstr "No directory linked"
+
+msgid "integration.directory-hint"
+msgstr "Linking a directory associates graph with that directory's notes"
+
+msgid "integration.no-graph-hint"
+msgstr "Create a directory in Notes first, graph will be auto-generated"
+
+# ====== 虚拟图相关 ======
+msgid "integration.virtual-graph"
+msgstr "Virtual Graph"
+
+msgid "integration.virtual-graphs"
+msgstr "Virtual Knowledge Graphs"
+
+msgid "integration.tab-virtual"
+msgstr "Virtual"
+
+msgid "integration.no-virtual-graphs"
+msgstr "No virtual graphs"
+
+msgid "integration.no-virtual-graphs-hint"
+msgstr "Create virtual knowledge structures from teaching sessions"
+
+msgid "integration.create-virtual-graph"
+msgstr "Create Virtual Graph"
+
+msgid "integration.virtual-graph-name"
+msgstr "Virtual Graph Name"
+
+msgid "integration.virtual-graph-desc"
+msgstr "Virtual Graph Description"
+
+msgid "integration.virtual-graph-created"
+msgstr "Virtual graph created successfully"
+
+msgid "integration.virtual-graph-deleted"
+msgstr "Virtual graph deleted"
+
+msgid "integration.virtual-graph-detail"
+msgstr "Virtual Graph Detail"
+
+msgid "integration.virtual-node"
+msgstr "Virtual Node"
+
+msgid "integration.virtual-node-content"
+msgstr "Node Content"
+
+msgid "integration.virtual-node-order"
+msgstr "Order"
+
+msgid "integration.virtual-edge"
+msgstr "Virtual Edge"
+
+msgid "integration.virtual-connection"
+msgstr "Node Connection"
+
+msgid "integration.connection-type"
+msgstr "Connection Type"
+
+msgid "integration.connection-contains"
+msgstr "Contains"
+
+msgid "integration.connection-references"
+msgstr "References"
+
+msgid "integration.connection-expands"
+msgstr "Expands"
+
+msgid "integration.edit-virtual-graph"
+msgstr "Edit Virtual Graph"
+
+msgid "integration.delete-virtual-graph"
+msgstr "Delete Virtual Graph"
+
+msgid "integration.confirm-delete-virtual-graph"
+msgstr "Delete this virtual graph and all its nodes and connections?"
+
+msgid "integration.select-session"
+msgstr "Select Teaching Session"
+
+msgid "integration.select-node"
+msgstr "Select Node"
+
+msgid "integration.add-virtual-node"
+msgstr "Add Virtual Node"
+
+msgid "integration.add-virtual-edge"
+msgstr "Add Virtual Edge"
+
+msgid "integration.from-session"
+msgstr "From Session"
+
+msgid "integration.link-to-graph"
+msgstr "Link to Graph"
+
+msgid "integration.virtual-graph-list"
+msgstr "Virtual Graph List"
+
+msgid "integration.virtual-node-count"
+msgstr "Node Count"
+
+msgid "integration.view-virtual-graph"
+msgstr "View Virtual Graph"
+
+msgid "integration.no-virtual-nodes"
+msgstr "No virtual nodes"
+
+msgid "integration.click-virtual-node-hint"
+msgstr "Click virtual node to view details"
+
+# ====== RAG Search ======
+msgid "integration.search-placeholder"
+msgstr "Search virtual knowledge..."
+
+msgid "integration.search-results"
+msgstr "Search Results"
+
+msgid "integration.search-loading"
+msgstr "Searching..."
+
+msgid "integration.search-no-results"
+msgstr "No results found"
+
+msgid "integration.search-error"
+msgstr "Search failed, please try again"
+
+msgid "integration.search-from-graph"
+msgstr "From Virtual Graph"
+
+msgid "integration.search-node-found"
+msgstr "Located related node"
+
+msgid "common.clear"
+msgstr "Clear"

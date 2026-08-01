@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('teaching.session') }} - {{ project_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <!-- Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- KaTeX for math formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <!-- Mermaid for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --black: #000000;
+            --card-dark: #272729;
+            --card-dark-alt: #2a2a2d;
+            --white: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-disabled: rgba(255, 255, 255, 0.4);
+            --apple-blue: #0071e3;
+        }
+
+        body {
+            background-color: var(--black);
+            color: var(--white);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .nav-glass {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item {
+            display: block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background-color 0.15s ease;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .nav-item:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .nav-item.active { background-color: rgba(0, 113, 227, 0.2); color: #0071e3; }
+
+        nav {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: saturate(180%) blur(20px);
+            height: 48px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .message-container {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .message-bubble-wrapper {
+            display: flex;
+        }
+
+        .message-user .message-bubble-wrapper {
+            justify-content: flex-end;
+        }
+
+        .message-assistant .message-bubble-wrapper,
+        .message-container:not(.message-user):not(.message-assistant) .message-bubble-wrapper {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.47;
+            position: relative;
+            cursor: text;
+            transition: background-color 0.15s ease;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .message-bubble:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .message-user .message-bubble {
+            background-color: var(--apple-blue);
+            color: var(--white);
+            border-bottom-right-radius: 6px;
+        }
+
+        .message-assistant .message-bubble {
+            background-color: var(--card-dark);
+            color: rgba(255, 255, 255, 0.9);
+            border-bottom-left-radius: 6px;
+        }
+
+        .message-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+            opacity: 1;
+        }
+
+        .message-user .message-actions {
+            justify-content: flex-end;
+        }
+
+        .message-assistant .message-actions {
+            justify-content: flex-start;
+        }
+
+        .action-btn {
+            padding: 2px 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            transition: all 0.15s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: #1c1c1e;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 480px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .modal-body {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .thinking-indicator {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: var(--card-dark);
+            border-radius: 18px;
+            border-bottom-left-radius: 6px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .concept-tag {
+            background-color: rgba(0, 113, 227, 0.2);
+            color: var(--apple-blue);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .misconception-tag {
+            background-color: rgba(255, 59, 48, 0.2);
+            color: #ff3b30;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--apple-blue);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--apple-blue);
+            color: var(--white);
+            font-size: 14px;
+            font-weight: 400;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0077ed;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--white);
+            font-size: 14px;
+            font-weight: 400;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .edit-textarea {
+            max-width: 70%;
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.47;
+            background-color: var(--card-dark);
+            border: 1px solid var(--apple-blue);
+            color: white;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .edit-textarea:focus {
+            outline: none;
+            border-color: #0077ed;
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: flex-end;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .branch-highlight {
+            background-color: rgba(0, 113, 227, 0.15) !important;
+            border: 1px solid rgba(0, 113, 227, 0.3);
+        }
+
+        .message-container.inactive-branch {
+            opacity: 0.3;
+        }
+
+        /* Markdown content styles */
+        .markdown-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .markdown-content h1, .markdown-content h2, .markdown-content h3,
+        .markdown-content h4, .markdown-content h5, .markdown-content h6 {
+            color: var(--white);
+            margin-top: 0.5em;
+            margin-bottom: 0.3em;
+        }
+
+        .markdown-content h1 { font-size: 1.3em; }
+        .markdown-content h2 { font-size: 1.2em; }
+        .markdown-content h3 { font-size: 1.1em; }
+
+        .markdown-content p { margin-bottom: 0.3em; }
+
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 1.5em;
+            margin-bottom: 0.3em;
+        }
+
+        .markdown-content li { margin-bottom: 0.1em; }
+
+        .markdown-content code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .markdown-content pre {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 0.8em;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 0.3em;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .markdown-content blockquote {
+            border-left: 3px solid var(--apple-blue);
+            padding-left: 0.8em;
+            margin-left: 0;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .markdown-content a {
+            color: #2997ff;
+            text-decoration: underline;
+        }
+
+        .markdown-content table {
+            border-collapse: collapse;
+            margin-bottom: 0.5em;
+            font-size: 0.9em;
+        }
+
+        .markdown-content th, .markdown-content td {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.4em;
+        }
+
+        .markdown-content th {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* KaTeX styles for dark theme */
+        .katex {
+            color: var(--white);
+        }
+
+        /* Mermaid diagram styles */
+        .mermaid {
+            background-color: transparent;
+        }
+
+        /* Tool Artifacts styles (类似 Cursor) */
+        .tool-artifact {
+            background: linear-gradient(135deg, #1e1e22 0%, #252528 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            margin: 12px 0;
+            overflow: hidden;
+            font-size: 13px;
+        }
+
+        .tool-artifact-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .tool-artifact-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 11px;
+        }
+
+        .tool-icon-read { background: rgba(52, 199, 89, 0.15); color: #34c759; }
+        .tool-icon-write { background: rgba(255, 149, 0, 0.15); color: #ff9500; }
+        .tool-icon-concept { background: rgba(94, 92, 230, 0.15); color: #5e5ce6; }
+        .tool-icon-graph { background: rgba(0, 113, 227, 0.15); color: #0071e3; }
+
+        .tool-artifact-name {
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .tool-artifact-status {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-left: auto;
+        }
+
+        .tool-artifact-body {
+            padding: 12px 14px;
+            color: rgba(255, 255, 255, 0.6);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        .tool-artifact-body pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .tool-artifact-collapsed .tool-artifact-body {
+            display: none;
+        }
+
+        .tool-artifact-toggle {
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .tool-artifact-toggle:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* 新布局：中间聊天 + 右侧侧边栏 */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 48px);
+            padding-top: 48px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .chat-area {
+            display: flex;
+            flex-direction: column;
+            padding: 20px 40px;
+            min-width: 0;
+            max-width: 900px;
+            width: 900px;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(28, 28, 30, 0.95);
+            border-left: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: width 0.3s ease;
+            height: calc(100vh - 48px);
+            padding-top: 48px;
+        }
+
+        .sidebar.collapsed {
+            width: 48px;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            left: -16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            background: rgba(28, 28, 30, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.6);
+            z-index: 10;
+        }
+
+        .sidebar-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .sidebar-content {
+            padding: 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .sidebar.collapsed .sidebar-content {
+            display: none;
+        }
+
+        .sidebar-header {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.45);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 12px;
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            display: none;
+        }
+
+        .sidebar-icon {
+            display: none;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .sidebar-icon {
+            display: block;
+        }
+
+        /* 消息容器自适应高度 */
+        #messages-container {
+            flex: 1;
+            min-height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-glass fixed top-0 left-0 right-0 h-12 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="/" class="text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
+                <a href="/projects" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('nav.projects') }}</a>
+                <span class="text-white/40">/</span>
+                <a href="/projects/{{ project_id }}" class="text-white/80 hover:text-white text-sm transition-colors">{{ project_name }}</a>
+                <span class="text-white/40">/</span>
+                <span class="text-white/80 text-sm">{{ t('teaching.session-title') }}</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="endSession()" class="btn-secondary text-sm">{{ t('teaching.end-session') }}</button>
+                <span class="text-white/80 text-sm">{{ user.username }}</span>
+                <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- 左侧聊天区域 -->
+        <div class="chat-area">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h1 style="font-size: 22px; font-weight: 600; line-height: 1.14;" class="text-white mb-1">{{ t('teaching.session') }}</h1>
+                    <p class="text-white/60 text-sm">{% if concept_name %}{{ t('teaching.current-concept') }}: {{ concept_name }}{% endif %}</p>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="flex items-center justify-between text-xs text-white/40 mb-2" id="progress-text-container">
+            <span>{{ t('teaching.progress') }}</span>
+            <span id="progress-text">{{ completed_concepts }}/{{ total_concepts }}</span>
+        </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ progress_percent }}%"></div>
+                </div>
+            </div>
+
+            <div id="messages-container" class="bg-black border border-white/10 rounded-12px p-4 overflow-y-auto flex-1">
+            <div id="messages-list">
+                {% for message in messages %}
+                {% set role = message.role.lower() if message.role else '' %}
+                {% set is_assistant = role == 'assistant' or not role %}
+                {% set is_user = role == 'user' %}
+                <div class="message-container message-{{ role }}" 
+                     data-message-id="{{ message.id }}" 
+                     data-branch-id="{{ message.branch_id }}">
+                    <div class="message-bubble-wrapper">
+                        {% if is_assistant %}
+                        <div class="message-bubble markdown-content" id="msg-{{ message.id }}" contenteditable="false">
+                            {{ message.content }}
+                        </div>
+                        {% else %}
+                        <div class="message-bubble" onclick="startEdit('{{ message.id }}')" contenteditable="false">
+                            {{ message.content }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="message-actions">
+                        {% if is_user %}
+                        <button class="action-btn" onclick="startEdit('{{ message.id }}')">{{ t('common.edit') }}</button>
+                        {% endif %}
+                        <button class="action-btn" onclick="copyMessage('{{ message.id }}')">{{ t('common.copy') }}</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="thinking-indicator" class="hidden thinking-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+
+        <div id="tags-container" class="mt-3">
+            <div class="flex flex-wrap gap-2">
+                {% for concept in concepts %}
+                <span class="concept-tag">{{ concept.name }}</span>
+                {% endfor %}
+                {% for misconception in misconceptions %}
+                <span class="misconception-tag">{{ misconception.concept_name }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <form id="message-form" class="flex gap-3 mt-3">
+            <input type="hidden" name="session_id" value="{{ session_id }}">
+            <input type="hidden" name="project_id" value="{{ project_id }}">
+            <input type="text"
+                   id="message-input"
+                   name="content"
+                   placeholder="{{ t('teaching.input-placeholder') }}"
+                   class="flex-1 bg-white/5 border border-white/10 rounded-8px px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-blue-500"
+                   autocomplete="off">
+            <button type="submit" class="btn-primary">{{ t('common.send') }}</button>
+        </form>
+        </div>
+        <!-- 聊天区域结束 -->
+    </div>
+    <!-- main-container 结束 -->
+
+    <!-- 右侧侧边栏 -->
+    <div class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+            </button>
+
+            <div class="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 6v6l4 2"/>
+                </svg>
+            </div>
+
+            <div class="sidebar-content">
+                {% set mastered = concepts | selectattr('status', 'equalto', 'mastered') | list %}
+                {% if mastered %}
+                <div class="sidebar-header">{{ t('teaching.promote-title') }}</div>
+                <div id="promote-panel">
+                    <div id="promote-concepts" class="space-y-2 mb-4">
+                        {% for c in mastered %}
+                        <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors group">
+                            <input type="checkbox" value="{{ c.id }}" class="promote-checkbox w-4 h-4 accent-[#0071e3] rounded">
+                            <span class="text-white text-sm">{{ c.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <button onclick="promoteConcepts()" class="btn-primary text-sm w-full py-2">
+                        {{ t('teaching.promote-btn') }} (<span id="promote-count">0</span>)
+                    </button>
+                    <a href="/integration/{{ project_id }}{% if graph_id %}?graph_id={{ graph_id }}{% endif %}" class="btn-secondary text-sm w-full py-2 mt-2 block text-center">
+                        {{ t('teaching.go-to-graph') }}
+                    </a>
+                </div>
+                {% else %}
+                <div class="sidebar-header">{{ t('teaching.concepts') }}</div>
+                <div class="text-white/40 text-sm">{{ t('teaching.no-mastered') }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <!-- 右侧侧边栏结束 -->
+
+    <script>
+let eventSource = null;
+const messagesList = document.getElementById('messages-list');
+const thinkingIndicator = document.getElementById('thinking-indicator');
+const messageInput = document.getElementById('message-input');
+const messageForm = document.getElementById('message-form');
+let currentEditId = null;
+let pendingMessageContainer = null;
+let pendingMarkdownContent = '';  // Store raw markdown content for streaming
+
+// Initialize Mermaid
+mermaid.initialize({
+    startOnLoad: false,
+    theme: 'dark',
+    securityLevel: 'loose'
+});
+
+// Configure marked for Markdown
+marked.setOptions({
+    breaks: true,
+    gfm: true
+});
+
+// Render Markdown with KaTeX and Mermaid support
+function renderMarkdown(content, container) {
+    if (!container) return;
+
+    // Trim content to remove leading/trailing whitespace
+    let trimmedContent = content.trim();
+
+    // Parse and render tool calls as artifacts
+    let processedContent = parseToolCalls(trimmedContent, container);
+
+    // Step 1: Protect all math formulas from Markdown parsing
+    // This prevents marked from swallowing backslashes inside formulas
+    const mathBlocks = [];
+    let protectedContent = processedContent.text;
+
+    // First, convert LaTeX delimiters and store math blocks
+    protectedContent = protectedContent
+        .replace(/\\\((.*?)\\\)/g, function(match, inner) {
+            // Convert \(...\) to $...$ and store in array
+            const index = mathBlocks.length;
+            mathBlocks.push('$' + inner + '$');
+            return `MATHBLOCK${index}ENDBLOCK`;
+        })
+        .replace(/\\\[(.*?)\\\]/g, function(match, inner) {
+            // Convert \[...\] to $$...$$ and store in array
+            const index = mathBlocks.length;
+            mathBlocks.push('$$' + inner + '$$');
+            return `MATHBLOCK${index}ENDBLOCK`;
+        });
+
+    // Also protect existing $...$ and $$...$$ formulas
+    protectedContent = protectedContent
+        .replace(/\$\$(.*?)\$\$/g, function(match, inner) {
+            const index = mathBlocks.length;
+            mathBlocks.push(match);
+            return `MATHBLOCK${index}ENDBLOCK`;
+        })
+        .replace(/\$(.*?)\$/g, function(match, inner) {
+            const index = mathBlocks.length;
+            mathBlocks.push(match);
+            return `MATHBLOCK${index}ENDBLOCK`;
+        });
+
+    // Remove leading spaces/tabs that might cause text to be interpreted as code blocks
+    // Markdown treats 4+ spaces or a tab at the start of a line as code block
+    protectedContent = protectedContent.replace(/^( {4}|\t)/gm, '');
+
+    // Step 2: Parse Markdown (math blocks are temporarily replaced with placeholders)
+    let html = marked.parse(protectedContent);
+
+    // Step 3: Restore math blocks from placeholders
+    mathBlocks.forEach((block, index) => {
+        html = html.replace(`MATHBLOCK${index}ENDBLOCK`, block);
+    });
+
+    // Set HTML content
+    container.innerHTML = html;
+
+    // Append tool artifacts after markdown content
+    processedContent.artifacts.forEach(artifact => {
+        container.appendChild(artifact);
+    });
+
+    // Re-render stored SSE tool artifacts (they must survive markdown re-render)
+    renderStoredToolArtifacts(container);
+
+    // Render KaTeX math formulas
+    renderMathInElement(container, {
+        delimiters: [
+            {left: '$$$$', right: '$$$$', display: true},
+            {left: '$$', right: '$$', display: false},
+            {left: '$', right: '$', display: false},
+            {left: '\\\\[', right: '\\\\]', display: true},
+            {left: '\\\\(', right: '\\\\)', display: false}
+        ],
+        throwOnError: false
+    });
+
+    // Find and render Mermaid diagrams
+    container.querySelectorAll('pre code.language-mermaid').forEach((codeBlock, index) => {
+        const mermaidCode = codeBlock.textContent;
+        const mermaidDiv = document.createElement('div');
+        mermaidDiv.className = 'mermaid';
+        mermaidDiv.id = `mermaid-${Date.now()}-${index}`;
+        mermaidDiv.textContent = mermaidCode;
+        codeBlock.parentElement.replaceWith(mermaidDiv);
+    });
+
+    // Render all mermaid diagrams in the container
+    mermaid.run({ nodes: container.querySelectorAll('.mermaid') });
+}
+
+// Parse tool calls from content and create artifacts
+function parseToolCalls(content, container) {
+    let text = content;
+    const artifacts = [];
+    
+    // Match all <tool_call> tags
+    const toolCallRegex = /<tool_call[^>]*>([\s\S]*?)<\/tool_call>/g;
+    let match;
+    
+    while ((match = toolCallRegex.exec(content)) !== null) {
+        const fullMatch = match[0];
+        const toolCallContent = match[1];
+        
+        // Extract attributes
+        const iterationMatch = fullMatch.match(/iteration="([^"]*)"/);
+        const timestampMatch = fullMatch.match(/timestamp="([^"]*)"/);
+        
+        const iteration = iterationMatch ? iterationMatch[1] : '0';
+        const timestamp = timestampMatch ? timestampMatch[1] : '';
+        
+        // Parse XML content
+        const nameMatch = toolCallContent.match(/<name>([^<]*)<\/name>/);
+        const argumentsMatch = toolCallContent.match(/<arguments>([\s\S]*?)<\/arguments>/);
+        const resultMatch = toolCallContent.match(/<result>([\s\S]*?)<\/result>/);
+        
+        const toolName = nameMatch ? nameMatch[1].trim() : '';
+        const arguments = argumentsMatch ? argumentsMatch[1].trim() : '';
+        const result = resultMatch ? resultMatch[1].trim() : '';
+        
+        // Skip task_complete tool
+        if (toolName === 'task_complete') {
+            // Remove from text but don't create artifact
+            text = text.replace(fullMatch, '');
+            continue;
+        }
+        
+        // Create artifact for other tools
+        const artifact = createToolArtifact(toolName, arguments, result, iteration, timestamp);
+        artifacts.push(artifact);
+        
+        // Remove tool call XML from text
+        text = text.replace(fullMatch, '');
+    }
+    
+    return { text, artifacts };
+}
+
+// Create tool artifact element
+function createToolArtifact(toolName, arguments, result, iteration, timestamp) {
+    const artifact = document.createElement('div');
+    artifact.className = 'tool-artifact tool-artifact-toggle';
+    
+    // Determine icon and status based on tool type
+    let iconClass = 'tool-icon-write';
+    let toolDisplayName = toolName;
+    let toolStatus = '已完成';
+    
+    // Map tool names to display names and icons
+    const toolMap = {
+        'mark_concepts_mastered': { icon: 'tool-icon-concept', name: '标记概念已掌握', status: '已标记' },
+        'mark_misconception': { icon: 'tool-icon-concept', name: '标记误解', status: '已记录' },
+        'create_virtual_graph': { icon: 'tool-icon-graph', name: '创建虚拟图', status: '已创建' },
+        'get_virtual_graphs': { icon: 'tool-icon-read', name: '获取虚拟图列表', status: '读取' },
+        'get_virtual_graph': { icon: 'tool-icon-read', name: '获取虚拟图详情', status: '读取' },
+        'update_virtual_graph': { icon: 'tool-icon-write', name: '更新虚拟图', status: '已更新' },
+        'delete_virtual_graph': { icon: 'tool-icon-write', name: '删除虚拟图', status: '已删除' },
+        'search_virtual_graphs_rag': { icon: 'tool-icon-read', name: 'RAG搜索虚拟图', status: '搜索' },
+        'search_virtual_graph_nodes': { icon: 'tool-icon-read', name: '搜索虚拟图节点', status: '搜索' },
+        'create_graph_node': { icon: 'tool-icon-graph', name: '创建图谱节点', status: '已创建' },
+        'create_graph_edge': { icon: 'tool-icon-graph', name: '创建图谱关联', status: '已创建' },
+        'get_graph_nodes': { icon: 'tool-icon-read', name: '获取图谱节点', status: '读取' },
+        'get_graph_node': { icon: 'tool-icon-read', name: '获取节点详情', status: '读取' },
+        'update_graph_node': { icon: 'tool-icon-write', name: '更新图谱节点', status: '已更新' },
+        'delete_graph_node': { icon: 'tool-icon-write', name: '删除图谱节点', status: '已删除' }
+    };
+    
+    const toolInfo = toolMap[toolName] || { icon: 'tool-icon-write', name: toolName, status: '已完成' };
+    iconClass = toolInfo.icon;
+    toolDisplayName = toolInfo.name;
+    toolStatus = toolInfo.status;
+    
+    // Simplify icon symbol
+    let iconSymbol = '◇';
+    if (iconClass.includes('read')) iconSymbol = '↻';
+    else if (iconClass.includes('write')) iconSymbol = '✎';
+    else if (iconClass.includes('concept')) iconSymbol = '✓';
+    else if (iconClass.includes('graph')) iconSymbol = '◉';
+    
+    // Format content
+    let content = '';
+    try {
+        // Try to parse and format JSON
+        const argsJson = JSON.parse(arguments);
+        content = '参数:\n' + JSON.stringify(argsJson, null, 2);
+        
+        if (result) {
+            const resultJson = JSON.parse(result);
+            content += '\n\n结果:\n' + JSON.stringify(resultJson, null, 2);
+        }
+    } catch (e) {
+        // If not valid JSON, show raw content
+        content = arguments;
+        if (result) content += '\n\n结果:\n' + result;
+    }
+    
+    // Add iteration and timestamp info
+    if (iteration !== '0') {
+        toolStatus += ` (迭代 ${iteration})`;
+    }
+    
+    artifact.innerHTML = `
+        <div class="tool-artifact-header" onclick="toggleArtifact(this.parentElement)">
+            <div class="tool-artifact-icon ${iconClass}">${iconSymbol}</div>
+            <span class="tool-artifact-name">${toolDisplayName}</span>
+            <span class="tool-artifact-status">${toolStatus}</span>
+        </div>
+        <div class="tool-artifact-body">
+            <pre>${escapeHtml(content)}</pre>
+        </div>
+    `;
+    
+    // Default collapsed
+    artifact.classList.add('tool-artifact-collapsed');
+    
+    return artifact;
+}
+
+function connectStream(sessionId, projectId) {
+    if (eventSource) {
+        eventSource.close();
+    }
+    
+    eventSource = new EventSource(`/api/teaching/stream/${sessionId}?project_id=${projectId}`);
+    
+    eventSource.addEventListener('message', function(event) {
+        try {
+            const data = JSON.parse(event.data);
+            
+            if (data.type === 'thinking') {
+                thinkingIndicator.classList.remove('hidden');
+                // 创建pending容器用于流式文本
+                if (!pendingMessageContainer) {
+                    pendingMessageContainer = document.createElement('div');
+                    pendingMessageContainer.className = 'message-container message-assistant';
+                    pendingMessageContainer.innerHTML = `
+                        <div class="message-bubble-wrapper">
+                            <div class="message-bubble markdown-content"></div>
+                        </div>
+                        <div class="message-actions">
+                            <button class="action-btn" onclick="copyMessage('pending')">{{ t('common.copy') }}</button>
+                        </div>
+                    `;
+                    messagesList.appendChild(pendingMessageContainer);
+                    pendingMarkdownContent = '';  // Reset markdown content
+                }
+            } else if (data.type === 'text') {
+                thinkingIndicator.classList.add('hidden');
+                // 追加文本到pending容器
+                if (pendingMessageContainer) {
+                    const bubble = pendingMessageContainer.querySelector('.message-bubble');
+                    pendingMarkdownContent += data.content;  // Accumulate raw markdown
+
+                    // Re-render markdown for the accumulated content
+                    renderMarkdown(pendingMarkdownContent, bubble);
+
+                    messagesList.scrollTop = messagesList.scrollHeight;
+                }
+            } else if (data.type === 'concept') {
+                thinkingIndicator.classList.add('hidden');
+                if (pendingMessageContainer) {
+                    const bubble = pendingMessageContainer.querySelector('.message-bubble');
+                    pendingMarkdownContent += data.content;  // Accumulate raw markdown
+                    renderMarkdown(pendingMarkdownContent, bubble);
+                }
+                addTag(data.concept_name, 'concept');
+                updateProgress();
+            } else if (data.type === 'misconception') {
+                thinkingIndicator.classList.add('hidden');
+                if (pendingMessageContainer) {
+                    const bubble = pendingMessageContainer.querySelector('.message-bubble');
+                    pendingMarkdownContent += data.content;  // Accumulate raw markdown
+                    renderMarkdown(pendingMarkdownContent, bubble);
+                }
+                addTag(data.concept_name, 'misconception');
+            } else if (data.type === 'tool_call') {
+                // 通用工具调用 Artifact 显示（所有工具统一走这里）
+                thinkingIndicator.classList.add('hidden');
+                if (pendingMessageContainer) {
+                    const bubble = pendingMessageContainer.querySelector('.message-bubble');
+                    appendToolArtifact(bubble, data);
+                }
+            } else if (data.type === 'graph_nodes' || data.type === 'graph_node' || 
+                       data.type === 'graph_edges' || data.type === 'node_edges' ||
+                       data.type === 'graph_edge') {
+                // 工具调用 Artifacts 显示
+                thinkingIndicator.classList.add('hidden');
+                if (pendingMessageContainer) {
+                    const bubble = pendingMessageContainer.querySelector('.message-bubble');
+                    appendToolArtifact(bubble, data);
+                }
+            } else if (data.type === 'graph_node' || data.type === 'node_created') {
+                // 显示节点创建通知（兼容两种事件类型）
+                console.log('Node created:', data.label);
+                
+                // 在右侧侧边栏添加节点创建提示
+                const sidebarContent = document.querySelector('.sidebar-content');
+                if (sidebarContent) {
+                    // 检查是否已有节点创建区域
+                    let nodeCreatedArea = document.getElementById('node-created-area');
+                    if (!nodeCreatedArea) {
+                        // 创建节点创建区域
+                        const promotePanel = document.getElementById('promote-panel');
+                        if (promotePanel) {
+                            nodeCreatedArea = document.createElement('div');
+                            nodeCreatedArea.id = 'node-created-area';
+                            nodeCreatedArea.className = 'mt-4';
+                            nodeCreatedArea.innerHTML = '<div class="sidebar-header">知识图谱节点</div><div id="created-nodes-list" class="space-y-2 mb-2"></div>';
+                            promotePanel.parentElement.insertBefore(nodeCreatedArea, promotePanel.nextSibling);
+                        }
+                    }
+                    
+                    // 添加新创建的节点到列表
+                    const createdNodesList = document.getElementById('created-nodes-list');
+                    if (createdNodesList) {
+                        const nodeItem = document.createElement('div');
+                        nodeItem.className = 'flex items-center gap-2 p-2 rounded-lg bg-white/5';
+                        nodeItem.innerHTML = `
+                            <span class="text-sm text-white">${data.label}</span>
+                            <a href="/integration/${projectId}" class="text-xs text-[#0071e3] hover:underline ml-auto">{{ t('teaching.view-in-graph') }}</a>
+                        `;
+                        createdNodesList.insertBefore(nodeItem, createdNodesList.firstChild);
+                    }
+                }
+            } else if (data.type === 'done') {
+                thinkingIndicator.classList.add('hidden');
+                eventSource.close();
+                pendingMessageContainer = null;
+                pendingMarkdownContent = '';  // Reset markdown content
+            }
+        } catch (e) {
+            console.error('Error parsing SSE message:', e);
+        }
+    });
+
+    eventSource.onerror = function() {
+        thinkingIndicator.classList.add('hidden');
+        eventSource.close();
+        pendingMessageContainer = null;
+        pendingMarkdownContent = '';  // Reset markdown content
+    };
+}
+
+// 工具调用 Artifact 显示
+// 数据保存在 bubble.__toolArtifacts 中，markdown 重渲染后通过 renderStoredToolArtifacts 恢复，
+// 避免 artifact 在 renderMarkdown 重置 innerHTML 时被清除
+function getToolArtifactData(bubble) {
+    if (!bubble.__toolArtifacts) {
+        bubble.__toolArtifacts = [];
+    }
+    return bubble.__toolArtifacts;
+}
+
+function renderStoredToolArtifacts(bubble) {
+    const dataList = getToolArtifactData(bubble);
+    if (!dataList.length) return;
+    let wrapper = bubble.querySelector('.tool-artifacts-wrapper');
+    if (!wrapper) {
+        wrapper = document.createElement('div');
+        wrapper.className = 'tool-artifacts-wrapper';
+        bubble.appendChild(wrapper);
+    }
+    wrapper.innerHTML = '';
+    dataList.forEach(item => {
+        const artifact = createToolArtifact(
+            item.name,
+            item.arguments,
+            item.result,
+            item.iteration || '0',
+            item.timestamp || ''
+        );
+        wrapper.appendChild(artifact);
+    });
+}
+
+function appendToolArtifact(bubble, data) {
+    const dataList = getToolArtifactData(bubble);
+
+    if (data.name) {
+        // 通用 tool_call 事件：名称 + 参数 + 结果
+        dataList.push({
+            name: data.name,
+            arguments: typeof data.arguments === 'string' ? data.arguments : JSON.stringify(data.arguments || {}),
+            result: typeof data.result === 'string' ? data.result : (data.result ? JSON.stringify(data.result) : ''),
+            iteration: data.iteration || '0',
+            timestamp: data.timestamp || ''
+        });
+    } else {
+        // 兼容旧的图操作事件类型（graph_nodes / graph_node / graph_edges / node_edges / graph_edge 等）
+        const typeMap = {
+            'graph_nodes': 'get_graph_nodes',
+            'graph_node': 'create_graph_node',
+            'graph_edges': 'get_graph_edges',
+            'node_edges': 'get_node_edges',
+            'graph_edge': 'create_graph_edge',
+            'graph_node_update': 'update_graph_node',
+            'graph_node_delete': 'delete_graph_node',
+            'graph_edge_delete': 'delete_graph_edge',
+            'virtual_graph': 'create_virtual_graph'
+        };
+        const toolName = typeMap[data.type] || data.type;
+        let args = {};
+        let result = {};
+        if (data.nodes) {
+            result = {nodes: data.nodes};
+        } else if (data.node) {
+            result = {node: data.node};
+        } else if (data.edges) {
+            result = {edges: data.edges};
+        } else if (data.source) {
+            args = {source: data.source, target: data.target};
+            result = {source: data.source, target: data.target};
+        } else if (data.label) {
+            args = {label: data.label};
+            result = {label: data.label};
+        }
+        if (data.content) result.content = data.content;
+        dataList.push({
+            name: toolName,
+            arguments: JSON.stringify(args),
+            result: JSON.stringify(result),
+            iteration: data.iteration || '0',
+            timestamp: data.timestamp || ''
+        });
+    }
+
+    renderStoredToolArtifacts(bubble);
+    messagesList.scrollTop = messagesList.scrollHeight;
+}
+
+function toggleArtifact(artifact) {
+    artifact.classList.toggle('tool-artifact-collapsed');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function appendMessage(role, content, messageId = null) {
+    const container = document.createElement('div');
+    container.className = `message-container message-${role}`;
+    if (messageId) {
+        container.dataset.messageId = messageId;
+        container.dataset.branchId = 'main';
+    }
+    
+    let html = `
+        <div class="message-bubble-wrapper">
+            <div class="message-bubble" onclick="${role === 'user' ? `startEdit('${messageId || 'new'}')` : ''}" contenteditable="false">${content}</div>
+        </div>
+        <div class="message-actions">
+            ${role === 'user' ? `
+            <button class="action-btn" onclick="startEdit('${messageId || 'new'}')">{{ t('common.edit') }}</button>
+            ` : ''}
+            <button class="action-btn" onclick="copyMessage('${messageId || 'new'}')">{{ t('common.copy') }}</button>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+    messagesList.appendChild(container);
+    messagesList.scrollTop = messagesList.scrollHeight;
+}
+
+function addTag(name, type) {
+    const tagsContainer = document.getElementById('tags-container');
+    const tagClass = type === 'concept' ? 'concept-tag' : 'misconception-tag';
+    
+    const existingTags = tagsContainer.querySelectorAll(`.${tagClass}`);
+    for (const tag of existingTags) {
+        if (tag.textContent === name) {
+            return;
+        }
+    }
+    
+    const tag = document.createElement('span');
+    tag.className = tagClass;
+    tag.textContent = name;
+    tagsContainer.querySelector('.flex').appendChild(tag);
+}
+
+function updateProgress() {
+    fetch(`/api/teaching/sessions/{{ session_id }}/progress`)
+    .then(response => response.json())
+    .then(data => {
+        const progressFill = document.querySelector('.progress-fill');
+        const progressText = document.getElementById('progress-text');  // 使用ID选择器，避免选错元素
+        if (progressFill) {
+            progressFill.style.width = `${data.percent}%`;
+        }
+        if (progressText) {
+            progressText.textContent = `${data.completed}/${data.total}`;
+        }
+
+        // 如果所有概念都已掌握，显示完成状态
+        if (data.total > 0 && data.completed >= data.total) {
+            const progressLabel = document.querySelector('#progress-text-container span:first-child');
+            if (progressLabel) {
+                progressLabel.textContent = '{{ t("teaching.progress-done") }}';
+            }
+        }
+    }).catch(err => {
+        console.error('Error updating progress:', err);
+    });
+}
+
+function copyMessage(messageId) {
+    const container = document.querySelector(`[data-message-id="${messageId}"]`);
+    if (!container) return;
+    
+    const bubble = container.querySelector('.message-bubble');
+    if (!bubble) return;
+    
+    navigator.clipboard.writeText(bubble.textContent).then(() => {
+        const actionBtn = container.querySelector('.action-btn');
+        if (actionBtn) {
+            actionBtn.style.color = '#00ff00';
+            setTimeout(() => {
+                actionBtn.style.color = '';
+            }, 2000);
+        }
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
+}
+
+function startEdit(messageId) {
+    const container = document.querySelector(`[data-message-id="${messageId}"]`);
+    if (!container) return;
+    
+    if (currentEditId === messageId) return;
+    
+    if (currentEditId) {
+        cancelEdit(currentEditId);
+    }
+    
+    const bubble = container.querySelector('.message-bubble');
+    if (!bubble) return;
+    
+    const content = bubble.textContent;
+    
+    const textarea = document.createElement('textarea');
+    textarea.className = 'edit-textarea';
+    textarea.value = content;
+    textarea.style.minHeight = '80px';
+    
+    bubble.replaceWith(textarea);
+    
+    const editActions = document.createElement('div');
+    editActions.className = 'edit-actions';
+    editActions.innerHTML = `
+        <button class="btn-secondary text-xs" onclick="saveEdit('${messageId}')">{{ t('common.save') }}</button>
+        <button class="btn-secondary text-xs" onclick="cancelEdit('${messageId}')">{{ t('common.cancel') }}</button>
+    `;
+    
+    container.appendChild(editActions);
+    
+    textarea.focus();
+    currentEditId = messageId;
+}
+
+function saveEdit(messageId) {
+    const container = document.querySelector(`[data-message-id="${messageId}"]`);
+    if (!container) return;
+    
+    const textarea = container.querySelector('.edit-textarea');
+    if (!textarea) return;
+    
+    const newContent = textarea.value.trim();
+    if (!newContent) return;
+    
+    const messageContainers = document.querySelectorAll('.message-container');
+    const currentIndex = Array.from(messageContainers).findIndex(c => c.dataset.messageId === messageId);
+    const hasMessagesBelow = currentIndex < messageContainers.length - 1;
+    
+    if (hasMessagesBelow) {
+        showConfirmModal(messageId, newContent);
+    } else {
+        performSave(messageId, newContent);
+    }
+}
+
+function showConfirmModal(messageId, newContent) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-title">{{ t('teaching.confirm-edit') }}</div>
+            <div class="modal-body">{{ t('teaching.confirm-edit-body') }}</div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal()">{{ t('common.cancel') }}</button>
+                <button class="btn-primary" onclick="confirmSave('${messageId}', '${escapeForJs(newContent)}')">{{ t('common.confirm') }}</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function escapeForJs(text) {
+    return text
+        .replace(/\\/g, '\\\\')  // 转义反斜杠
+        .replace(/'/g, "\\'")    // 转义单引号
+        .replace(/"/g, '\\"')    // 转义双引号
+        .replace(/\n/g, '\\n')   // 转义换行
+        .replace(/\r/g, '\\r')   // 转义回车
+        .replace(/\t/g, '\\t');  // 转义制表符
+}
+
+function closeModal() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function confirmSave(messageId, newContent) {
+    closeModal();
+    performSave(messageId, newContent);
+}
+
+function performSave(messageId, newContent) {
+    // 找到当前编辑的消息容器
+    const container = document.querySelector(`[data-message-id="${messageId}"]`);
+    if (!container) return;
+    
+    // 移除该消息之后的所有消息
+    const allMessages = Array.from(messagesList.querySelectorAll('.message-container'));
+    const currentIndex = allMessages.findIndex(m => m.dataset.messageId === messageId);
+    
+    if (currentIndex >= 0 && currentIndex < allMessages.length - 1) {
+        // 移除后面的所有消息
+        for (let i = currentIndex + 1; i < allMessages.length; i++) {
+            allMessages[i].remove();
+        }
+    }
+    
+    // 恢复编辑的消息为普通文本(不再是textarea)
+    const textarea = container.querySelector('.edit-textarea');
+    if (textarea) {
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.textContent = newContent;
+        bubble.setAttribute('onclick', `startEdit('${messageId}')`);
+        bubble.contentEditable = 'false';
+        textarea.replaceWith(bubble);
+    }
+    
+    // 移除编辑按钮
+    const editActions = container.querySelector('.edit-actions');
+    if (editActions) {
+        editActions.remove();
+    }
+    
+    // 重置编辑状态
+    currentEditId = null;
+    
+    // 发送请求更新消息
+    fetch(`/api/teaching/sessions/{{ session_id }}/messages/${messageId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newContent })
+    }).then(response => response.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            // 显示 thinking indicator
+            thinkingIndicator.classList.remove('hidden');
+            
+            // 创建 pending 容器用于接收流式响应
+            pendingMessageContainer = document.createElement('div');
+            pendingMessageContainer.className = 'message-container message-assistant';
+            pendingMessageContainer.innerHTML = `
+                <div class="message-bubble-wrapper">
+                    <div class="message-bubble markdown-content"></div>
+                </div>
+                <div class="message-actions">
+                    <button class="action-btn" onclick="copyMessage('pending')">{{ t('common.copy') }}</button>
+                </div>
+            `;
+            messagesList.appendChild(pendingMessageContainer);
+            pendingMarkdownContent = '';  // Reset markdown content
+            
+            // 连接 SSE 流来接收重新生成的消息
+            connectStream('{{ session_id }}', '{{ project_id }}');
+        }
+    }).catch(err => {
+        console.error('Error updating message:', err);
+        // 如果出错,恢复原来的页面状态
+        window.location.reload();
+    });
+}
+
+function cancelEdit(messageId) {
+    const container = document.querySelector(`[data-message-id="${messageId}"]`);
+    if (!container) return;
+    
+    const textarea = container.querySelector('.edit-textarea');
+    if (!textarea) return;
+    
+    const content = textarea.value;
+    
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    bubble.textContent = content;
+    bubble.setAttribute('onclick', `startEdit('${messageId}')`);
+    bubble.contentEditable = 'false';
+    
+    textarea.replaceWith(bubble);
+    
+    const editActions = container.querySelector('.edit-actions');
+    if (editActions) {
+        editActions.remove();
+    }
+    
+    currentEditId = null;
+}
+
+
+
+messageForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const content = messageInput.value.trim();
+    if (!content) return;
+    
+    appendMessage('user', content);
+    messageInput.value = '';
+    
+    fetch(`/api/teaching/sessions/{{ session_id }}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, session_id: '{{ session_id }}', project_id: '{{ project_id }}' })
+    }).then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Failed to send message');
+        }
+    }).then(data => {
+        if (data.message_id) {
+            const lastMessage = messagesList.lastElementChild;
+            if (lastMessage) {
+                lastMessage.dataset.messageId = data.message_id;
+                // 更新按钮 onclick 中的占位 id 'new' 为真实 message_id，
+                // 否则点击编辑/复制按钮时 startEdit('new') 找不到容器而无反应
+                lastMessage.querySelectorAll('.action-btn').forEach(btn => {
+                    const onclick = btn.getAttribute('onclick');
+                    if (onclick && onclick.includes("startEdit('new')")) {
+                        btn.setAttribute('onclick', `startEdit('${data.message_id}')`);
+                    } else if (onclick && onclick.includes("copyMessage('new')")) {
+                        btn.setAttribute('onclick', `copyMessage('${data.message_id}')`);
+                    }
+                });
+                const bubble = lastMessage.querySelector('.message-bubble');
+                if (bubble) {
+                    const bonclick = bubble.getAttribute('onclick');
+                    if (bonclick && bonclick.includes("startEdit('new')")) {
+                        bubble.setAttribute('onclick', `startEdit('${data.message_id}')`);
+                    }
+                }
+            }
+        }
+        connectStream('{{ session_id }}', '{{ project_id }}');
+    }).catch(err => {
+        console.error('Error sending message:', err);
+    });
+});
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = sidebar.querySelector('.sidebar-toggle svg path');
+    if (sidebar.classList.contains('collapsed')) {
+        sidebar.classList.remove('collapsed');
+        toggleBtn.setAttribute('d', 'M9 18l6-6-6-6');
+    } else {
+        sidebar.classList.add('collapsed');
+        toggleBtn.setAttribute('d', 'M15 18l-6-6 6-6');
+    }
+}
+
+function endSession() {
+    if (eventSource) {
+        eventSource.close();
+    }
+    window.location.href = `/teaching/{{ project_id }}`;
+}
+
+function promoteConcepts() {
+    const checkboxes = document.querySelectorAll('.promote-checkbox:checked');
+    const conceptIds = Array.from(checkboxes).map(cb => cb.value);
+    if (conceptIds.length === 0) return;
+
+    const btn = document.querySelector('[onclick="promoteConcepts()"]');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    btn.textContent = '{{ t("teaching.promoting") }}...';
+
+    fetch(`/api/teaching/sessions/{{ session_id }}/promote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ concept_ids: conceptIds })
+    }).then(r => r.json()).then(data => {
+        if (data.status === 'ok') {
+            // 动态移除已沉淀的概念的checkbox项
+            checkboxes.forEach(cb => {
+                const label = cb.closest('label');
+                if (label) label.remove();
+            });
+
+            // 更新promote计数显示
+            const remainingCount = document.querySelectorAll('.promote-checkbox').length;
+            const promoteCountEl = document.getElementById('promote-count');
+            if (promoteCountEl) promoteCountEl.textContent = '0';
+
+            // 如果所有概念都已沉淀，显示完成消息
+            const promoteConceptsList = document.getElementById('promote-concepts');
+            if (remainingCount === 0) {
+                const countText = '{{ t("teaching.promoted-count") }}'.replace('{}', data.promoted_count);
+                promoteConceptsList.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="text-[#0071e3] text-lg font-medium mb-2">{{ t('teaching.promote-success') }}</div>
+                        <div class="text-white/50 text-sm mb-4">${countText}</div>
+                        <a href="/integration/{{ project_id }}" class="btn-primary text-sm px-5 py-2 inline-block">{{ t('teaching.go-to-graph') }}</a>
+                    </div>`;
+                // 移除按钮（因为已经没有可沉淀的概念了）
+                btn.remove();
+            } else {
+                // 还有未沉淀的概念，显示部分成功消息
+                const countText = '{{ t("teaching.promoted-count") }}'.replace('{}', data.promoted_count);
+                // 可以添加一个toast提示，但不改变整个面板
+                alert(countText + '\n剩余 ' + remainingCount + ' 个概念待沉淀。');
+            }
+
+            // 更新进度（promoted也算已完成）
+            updateProgress();
+
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.innerHTML = originalText;
+        } else {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.innerHTML = originalText;
+            alert(data.detail || '{{ t("teaching.promote-failed") }}');
+        }
+    }).catch(err => {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.innerHTML = originalText;
+        console.error('Promote error:', err);
+    });
+}
+
+// Update promote count when checkboxes change
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.promote-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const count = document.querySelectorAll('.promote-checkbox:checked').length;
+            const el = document.getElementById('promote-count');
+            if (el) el.textContent = count;
+        });
+    });
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && currentEditId) {
+        cancelEdit(currentEditId);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Render markdown for all assistant messages
+    document.querySelectorAll('.message-assistant .message-bubble.markdown-content').forEach((bubble) => {
+        const content = bubble.textContent;
+        renderMarkdown(content, bubble);
+    });
+
+    messagesList.scrollTop = messagesList.scrollHeight;
+
+    // 检查学习进度并更新UI（包括完成状态）
+    updateProgress();
+});
+    </script>
+</body>
+</html>

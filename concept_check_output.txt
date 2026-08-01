@@ -1,0 +1,77 @@
+Database concept data (mastered concepts):
+================================================================================
+
+Concept #1:
+  ID: c2ab3eda-8d5d-4315-a4f8-d4e06ab3ceb4
+  Session ID: f3bf38b3-c282-4909-8e43-2cae49c556c5
+  Name: "正弦函数"
+  Description: "None"
+  Status: mastered
+
+Concept #2:
+  ID: ed14f2cb-af30-4dfa-a86a-e195894526af
+  Session ID: 8749832d-3684-47ed-8146-1fe9c183a609
+  Name: "正弦函数"
+  Description: "None"
+  Status: mastered
+
+Concept #3:
+  ID: f4fc0a3c-d6c2-4687-9948-44bb3972ccd1
+  Session ID: 66c9b316-d3e0-4b6f-b2d8-e5c1b6b08685
+  Name: "正弦函数"
+  Description: "用户从直角三角形中正弦的定义（对边比斜边）讲起，然后引入单位圆定义法将其推广到任意角，指出定义域扩展至全体实数并通过纵坐标符号解释正负变化。最后讨论了正弦函数的周期2π和对称性sin(π-θ)=sinθ。"
+  Status: mastered
+
+Concept #4:
+  ID: da406f06-6ea4-40e2-b9fc-a3d0f59f8568
+  Session ID: 66c9b316-d3e0-4b6f-b2d8-e5c1b6b08685
+  Name: "余弦函数"
+  Description: "余弦函数在直角三角形中定义为邻边比斜边，推广到单位圆上定义为终边与单位圆交点的横坐标x。具有偶函数性质cos(-θ)=cosθ，以及对称性cos(π-θ)=-cosθ，周期为2π。"
+  Status: mastered
+
+Concept #5:
+  ID: 9d00cc46-722d-451b-bab8-c6eaed6411a4
+  Session ID: e4a3ae64-2e98-4f7b-874a-ba6bba579cf4
+  Name: "正弦与余弦函数"
+  Description: "用户正确讲解了正弦和余弦在直角三角形中的定义：sin A = 对边/斜边 = BC/AB，cos A = 邻边/斜边 = AC/AB（∠C为直角）。两个定义均准确无误。"
+  Status: mastered
+
+Concept #6:
+  ID: 47ccba54-4153-4b94-991f-da85835f929e
+  Session ID: 1856fbb4-7a07-4a8f-9e7e-379917ff1365
+  Name: "sin函数"
+  Description: "用户讲解了sin函数的定义（锐角用对边/斜边，任意角用单位圆y坐标）、关键值（0,1,0,-1）、周期2π、应用场景（交流电、声波、弹簧振动）以及与其他三角函数的关系（sin²+cos²=1, tan=sin/cos, 余角互余）"
+  Status: mastered
+
+Concept #7:
+  ID: a456bed5-5073-4976-84a3-83b0719f87a9
+  Session ID: 779ddcc0-dc06-4568-8b0a-20881493e33a
+  Name: "正弦函数（sin）"
+  Description: "用户清晰讲解了sin函数的定义（对边/斜边，单位圆中纵坐标）、值域[-1,1]由单位圆半径=1决定、周期2π、物理应用（简谐运动、交流电）、工程应用（波浪、信号处理）、生活应用（潮汐、声波）、与cos的关系（相位差π/2，sin²x+cos²x=1，sin(x)=cos(π/2-x)）、0°→90°变化规律（从0到1，导数cos递减导致增速先快后慢）"
+  Status: mastered
+
+================================================================================
+Sample learning concepts:
+
+Learning Concept #1:
+  Name: "正弦函数"
+  Description: "在直角三角形中，正弦函数定义为对边与斜边的比值，记作 sin(θ)。"
+
+Learning Concept #2:
+  Name: "余弦函数"
+  Description: "在直角三角形中，余弦函数定义为邻边与斜边的比值，记作 cos(θ)。"
+
+Learning Concept #3:
+  Name: "正切函数"
+  Description: "在直角三角形中，正切函数定义为对边与邻边的比值，记作 tan(θ)，也等于 sin(θ)/cos(θ)。"
+
+Learning Concept #4:
+  Name: "余切函数"
+  Description: "在直角三角形中，余切函数定义为邻边与对边的比值，记作 cot(θ)，也等于 cos(θ)/sin(θ)。"
+
+Learning Concept #5:
+  Name: "正割函数"
+  Description: "正割函数定义为余弦函数的倒数，记作 sec(θ) = 1/cos(θ)。"
+
+================================================================================
+Check completed.

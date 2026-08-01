@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.name }} - R6AX:/Learn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <style>
+        :root {
+            --apple-blue: #0071e3;
+            --black: #000000;
+            --dark-gray: #1a1a1a;
+            --near-black: #0d0d0d;
+            --white: #ffffff;
+            --light-gray: #2a2a2a;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --text-disabled: rgba(255, 255, 255, 0.4);
+            --link-blue: #2997ff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--near-black);
+            color: var(--white);
+        }
+
+        .nav-glass {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card {
+            background-color: var(--dark-gray);
+            border-radius: 8px;
+            box-shadow: rgba(0, 0, 0, 0.5) 3px 5px 30px 0px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item {
+            display: block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background-color 0.15s ease;
+        }
+
+        .nav-item.active {
+            background-color: rgba(0, 113, 227, 0.2);
+            color: #0071e3;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-[#0d0d0d]">
+    <nav class="nav-glass fixed top-0 left-0 right-0 h-12 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="/" class="text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
+                <a href="/projects" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('nav.projects') }}</a>
+                <span class="text-white/40">/</span>
+                <a href="/projects/{{ project.id }}" class="text-white/80 hover:text-white text-sm transition-colors">{{ project.name }}</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-white/80 text-sm">{{ user.username }}</span>
+                <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+        <div class="mb-8">
+            <h1 class="text-2xl font-semibold text-white">{{ project.name }}</h1>
+            {% if project.description %}
+            <p class="text-white/60 mt-2">{{ project.description }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="lg:col-span-1">
+                <div class="card p-6">
+                    <h3 class="text-lg font-medium text-white mb-4">{{ t('nav.navigation') }}</h3>
+                    <nav class="space-y-2">
+                        <a href="/input/{{ project.id }}" class="nav-item active">📝 {{ t('input.notes') }}</a>
+                        <a href="/teaching/{{ project.id }}" class="nav-item text-white/80">🎓 {{ t('teaching.session') }}</a>
+                        <a href="/practice/{{ project.id }}" class="nav-item text-white/80">📚 {{ t('practice.practice') }}</a>
+                        <a href="/integration/{{ project.id }}" class="nav-item text-white/80">🧠 {{ t('integration.graph') }}</a>
+                    </nav>
+                </div>
+                
+                <div class="card p-6 mt-6">
+                    <h3 class="text-lg font-medium text-white mb-4">{{ t('project.stats') }}</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between">
+                            <span class="text-white/60">{{ t('input.notes') }}</span>
+                            <span class="font-medium text-white">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-white/60">{{ t('teaching.session') }}</span>
+                            <span class="font-medium text-white">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-white/60">{{ t('practice.practice') }}</span>
+                            <span class="font-medium text-white">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-white/60">{{ t('integration.graph') }}</span>
+                            <span class="font-medium text-white">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-3">
+                <div class="card p-6">
+                    <h3 class="text-lg font-medium text-white mb-4">{{ t('project.quick-start') }}</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-4 p-4 bg-blue-900/30 rounded-lg border border-blue-500/20">
+                            <div class="text-2xl">1️⃣</div>
+                            <div>
+                                <h4 class="font-medium text-white">{{ t('project.step-1') }}</h4>
+                                <p class="text-white/60 text-sm">{{ t('project.step-1-desc') }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4 p-4 bg-green-900/30 rounded-lg border border-green-500/20">
+                            <div class="text-2xl">2️⃣</div>
+                            <div>
+                                <h4 class="font-medium text-white">{{ t('project.step-2') }}</h4>
+                                <p class="text-white/60 text-sm">{{ t('project.step-2-desc') }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4 p-4 bg-purple-900/30 rounded-lg border border-purple-500/20">
+                            <div class="text-2xl">3️⃣</div>
+                            <div>
+                                <h4 class="font-medium text-white">{{ t('project.step-3') }}</h4>
+                                <p class="text-white/60 text-sm">{{ t('project.step-3-desc') }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4 p-4 bg-orange-900/30 rounded-lg border border-orange-500/20">
+                            <div class="text-2xl">4️⃣</div>
+                            <div>
+                                <h4 class="font-medium text-white">{{ t('project.step-4') }}</h4>
+                                <p class="text-white/60 text-sm">{{ t('project.step-4-desc') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

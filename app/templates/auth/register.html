@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('auth.register') }} - R6AX:/Learn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-blue-600">R6AX:/Learn</h1>
+                <p class="text-gray-500 mt-2">{{ t('home.title') }}</p>
+            </div>
+            
+            {% if error %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                    {{ error }}
+                </div>
+            {% endif %}
+            
+            <form action="/register" method="post">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">{{ t('auth.username') }}</label>
+                    <input type="text" name="username" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">{{ t('auth.password') }}</label>
+                    <input type="password" name="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">{{ t('auth.password.confirm') }}</label>
+                    <input type="password" name="confirm_password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                    {{ t('auth.register') }}
+                </button>
+            </form>
+            
+            <p class="text-center mt-6 text-gray-600">
+                {{ t('auth.login') }}? <a href="/login" class="text-blue-600 hover:underline">{{ t('auth.login') }}</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('input.notes') }} - R6AX:/Learn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <!-- Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- KaTeX for math formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <!-- Mermaid for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --apple-blue: #0071e3;
+            --black: #000000;
+            --card-dark: #272729;
+            --card-dark-alt: #2a2a2d;
+            --white: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-disabled: rgba(255, 255, 255, 0.4);
+            --link-blue: #2997ff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--black);
+            color: var(--white);
+        }
+
+        .nav-glass {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--apple-blue);
+            color: var(--white);
+            font-size: 14px;
+            font-weight: 400;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0077ed;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--white);
+            font-size: 14px;
+            font-weight: 400;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-danger {
+            background-color: #ff3b30;
+            color: var(--white);
+            font-size: 14px;
+            font-weight: 400;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-danger:hover {
+            background-color: #ff453a;
+        }
+
+        .card {
+            background-color: var(--card-dark);
+            border-radius: 8px;
+            box-shadow: rgba(0, 0, 0, 0.22) 3px 5px 30px 0px;
+            border: none;
+        }
+
+        .link-text {
+            color: var(--link-blue);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .link-text:hover {
+            text-decoration: underline;
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+        }
+
+        .modal-content {
+            background-color: var(--card-dark);
+            border-radius: 12px;
+            border: none;
+        }
+
+        .input-field {
+            background-color: var(--card-dark-alt);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 14px;
+            color: var(--white);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border: 2px solid var(--apple-blue);
+        }
+
+        /* Markdown content styles */
+        .markdown-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .markdown-content h1, .markdown-content h2, .markdown-content h3,
+        .markdown-content h4, .markdown-content h5, .markdown-content h6 {
+            color: var(--white);
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+
+        .markdown-content h1 { font-size: 1.5em; }
+        .markdown-content h2 { font-size: 1.3em; }
+        .markdown-content h3 { font-size: 1.1em; }
+
+        .markdown-content p { margin-bottom: 0.5em; }
+
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 1.5em;
+            margin-bottom: 0.5em;
+        }
+
+        .markdown-content li { margin-bottom: 0.25em; }
+
+        .markdown-content code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .markdown-content pre {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 0.5em;
+        }
+
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+
+        .markdown-content blockquote {
+            border-left: 3px solid var(--apple-blue);
+            padding-left: 1em;
+            margin-left: 0;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .markdown-content a {
+            color: var(--link-blue);
+            text-decoration: underline;
+        }
+
+        .markdown-content table {
+            border-collapse: collapse;
+            margin-bottom: 0.5em;
+        }
+
+        .markdown-content th, .markdown-content td {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.5em;
+        }
+
+        .markdown-content th {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* KaTeX styles for dark theme */
+        .katex {
+            color: var(--white);
+        }
+
+        /* Mermaid diagram styles */
+        .mermaid {
+            background-color: transparent;
+        }
+
+        /* Note card expanded content */
+        .note-card {
+            padding: 1rem;
+        }
+
+        .note-card .note-content {
+            max-height: none;
+            overflow: visible;
+        }
+
+        /* Preview panel styles */
+        .preview-panel {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-black">
+    <nav class="nav-glass fixed top-0 left-0 right-0 h-12 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+            <div class="flex items-center space-x-6">
+                <a href="/" class="text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
+                <a href="/projects" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('nav.projects') }}</a>
+                <span class="text-white/40">/</span>
+                <a href="/projects/{{ project.id }}" class="text-white/80 hover:text-white text-sm transition-colors">{{ project.name }}</a>
+                <span class="text-white/40">/</span>
+                <span class="text-white/80 text-sm">{{ t('input.notes') }}</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-white/80 text-sm">{{ user.username }}</span>
+                <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="lg:col-span-1">
+                <div class="card p-4">
+                    <h3 class="text-lg font-medium text-white mb-4">{{ t('input.directories') }}</h3>
+                    <div class="space-y-2">
+                        <button onclick="document.getElementById('create-dir-modal').style.display = 'flex'" class="w-full px-4 py-2 bg-blue-900/30 text-blue-400 rounded-lg text-left hover:bg-blue-900/50 transition-colors">
+                            + {{ t('input.create-directory') }}
+                        </button>
+                        
+                        <div class="border-t border-white/10 pt-2 mt-2">
+                            <div id="directory-tree" hx-get="/api/input/directories/{{ project.id }}" hx-trigger="load">
+                                <div class="text-white/40 text-sm italic">
+                                    {{ t('input.no-directories') }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-3">
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-white">{{ current_dir.name if current_dir else t('input.all-notes') }}</h2>
+                        <button onclick="document.getElementById('create-note-modal').style.display = 'flex'" class="btn-primary">
+                            + {{ t('input.create-note') }}
+                        </button>
+                    </div>
+                    
+                    <div id="note-list" class="space-y-4">
+                        <div class="text-center text-white/40 py-12">
+                            {% if not current_dir %}
+                                {{ t('input.select-dir') }}
+                            {% else %}
+                                {{ t('input.no-notes') }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div id="create-dir-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50">
+        <div class="modal-content p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-white">{{ t('input.create-directory') }}</h2>
+                <button onclick="document.getElementById('create-dir-modal').style.display = 'none'"
+                        class="text-white/40 hover:text-white text-2xl leading-none transition-colors">
+                    &times;
+                </button>
+            </div>
+            <form hx-post="/api/input/directories" hx-target="#directory-tree" hx-swap="innerHTML" hx-on::after-request="document.getElementById('create-dir-modal').style.display = 'none'">
+                <input type="hidden" name="project_id" value="{{ project.id }}">
+                <div class="mb-4">
+                    <label class="block text-white/80 text-sm font-medium mb-2">{{ t('project.name') }}</label>
+                    <input type="text" name="name" class="input-field w-full" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-white/80 text-sm font-medium mb-2">{{ t('project.description') }}（可选）</label>
+                    <textarea name="description" class="input-field w-full" rows="3"></textarea>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="button" onclick="document.getElementById('create-dir-modal').style.display = 'none'" class="btn-secondary flex-1">
+                        {{ t('common.cancel') }}
+                    </button>
+                    <button type="submit" class="btn-primary flex-1">
+                        {{ t('common.save') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="confirm-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50">
+        <div class="modal-content p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="confirm-modal-title" class="text-xl font-semibold text-white">确认删除</h2>
+                <button onclick="document.getElementById('confirm-modal').style.display = 'none'"
+                        class="text-white/40 hover:text-white text-2xl leading-none transition-colors">
+                    &times;
+                </button>
+            </div>
+            <p id="confirm-modal-message" class="text-white/80 mb-6">确定要删除吗？</p>
+            <div class="flex space-x-4">
+                <button onclick="document.getElementById('confirm-modal').style.display = 'none'" class="btn-secondary flex-1">
+                    {{ t('common.cancel') }}
+                </button>
+                <button id="confirm-delete-btn" class="btn-danger flex-1">
+                    {{ t('common.delete') }}
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="create-note-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50">
+        <div class="modal-content p-6 w-full max-w-5xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-white">{{ t('input.create-note') }}</h2>
+                <button onclick="document.getElementById('create-note-modal').style.display = 'none'"
+                        class="text-white/40 hover:text-white text-2xl leading-none transition-colors">
+                    &times;
+                </button>
+            </div>
+            <form id="create-note-form" hx-post="/api/input/notes" hx-target="#note-list" hx-swap="innerHTML" hx-on::after-request="document.getElementById('create-note-modal').style.display = 'none'; document.getElementById('create-note-form').reset(); renderAllNotes();">
+                <input type="hidden" name="directory_id" value="{{ current_dir.id if current_dir else '' }}">
+                <div class="mb-4">
+                    <label class="block text-white/80 text-sm font-medium mb-2">{{ t('input.note-title') }}</label>
+                    <input type="text" name="title" class="input-field w-full" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-white/80 text-sm font-medium mb-2">{{ t('input.note-content') }}</label>
+                        <textarea id="note-content-input" name="content" class="input-field w-full h-80 font-mono text-sm" rows="16" placeholder="{{ t('input.note-content-placeholder') }}" oninput="updatePreview()"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-white/80 text-sm font-medium mb-2">{{ t('input.preview') }}</label>
+                        <div id="note-preview" class="markdown-content w-full h-80 overflow-y-auto p-4 bg-[#1a1a1a] rounded-lg border border-white/10"></div>
+                    </div>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="button" onclick="document.getElementById('create-note-modal').style.display = 'none'" class="btn-secondary flex-1">
+                        {{ t('common.cancel') }}
+                    </button>
+                    <button type="submit" class="btn-primary flex-1">
+                        {{ t('common.save') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="edit-note-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50">
+        <div class="modal-content p-6 w-full max-w-5xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-white">{{ t('input.edit-note') }}</h2>
+                <button onclick="document.getElementById('edit-note-modal').style.display = 'none'"
+                        class="text-white/40 hover:text-white text-2xl leading-none transition-colors">
+                    &times;
+                </button>
+            </div>
+            <form id="edit-note-form">
+                <input type="hidden" id="edit-note-id" name="note_id">
+                <div class="mb-4">
+                    <label class="block text-white/80 text-sm font-medium mb-2">{{ t('input.note-title') }}</label>
+                    <input type="text" id="edit-note-title" name="title" class="input-field w-full" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-white/80 text-sm font-medium mb-2">{{ t('input.note-content') }}</label>
+                        <textarea id="edit-note-content" name="content" class="input-field w-full h-80 font-mono text-sm" rows="16" placeholder="{{ t('input.note-content-placeholder') }}" oninput="updateEditPreview()"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-white/80 text-sm font-medium mb-2">{{ t('input.preview') }}</label>
+                        <div id="edit-note-preview" class="markdown-content w-full h-80 overflow-y-auto p-4 bg-[#1a1a1a] rounded-lg border border-white/10"></div>
+                    </div>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="button" onclick="document.getElementById('edit-note-modal').style.display = 'none'" class="btn-secondary flex-1">
+                        {{ t('common.cancel') }}
+                    </button>
+                    <button type="button" onclick="submitEditNote()" class="btn-primary flex-1">
+                        {{ t('common.save') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+<script>
+        let pendingDeleteDirectoryId = null;
+
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            securityLevel: 'loose'
+        });
+
+        // Configure marked for Markdown
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        // Render Markdown with KaTeX and Mermaid support
+        function renderMarkdown(content, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // Step 1: Protect all math formulas from Markdown parsing
+            // This prevents marked from swallowing backslashes inside formulas
+            const mathBlocks = [];
+            let protectedContent = content;
+
+            // First, convert LaTeX delimiters and store math blocks
+            protectedContent = protectedContent
+                .replace(/\\\((.*?)\\\)/g, function(match, inner) {
+                    // Convert \(...\) to $...$ and store in array
+                    const index = mathBlocks.length;
+                    mathBlocks.push('$' + inner + '$');
+                    return `MATHBLOCK${index}ENDBLOCK`;
+                })
+                .replace(/\\\[(.*?)\\\]/g, function(match, inner) {
+                    // Convert \[...\] to $$...$$ and store in array
+                    const index = mathBlocks.length;
+                    mathBlocks.push('$$' + inner + '$$');
+                    return `MATHBLOCK${index}ENDBLOCK`;
+                });
+
+            // Also protect existing $...$ and $$...$$ formulas
+            protectedContent = protectedContent
+                .replace(/\$\$(.*?)\$\$/g, function(match, inner) {
+                    const index = mathBlocks.length;
+                    mathBlocks.push(match);
+                    return `MATHBLOCK${index}ENDBLOCK`;
+                })
+                .replace(/\$(.*?)\$/g, function(match, inner) {
+                    const index = mathBlocks.length;
+                    mathBlocks.push(match);
+                    return `MATHBLOCK${index}ENDBLOCK`;
+                });
+
+            // Step 2: Parse Markdown (math blocks are temporarily replaced with placeholders)
+            let html = marked.parse(protectedContent);
+
+            // Step 3: Restore math blocks from placeholders
+            mathBlocks.forEach((block, index) => {
+                html = html.replace(`MATHBLOCK${index}ENDBLOCK`, block);
+            });
+
+            // Set HTML content
+            container.innerHTML = html;
+
+            // Render KaTeX math formulas
+            renderMathInElement(container, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\\\[', right: '\\\\]', display: true},
+                    {left: '\\\\(', right: '\\\\)', display: false}
+                ],
+                throwOnError: false
+            });
+
+            // Find and render Mermaid diagrams
+            container.querySelectorAll('pre code.language-mermaid').forEach((codeBlock, index) => {
+                const mermaidCode = codeBlock.textContent;
+                const mermaidDiv = document.createElement('div');
+                mermaidDiv.className = 'mermaid';
+                mermaidDiv.id = `mermaid-${containerId}-${index}`;
+                mermaidDiv.textContent = mermaidCode;
+                codeBlock.parentElement.replaceWith(mermaidDiv);
+            });
+
+            // Render all mermaid diagrams in the container
+            mermaid.run({ nodes: container.querySelectorAll('.mermaid') });
+        }
+
+        // Update preview panel in create note modal
+        function updatePreview() {
+            const content = document.getElementById('note-content-input').value;
+            const preview = document.getElementById('note-preview');
+
+            if (!content.trim()) {
+                preview.innerHTML = '<span class="text-white/40">预览将显示在这里...</span>';
+                return;
+            }
+
+            // Step 1: Protect all math formulas from Markdown parsing
+            // This prevents marked from swallowing backslashes inside formulas
+            const mathBlocks = [];
+            let protectedContent = content;
+
+            // First, convert LaTeX delimiters and store math blocks
+            protectedContent = protectedContent
+                .replace(/\\\((.*?)\\\)/g, function(match, inner) {
+                    // Convert \(...\) to $...$ and store in array
+                    const index = mathBlocks.length;
+                    mathBlocks.push('$' + inner + '$');
+                    return `MATHBLOCK${index}ENDBLOCK`;
+                })
+                .replace(/\\\[(.*?)\\\]/g, function(match, inner) {
+                    // Convert \[...\] to $$...$$ and store in array
+                    const index = mathBlocks.length;
+                    mathBlocks.push('$$' + inner + '$$');
+                    return `MATHBLOCK${index}ENDBLOCK`;
+                });
+
+            // Also protect existing $...$ and $$...$$ formulas
+            protectedContent = protectedContent
+                .replace(/\$\$(.*?)\$\$/g, function(match, inner) {
+                    const index = mathBlocks.length;
+                    mathBlocks.push(match);
+                    return `MATHBLOCK${index}ENDBLOCK`;
+                })
+                .replace(/\$(.*?)\$/g, function(match, inner) {
+                    const index = mathBlocks.length;
+                    mathBlocks.push(match);
+                    return `MATHBLOCK${index}ENDBLOCK`;
+                });
+
+            // Step 2: Parse Markdown (math blocks are temporarily replaced with placeholders)
+            let html = marked.parse(protectedContent);
+
+            // Step 3: Restore math blocks from placeholders
+            mathBlocks.forEach((block, index) => {
+                html = html.replace(`MATHBLOCK${index}ENDBLOCK`, block);
+            });
+
+            preview.innerHTML = html;
+
+            // Render KaTeX math formulas
+            renderMathInElement(preview, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\\\[', right: '\\\\]', display: true},
+                    {left: '\\\\(', right: '\\\\)', display: false}
+                ],
+                throwOnError: false
+            });
+
+            // Find and render Mermaid diagrams
+            preview.querySelectorAll('pre code.language-mermaid').forEach((codeBlock, index) => {
+                const mermaidCode = codeBlock.textContent;
+                const mermaidDiv = document.createElement('div');
+                mermaidDiv.className = 'mermaid';
+                mermaidDiv.id = `mermaid-preview-${index}`;
+                mermaidDiv.textContent = mermaidCode;
+                codeBlock.parentElement.replaceWith(mermaidDiv);
+            });
+
+            // Render all mermaid diagrams
+            mermaid.run({ nodes: preview.querySelectorAll('.mermaid') });
+        }
+
+        // Update preview panel in edit note modal
+        function updateEditPreview() {
+            const content = document.getElementById('edit-note-content').value;
+            const preview = document.getElementById('edit-note-preview');
+
+            if (!content.trim()) {
+                preview.innerHTML = '<span class="text-white/40">预览将显示在这里...</span>';
+                return;
+            }
+
+            // Step 1: Protect all math formulas from Markdown parsing
+            // This prevents marked from swallowing backslashes inside formulas
+            const mathBlocks = [];
+            let protectedContent = content;
+
+            // First, convert LaTeX delimiters and store math blocks
+            protectedContent = protectedContent
+                .replace(/\\\((.*?)\\\)/g, function(match, inner) {
+                    // Convert \(...\) to $...$ and store in array
+                    const index = mathBlocks.length;
+                    mathBlocks.push('$' + inner + '$');
+                    return `MATHBLOCK${index}ENDBLOCK`;
+                })
+                .replace(/\\\[(.*?)\\\]/g, function(match, inner) {
+                    // Convert \[...\] to $$...$$ and store in array
+                    const index = mathBlocks.length;
+                    mathBlocks.push('$$' + inner + '$$');
+                    return `MATHBLOCK${index}ENDBLOCK`;
+                });
+
+            // Also protect existing $...$ and $$...$$ formulas
+            protectedContent = protectedContent
+                .replace(/\$\$(.*?)\$\$/g, function(match, inner) {
+                    const index = mathBlocks.length;
+                    mathBlocks.push(match);
+                    return `MATHBLOCK${index}ENDBLOCK`;
+                })
+                .replace(/\$(.*?)\$/g, function(match, inner) {
+                    const index = mathBlocks.length;
+                    mathBlocks.push(match);
+                    return `MATHBLOCK${index}ENDBLOCK`;
+                });
+
+            // Step 2: Parse Markdown (math blocks are temporarily replaced with placeholders)
+            let html = marked.parse(protectedContent);
+
+            // Step 3: Restore math blocks from placeholders
+            mathBlocks.forEach((block, index) => {
+                html = html.replace(`MATHBLOCK${index}ENDBLOCK`, block);
+            });
+
+            preview.innerHTML = html;
+
+            // Render KaTeX math formulas
+            renderMathInElement(preview, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\\\[', right: '\\\\]', display: true},
+                    {left: '\\\\(', right: '\\\\)', display: false}
+                ],
+                throwOnError: false
+            });
+
+            // Find and render Mermaid diagrams
+            preview.querySelectorAll('pre code.language-mermaid').forEach((codeBlock, index) => {
+                const mermaidCode = codeBlock.textContent;
+                const mermaidDiv = document.createElement('div');
+                mermaidDiv.className = 'mermaid';
+                mermaidDiv.id = `mermaid-edit-preview-${index}`;
+                mermaidDiv.textContent = mermaidCode;
+                codeBlock.parentElement.replaceWith(mermaidDiv);
+            });
+
+            // Render all mermaid diagrams
+            mermaid.run({ nodes: preview.querySelectorAll('.mermaid') });
+        }
+
+        // Show edit note modal
+        function showEditModal(noteId, title, content) {
+            document.getElementById('edit-note-id').value = noteId;
+            document.getElementById('edit-note-title').value = title;
+            document.getElementById('edit-note-content').value = content;
+            updateEditPreview();
+            document.getElementById('edit-note-modal').style.display = 'flex';
+        }
+
+        // Submit edit note form
+        function submitEditNote() {
+            const noteId = document.getElementById('edit-note-id').value;
+            const title = document.getElementById('edit-note-title').value;
+            const content = document.getElementById('edit-note-content').value;
+
+            fetch(`/api/input/notes/${noteId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    title: title,
+                    content: content
+                })
+            })
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('note-list').innerHTML = html;
+                document.getElementById('edit-note-modal').style.display = 'none';
+                renderAllNotes();
+            })
+            .catch(error => {
+                console.error('Error updating note:', error);
+                alert('保存失败，请重试');
+            });
+        }
+
+        // Show delete note confirmation modal
+        function showDeleteNoteModal(noteId) {
+            pendingDeleteNoteId = noteId;
+            document.getElementById('confirm-modal-title').textContent = '删除笔记';
+            document.getElementById('confirm-modal-message').textContent = '确定要删除这条笔记吗？';
+            document.getElementById('confirm-modal').style.display = 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('click', function(e) {
+                // Handle note edit button
+                const editNoteBtn = e.target.closest('.edit-note-btn');
+                if (editNoteBtn) {
+                    e.stopPropagation();
+                    const noteCard = editNoteBtn.closest('.note-card');
+                    if (noteCard) {
+                        const noteId = noteCard.dataset.noteId;
+                        const title = noteCard.querySelector('h3').textContent;
+                        // Decode JSON-encoded content (handles backslashes, newlines, etc.)
+                        const content = JSON.parse(noteCard.querySelector('.note-content').dataset.content);
+                        showEditModal(noteId, title, content);
+                    }
+                    return;
+                }
+
+                // Handle note delete button
+                const deleteNoteBtn = e.target.closest('.delete-note-btn');
+                if (deleteNoteBtn) {
+                    e.stopPropagation();
+                    const noteCard = deleteNoteBtn.closest('.note-card');
+                    if (noteCard) {
+                        showDeleteNoteModal(noteCard.dataset.noteId);
+                    }
+                    return;
+                }
+
+                // Handle extract concepts button
+                const extractConceptsBtn = e.target.closest('.extract-concepts-btn');
+                if (extractConceptsBtn) {
+                    e.stopPropagation();
+                    const noteCard = extractConceptsBtn.closest('.note-card');
+                    if (noteCard) {
+                        extractConcepts(noteCard.dataset.noteId);
+                    }
+                    return;
+                }
+
+                // Handle directory delete button
+                const deleteBtn = e.target.closest('.delete-dir-btn');
+                if (deleteBtn) {
+                    e.stopPropagation();
+                    pendingDeleteDirectoryId = deleteBtn.dataset.directoryId;
+                    document.getElementById('confirm-modal-title').textContent = '删除目录';
+                    document.getElementById('confirm-modal-message').textContent = '确定要删除这个目录吗？目录下的所有笔记也会被删除。';
+                    document.getElementById('confirm-modal').style.display = 'flex';
+                    return;
+                }
+
+                // Handle directory item click (not on buttons)
+                const target = e.target.closest('.directory-item');
+                if (target && !e.target.closest('button')) {
+                    e.preventDefault();
+                    const directoryId = target.dataset.directoryId;
+                    const directoryName = target.dataset.directoryName;
+                    if (directoryId && directoryName) {
+                        loadNotes(directoryId, directoryName);
+                    }
+                }
+            });
+
+            document.getElementById('confirm-delete-btn').addEventListener('click', function() {
+                if (pendingDeleteDirectoryId) {
+                    deleteDirectory(pendingDeleteDirectoryId);
+                    pendingDeleteDirectoryId = null;
+                } else if (pendingDeleteNoteId) {
+                    deleteNote(pendingDeleteNoteId);
+                    pendingDeleteNoteId = null;
+                }
+                document.getElementById('confirm-modal').style.display = 'none';
+            });
+        });
+
+        function loadNotes(directoryId, directoryName) {
+            document.getElementById('note-list').innerHTML = '<div class="text-center text-white/40 py-12">加载中...</div>';
+            
+            fetch(`/api/input/notes/${directoryId}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('note-list').innerHTML = html;
+                    document.querySelector('h2').textContent = directoryName;
+                    
+                    const hiddenInput = document.querySelector('input[name="directory_id"]');
+                    if (hiddenInput) {
+                        hiddenInput.value = directoryId;
+                    }
+
+                    // Render Markdown content for each note
+                    renderAllNotes();
+                })
+                .catch(error => {
+                    document.getElementById('note-list').innerHTML = '<div class="text-center text-white/40 py-12">加载失败</div>';
+                    console.error('Error loading notes:', error);
+                });
+        }
+
+        function renderAllNotes() {
+            document.querySelectorAll('.note-content').forEach((noteContent, index) => {
+                try {
+                    // Decode JSON-encoded content (handles backslashes, newlines, etc.)
+                    const content = JSON.parse(noteContent.dataset.content);
+
+                    if (content) {
+                        const containerId = `note-md-${index}`;
+                        noteContent.id = containerId;
+                        renderMarkdown(content, containerId);
+                    }
+                } catch (error) {
+                    console.error(`Error parsing JSON for note ${index}:`, error);
+                }
+            });
+        }
+
+        function extractConcepts(noteId) {
+            const conceptsArea = document.getElementById(`note-concepts-${noteId}`);
+            if (!conceptsArea) return;
+
+            // 在按钮位置显示加载状态
+            conceptsArea.innerHTML = '<div class="text-center text-white/40 py-4">提取中...</div>';
+
+            fetch(`/api/input/notes/${noteId}/extract-concepts`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                conceptsArea.innerHTML = html;
+            })
+            .catch(error => {
+                conceptsArea.innerHTML = '<div class="text-center text-red-400 py-4">提取失败，请重试</div>';
+                console.error('Error extracting concepts:', error);
+            });
+        }
+
+        function reExtractConcepts(noteId) {
+            const conceptsArea = document.getElementById(`note-concepts-${noteId}`);
+            if (!conceptsArea) return;
+
+            conceptsArea.innerHTML = '<div class="text-center text-white/40 py-4">重新提取中...</div>';
+
+            const formData = new FormData();
+            formData.append('re_extract', 'true');
+
+            fetch(`/api/input/notes/${noteId}/extract-concepts`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(html => {
+                conceptsArea.innerHTML = html;
+            })
+            .catch(error => {
+                conceptsArea.innerHTML = '<div class="text-center text-red-400 py-4">重新提取失败，请重试</div>';
+                console.error('Error re-extracting concepts:', error);
+            });
+        }
+
+        function collapseConcepts(noteId) {
+            const conceptsArea = document.getElementById(`note-concepts-${noteId}`);
+            if (!conceptsArea) return;
+
+            // 清空内容区域
+            conceptsArea.innerHTML = '';
+        }
+
+        function startTeaching(sessionId) {
+            window.location.href = `/api/teaching/sessions/${sessionId}`;
+        }
+
+        function deleteDirectory(directoryId) {
+            fetch(`/api/input/directories/${directoryId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('directory-tree').innerHTML = html;
+                document.getElementById('note-list').innerHTML = '<div class="text-center text-white/40 py-12">请选择一个目录</div>';
+                document.querySelector('h2').textContent = '全部笔记';
+                
+                const hiddenInput = document.querySelector('input[name="directory_id"]');
+                if (hiddenInput) {
+                    hiddenInput.value = '';
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting directory:', error);
+                const noteList = document.getElementById('note-list');
+                noteList.innerHTML = '<div class="text-center text-red-400 py-12">删除失败，请重试</div>';
+            });
+        }
+
+        function deleteNote(noteId) {
+            fetch(`/api/input/notes/${noteId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('note-list').innerHTML = html;
+                renderAllNotes();
+            })
+            .catch(error => {
+                console.error('Error deleting note:', error);
+                alert('删除失败，请重试');
+            });
+        }
+    </script>
+</body>
+</html>

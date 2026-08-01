@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('integration.graph') }} - {{ project.name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Cytoscape.js -->
+    <script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+    <!-- Dagre layout dependencies -->
+    <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+    <script src="https://unpkg.com/graphlib@2.1.8/dist/graphlib.min.js"></script>
+    <!-- Cytoscape dagre layout -->
+    <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+    <style>
+        :root {
+            --apple-blue: #0071e3;
+            --black: #000000;
+            --dark-gray: #1a1a1a;
+            --near-black: #0d0d0d;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--near-black);
+            color: var(--white);
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .nav-glass {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item {
+            display: block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background-color 0.15s ease;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+        .nav-item:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .nav-item.active { background-color: rgba(0, 113, 227, 0.2); color: #0071e3; }
+
+        .btn-primary {
+            background-color: var(--apple-blue);
+            color: var(--white);
+            font-size: 13px;
+            font-weight: 400;
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .btn-primary:hover { background-color: #0077ed; }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--white);
+            font-size: 13px;
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .btn-secondary:hover { background-color: rgba(255, 255, 255, 0.08); }
+
+        .btn-danger {
+            background: transparent;
+            color: #ff453a;
+            font-size: 12px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 69, 58, 0.4);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .btn-danger:hover { background-color: rgba(255, 69, 58, 0.12); }
+
+        /* 图谱画布 */
+        #cy-container {
+            position: fixed;
+            top: 48px; left: 0; right: 280px; bottom: 0;
+            background: linear-gradient(135deg, #0a0a0c 0%, #111114 50%, #0d0d10 100%);
+        }
+
+        #cy {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 右侧面板 */
+        #side-panel {
+            position: fixed;
+            top: 48px; right: 0; bottom: 0; width: 280px;
+            background: rgba(28, 28, 30, 0.95);
+            backdrop-filter: blur(40px) saturate(180%);
+            border-left: 1px solid rgba(255, 255, 255, 0.06);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-section {
+            padding: 16px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.45);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 10px;
+        }
+
+        /* Tab 切换 */
+        .tab-bar {
+            display: flex;
+            gap: 2px;
+            padding: 0 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 9px 0;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s ease;
+        }
+        .tab-item:hover { color: rgba(255, 255, 255, 0.65); }
+        .tab-item.active { color: white; border-bottom-color: var(--apple-blue); }
+
+        .panel-content { display: none; flex: 1; overflow-y: auto; flex-direction: column; }
+        .panel-content.active { display: flex; }
+
+        /* 节点详情卡片 */
+        .node-detail-card {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .node-detail-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 4px;
+        }
+        .node-detail-desc {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        .mastery-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .mastery-label { font-size: 11px; color: rgba(255, 255, 255, 0.35); width: 42px; }
+        .mastery-bar {
+            flex: 1;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .mastery-fill {
+            height: 100%;
+            background: var(--apple-blue);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        .mastery-value { font-size: 11px; color: rgba(255, 255, 255, 0.55); width: 32px; text-align: right; }
+
+        /* 关联项 */
+        .edge-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            transition: background 0.12s ease;
+        }
+        .edge-item:hover { background: rgba(255, 255, 255, 0.06); }
+
+        .relation-tag {
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 3px;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        .tag-prereq { background: rgba(255, 149, 0, 0.15); color: #ff9500; }
+        .tag-hier { background: rgba(175, 82, 222, 0.15); color: #af52de; }
+        .tag-related { background: rgba(94, 92, 230, 0.15); color: #5e5ce6; }
+
+        /* 待沉淀概念项 */
+        .promote-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: background 0.12s ease;
+        }
+        .promote-item:hover { background: rgba(255, 255, 255, 0.06); }
+        .promote-item input[type=checkbox] {
+            width: 15px; height: 15px;
+            accent-color: var(--apple-blue);
+        }
+        .promote-info { flex: 1; min-width: 0; }
+        .promote-name { font-size: 13px; color: white; }
+        .promote-desc { font-size: 11px; color: rgba(255, 255, 255, 0.35); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .promote-status { font-size: 11px; color: #34c759; flex-shrink: 0; }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 32px 16px;
+            color: rgba(255, 255, 255, 0.25);
+        }
+        .empty-state-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.3; }
+        .empty-state-text { font-size: 13px; margin-bottom: 2px; }
+        .empty-state-hint { font-size: 11px; color: rgba(255, 255, 255, 0.18); }
+
+        /* 关联面板样式 */
+        .search-result-item {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            cursor: pointer;
+            transition: background 0.12s ease;
+        }
+        .search-result-item:hover { background: rgba(255, 255, 255, 0.06); }
+        .search-result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .search-result-name { font-size: 13px; font-weight: 500; color: white; }
+        .search-result-score {
+            background: rgba(52, 199, 89, 0.15);
+            color: #34c759;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .search-result-preview {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.45);
+            line-height: 1.4;
+            margin-top: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        .search-result-meta {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 6px;
+        }
+        .search-loading {
+            text-align: center;
+            padding: 16px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .search-empty {
+            text-align: center;
+            padding: 16px;
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-box {
+            background: #1c1c1e;
+            border-radius: 14px;
+            padding: 22px;
+            width: 420px;
+            max-width: 90vw;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+        }
+        .modal-title { font-size: 17px; font-weight: 600; color: white; margin-bottom: 16px; }
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 9px 11px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.15s;
+        }
+        .form-input:focus { border-color: var(--apple-blue); }
+        .form-input::placeholder { color: rgba(255, 255, 255, 0.3); }
+        textarea.form-input { resize: vertical; min-height: 70px; }
+        select.form-input {
+            appearance: none;
+            cursor: pointer;
+            background-color: #2a2a2d;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+        select.form-input option {
+            background-color: #2a2a2d;
+            color: white;
+        }
+        .form-label {
+            display: block;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 5px;
+        }
+
+        /* 提示消息 */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 300;
+            animation: toastIn 0.25s ease forwards;
+        }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(12px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        .toast-success { background: rgba(52, 199, 89, 0.15); color: #34c759; border: 1px solid rgba(52, 199, 89, 0.25); }
+        .toast-error { background: rgba(255, 69, 58, 0.15); color: #ff453a; border: 1px solid rgba(255, 69, 58, 0.25); }
+        .toast-info { background: rgba(0, 113, 227, 0.15); color: #64b5f6; border: 1px solid rgba(0, 113, 227, 0.25); }
+
+        /* 工具栏 */
+        #toolbar {
+            position: fixed;
+            top: 60px;
+            left: 16px;
+            z-index: 90;
+            display: flex;
+            gap: 6px;
+        }
+        .tool-btn {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 15px;
+        }
+        .tool-btn:hover { background: rgba(45, 45, 48, 0.95); color: white; }
+
+        /* Cytoscape 节点样式覆盖 */
+        cytoscape-node { cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<nav class="nav-glass fixed top-0 left-0 right-0 h-12 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center space-x-4">
+                <a href="/" class="text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
+                <a href="/projects" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('nav.projects') }}</a>
+                <span class="text-white/40">/</span>
+                <a href="/projects/{{ project.id }}" class="text-white/80 hover:text-white text-sm transition-colors">{{ project.name }}</a>
+                <span class="text-white/40">/</span>
+                <span class="text-white/80 text-sm">{{ t('integration.graph') }}</span>
+            </div>
+            <!-- 图谱选择器（自动跟随目录） -->
+            <div class="flex items-center gap-2 border-l border-white/20 pl-4">
+                <select id="graph-select" onchange="switchGraph(this.value)" class="bg-[#2a2a2d] text-white text-sm px-2 py-1 rounded border border-white/10 focus:outline-none focus:border-[#0071e3]">
+                    {% for g in graphs %}
+                    <option value="{{ g.id }}" {% if current_graph and g.id == current_graph.id %}selected{% endif %}>
+                        {{ g.directory_name or g.name }}
+                    </option>
+                    {% endfor %}
+                    {% if not graphs %}
+                    <option value="" disabled>{{ t('integration.no-graphs') }}</option>
+                    {% endif %}
+                </select>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span class="text-white/80 text-sm">{{ user.username }}</span>
+            <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+        </div>
+    </div>
+</nav>
+
+<!-- 工具栏 -->
+<div id="toolbar">
+    <button onclick="openCreateNodeModal()" class="tool-btn" title="{{ t('integration.add-node') }}">+</button>
+    <button onclick="openCreateEdgeModal()" class="tool-btn" title="{{ t('integration.add-edge') }}" id="add-edge-btn"{% if not nodes %} disabled style="opacity:0.3"{% endif %}>⤢</button>
+    <button onclick="fitGraph()" class="tool-btn" title="{{ t('integration.fit-view') }}">⊡</button>
+</div>
+
+<!-- 图谱画布 -->
+<div id="cy-container">
+    <div id="cy"></div>
+</div>
+
+<!-- 右侧面板 -->
+<div id="side-panel">
+    <!-- Tab 栏 -->
+    <div class="tab-bar">
+        <div class="tab-item active" onclick="switchPanel('detail')" id="tab-detail">{{ t('integration.tab-detail') }}</div>
+        <div class="tab-item" onclick="switchPanel('edges')" id="tab-edges">{{ t('integration.tab-edges') }} {{ edges|length }}</div>
+        {% if promotable_concepts %}
+        <div class="tab-item" onclick="switchPanel('promote')" id="tab-promote">{{ t('integration.tab-promote') }} {{ promotable_concepts|length }}</div>
+        {% endif %}
+    </div>
+
+    <!-- 详情面板 -->
+    <div id="panel-detail" class="panel-content active">
+        {% if nodes %}
+        <div class="panel-section">
+            <div class="section-title">{{ t('integration.nodes') }} ({{ nodes|length }})</div>
+            <p class="text-xs text-white/30 mb-3">{{ t('integration.click-node-hint') }}</p>
+            <div class="flex gap-2 mt-2">
+                <button onclick="openCreateNodeModal()" class="btn-primary flex-1">{{ t('integration.add-node') }}</button>
+                <button onclick="openCreateEdgeModal()" class="btn-secondary flex-1">{{ t('integration.add-edge') }}</button>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state" style="padding-top:60px;">
+            <div class="empty-state-icon">◇</div>
+            <div class="empty-state-text">{{ t('integration.empty-graph') }}</div>
+            <div class="empty-state-hint">{{ t('integration.empty-hint-1') }}<br>{{ t('integration.empty-hint-2') }}</div>
+            <button onclick="openCreateNodeModal()" class="btn-primary mt-4">{{ t('integration.add-first-node') }}</button>
+        </div>
+        {% endif %}
+
+        <!-- 动态节点详情区域 -->
+        <div id="node-detail-area" class="hidden panel-section">
+            <div class="node-detail-card">
+                <div class="node-detail-name" id="detail-name">—</div>
+                <div class="mastery-row">
+                    <span class="mastery-label">{{ t('integration.mastery') }}</span>
+                    <div class="mastery-bar"><div class="mastery-fill" id="detail-mastery-fill" style="width:0%"></div></div>
+                    <span class="mastery-value" id="detail-mastery-value">—</span>
+                </div>
+            </div>
+            <div class="flex gap-2 mt-3">
+                <button onclick="editSelectedNode()" class="btn-secondary flex-1 text-xs py-1.5">{{ t('common.edit') }}</button>
+                <button onclick="deleteSelectedNode()" class="btn-danger flex-1 py-1.5">{{ t('common.delete') }}</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 关联面板 -->
+    <div id="panel-edges" class="panel-content">
+        <div class="panel-section">
+            <div class="section-title">{{ t('integration.all-edges') }}</div>
+            {% if edges %}
+            {% for edge in edges %}
+            <div class="edge-item">
+                <span class="truncate" style="max-width:72px;color:rgba(255,255,255,0.7)">{{ edge.source_label or '?' }}</span>
+                <span class="relation-tag tag-{% if edge.relation == 'prerequisite' %}prereq{% elif edge.relation == 'parent' %}hier{% else %}related{% endif %}">
+                    {% if edge.relation == 'prerequisite' %}{{ t('integration.relation-prereq') }}
+                    {% elif edge.relation == 'parent' %}{{ t('integration.relation-parent') }}
+                    {% else %}{{ t('integration.relation-related') }}
+                    {% endif %}
+                </span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-white/25 flex-shrink-0"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <span class="truncate" style="max-width:72px;color:rgba(255,255,255,0.7)">{{ edge.target_label or '?' }}</span>
+                <button onclick="deleteEdge('{{ edge.id }}')" class="btn-danger ml-auto py-0.5 px-2 text-[10px]">{{ t('common.delete') }}</button>
+            </div>
+            {% endfor %}
+            <button onclick="openCreateEdgeModal()" class="btn-secondary w-full mt-3 text-xs">+ {{ t('integration.add-edge') }}</button>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-text">{{ t('integration.no-edges') }}</div>
+                <div class="empty-state-hint">{{ t('integration.no-edges-hint') }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 待沉淀面板 -->
+    <div id="panel-promote" class="panel-content">
+        <div class="panel-section">
+            <div class="section-title">{{ t('integration.promotable-title') }}</div>
+            {% if promotable_concepts %}
+            <p class="text-xs text-white/35 mb-3">{{ t('integration.promotable-desc') }}</p>
+            <div id="promotable-list">
+                {% for concept in promotable_concepts %}
+                <label class="promote-item">
+                    <input type="checkbox" class="promote-cb" value="{{ concept.id }}">
+                    <div class="promote-info">
+                        <div class="promote-name">{{ concept.name }}</div>
+                        {% if concept.description %}
+                        <div class="promote-desc" title="{{ concept.description }}">{{ concept.description[:50] }}{% if concept.description|length > 50 %}...{% endif %}</div>
+                        {% endif %}
+                    </div>
+                    <span class="promote-status">{{ t('integration.status-mastered') }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            <button onclick="promoteSelected()" class="btn-primary w-full mt-3 text-xs">{{ t('integration.promote-selected') }}</button>
+            <div id="promote-result" class="hidden mt-2 p-2 rounded-lg text-xs"></div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-text">{{ t('integration.no-promotable') }}</div>
+                <div class="empty-state-hint">{{ t('integration.no-promotable-hint') }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 创建/编辑节点模态框 -->
+<div id="node-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="modal-title" id="node-modal-title">{{ t('integration.add-node') }}</div>
+        <form onsubmit="saveNode(event)">
+            <input type="hidden" id="edit-node-id">
+            <div class="mb-3">
+                <label class="form-label">{{ t('integration.label-name') }} *</label>
+                <input type="text" id="node-label" class="form-input" placeholder="{{ t('integration.placeholder-node-example') }}" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">{{ t('integration.label-mastery') }}: <span id="mastery-display">0%</span></label>
+                <input type="range" id="node-mastery" min="0" max="1" step="0.1" value="0"
+                       class="w-full" oninput="document.getElementById('mastery-display').textContent=Math.round(this.value*100)+'%'"
+                       style="accent-color:var(--apple-blue);">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="closeModal('node-modal')" class="btn-secondary text-sm">{{ t('common.cancel') }}</button>
+                <button type="submit" class="btn-primary text-sm">{{ t('common.save') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 创建关联模态框 -->
+<div id="edge-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="modal-title">{{ t('integration.add-edge') }}</div>
+        <form onsubmit="saveEdge(event)">
+            <div class="mb-3">
+                <label class="form-label">{{ t('integration.label-source') }} *</label>
+                <select id="edge-source" class="form-input" required><option value="">{{ t('integration.select-placeholder') }}</option>{% for n in nodes %}<option value="{{ n.id }}">{{ n.label }}</option>{% endfor %}</select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ t('integration.label-relation') }} *</label>
+                <select id="edge-relation" class="form-input" required>
+                    <option value="related">{{ t('integration.relation-related') }}</option>
+                    <option value="prerequisite">{{ t('integration.relation-prereq') }}</option>
+                    <option value="parent">{{ t('integration.relation-parent') }}</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ t('integration.label-target') }} *</label>
+                <select id="edge-target" class="form-input" required><option value="">{{ t('integration.select-placeholder') }}</option>{% for n in nodes %}<option value="{{ n.id }}">{{ n.label }}</option>{% endfor %}</select>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">{{ t('integration.label-edge-label') }}</label>
+                <input type="text" id="edge-label" class="form-input" placeholder="{{ t('integration.placeholder-edge-example') }}">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="closeModal('edge-modal')" class="btn-secondary text-sm">{{ t('common.cancel') }}</button>
+                <button type="submit" class="btn-primary text-sm">{{ t('common.save') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 确认删除模态框 -->
+<div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="modal-title">{{ t('integration.confirm-delete-title') }}</div>
+        <p id="confirm-message" class="text-white/70 text-sm mb-4"></p>
+        <p class="text-red-400/80 text-xs mb-4">{{ t('integration.confirm-delete-warning') }}</p>
+        <div class="flex justify-end gap-2">
+            <button onclick="closeModal('confirm-modal')" class="btn-secondary text-sm">{{ t('common.cancel') }}</button>
+            <button onclick="executeConfirmAction()" class="btn-danger text-sm">{{ t('common.confirm') }}</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const PROJECT_ID = '{{ project.id }}';
+let GRAPH_ID = {% if current_graph %}'{{ current_graph.id }}'{% else %}''{% endif %};
+let selectedNodeId = null;
+
+// ======== 确保Graph存在 ========
+async function ensureGraph() {
+    if (GRAPH_ID) return GRAPH_ID;
+    // 没有图谱时提示用户
+    showToast('{{ t("integration.no-graph-hint") }}', 'error');
+    throw new Error('No graph selected');
+}
+
+// ======== 图谱切换 ========
+function switchGraph(graphId) {
+    if (!graphId) return;
+    window.location.href = `/integration/${PROJECT_ID}?graph_id=${graphId}`;
+}
+
+// ======== Cytoscape 图谱初始化 ========
+let cy;
+
+function initGraph() {
+    const elements = [];
+
+    // 节点数据
+    console.log('Nodes count:', {{ nodes|length }});
+    {% for node in nodes %}
+    console.log('Adding node:', '{{ node.label | e }}');
+    elements.push({
+        data: {
+            id: '{{ node.id }}',
+            label: `{{ node.label | e }}`,
+            description: `{{ node.description | replace('\n',' ') | replace('"', '\\"') | e if node.description else '' }}`,
+            mastery: {{ node.mastery_score if node.mastery_score is not none else 0 }},
+            status: '{{ node.concept_status or "" }}'
+        }
+    });
+    {% endfor %}
+    console.log('Elements:', elements);
+
+    // 边数据
+    {% for edge in edges %}
+    elements.push({
+        data: {
+            id: '{{ edge.id }}',
+            source: '{{ edge.source_node_id }}',
+            target: '{{ edge.target_node_id }}',
+            relation: '{{ edge.relation }}',
+            label: `{{ (edge.label or edge.relation) | replace('\n',' ') | replace('"', '\\"') | e }}`  // label字段fallback到relation字段
+        }
+    });
+    {% endfor %}
+
+    cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: elements,
+        style: [
+            // 节点样式 - 矩形 + 进度条背景
+            {
+                selector: 'node',
+                style: {
+                    // 形状改为圆角矩形
+                    'shape': 'roundrectangle',
+                    // 使用SVG背景显示进度条（灰色填充背景）
+                    'background-image': function(ele) {
+                        const mastery = ele.data('mastery') || 0;
+                        const pct = Math.round(mastery * 100);
+                        const label = ele.data('label') || '';
+                        const lines = Math.ceil(label.length / 15);
+                        const nodeHeight = Math.max(50, lines * 18 + 24);
+                        const nodeWidth = Math.max(120, Math.min(280, label.length * 9 + 30));
+                        // 创建SVG：深色背景 + 灰色进度条填充
+                        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${nodeWidth}" height="${nodeHeight}">
+                            <rect x="0" y="0" width="${nodeWidth}" height="${nodeHeight}" rx="8" fill="#0d0d0d"/>
+                            <rect x="0" y="0" width="${pct / 100 * nodeWidth}" height="${nodeHeight}" rx="8" fill="#3a3a3c"/>
+                        </svg>`;
+                        return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+                    },
+                    'background-fit': 'cover',
+                    // 边框
+                    'border-color': 'rgba(255,255,255,0.2)',
+                    'border-width': 1.5,
+                    'border-opacity': 0.8,
+                    // 尺寸 - 自动适应文本
+                    'width': function(ele) {
+                        const label = ele.data('label') || '';
+                        return Math.max(120, Math.min(280, label.length * 9 + 30));
+                    },
+                    'height': function(ele) {
+                        const label = ele.data('label') || '';
+                        const lines = Math.ceil(label.length / 15);
+                        return Math.max(50, lines * 18 + 24);
+                    },
+                    // 文字 - 自动换行显示全部内容
+                    'label': 'data(label)',
+                    'color': '#fff',
+                    'font-size': '12px',
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'text-wrap': 'wrap',
+                    'text-max-width': function(ele) {
+                        return Math.max(100, Math.min(260, ele.data('label').length * 9));
+                    },
+                    'text-outline-color': '#0d0d0d',
+                    'text-outline-width': 3,
+                    'transition-property': 'border-color, border-width',
+                    'transition-duration': '0.3s'
+                }
+            },
+            // 选中状态
+            {
+                selector: 'node:selected',
+                style: {
+                    'border-color': '#0071e3',
+                    'border-width': 3
+                }
+            },
+            // 已掌握节点（mastery >= 0.8）- 边框高亮
+            {
+                selector: 'node[mastery >= 0.8]',
+                style: {
+                    'border-color': 'rgba(255,255,255,0.35)',
+                    'border-width': 2
+                }
+            },
+            // 边样式
+            {
+                selector: 'edge',
+                style: {
+                    'width': 1.5,
+                    'line-color': 'rgba(255,255,255,0.12)',
+                    'target-arrow-color': 'rgba(255,255,255,0.2)',
+                    'target-arrow-shape': 'triangle',
+                    'curve-style': 'bezier',
+                    'arrow-scale': 0.8,
+                    'opacity': 0.7,
+                    // 标签显示（text-margin-y 在 autorotate 模式下为垂直于边的偏移）
+                    'label': 'data(label)',
+                    'color': '#fff',
+                    'font-size': '12px',
+                    'text-rotation': 'autorotate',
+                    'text-margin-y': -10,
+                    'text-background-color': 'rgba(0,0,0,0.75)',
+                    'text-background-opacity': 1,
+                    'text-background-padding': '3px 5px',
+                    'text-background-shape': 'roundrectangle'
+                }
+            },
+            // 前置边
+            {
+                selector: 'edge[relation = "prerequisite"]',
+                style: {
+                    'line-color': 'rgba(255,149,0,0.35)',
+                    'target-arrow-color': 'rgba(255,149,0,0.5)',
+                    'width': 2
+                }
+            },
+            // 父概念边（子 → 父）
+            {
+                selector: 'edge[relation = "parent"]',
+                style: {
+                    'line-color': 'rgba(175,82,222,0.35)',
+                    'target-arrow-color': 'rgba(175,82,222,0.5)',
+                    'width': 2
+                }
+            },
+            // 已选中的边
+            {
+                selector: 'edge:selected',
+                style: {
+                    'line-color': '#0071e3',
+                    'target-arrow-color': '#0071e3',
+                    'width': 2.5,
+                    'opacity': 1
+                }
+            }
+        ],
+        layout: {
+            name: 'dagre',
+            rankDir: 'TB',
+            nodeSep: 60,
+            rankSep: 80,
+            spacingFactor: 1.1,
+            animate: true,
+            animationDuration: 400
+        },
+        minZoom: 0.2,
+        maxZoom: 3,
+        wheelSensitivity: 0.3
+    });
+
+    // 点击节点事件
+    cy.on('tap', 'node', function(evt) {
+        const node = evt.target;
+        selectedNodeId = node.id();
+        showNodeDetail(node.data());
+    });
+
+    // 点击空白处取消选择
+    cy.on('tap', function(evt) {
+        if (evt.target === cy) {
+            selectedNodeId = null;
+            hideNodeDetail();
+        }
+    });
+
+    // 如果没有节点，显示空状态提示
+    if (!elements.some(e => !e.data.source)) {
+        // 空图，已在HTML中处理
+    }
+}
+
+function fitGraph() {
+    if (cy && cy.elements().length > 0) {
+        cy.fit(cy.elements(), 50);
+        cy.animate({ zoom: cy.zoom() * 0.95 }, { duration: 300 });
+    }
+}
+
+// ======== 节点详情 ========
+function showNodeDetail(data) {
+    const area = document.getElementById('node-detail-area');
+    area.classList.remove('hidden');
+    document.getElementById('detail-name').textContent = data.label || '{{ t("integration.unnamed") }}';
+    const pct = Math.round((data.mastery || 0) * 100);
+    document.getElementById('detail-mastery-fill').style.width = pct + '%';
+    document.getElementById('detail-mastery-value').textContent = pct + '%';
+}
+
+function hideNodeDetail() {
+    document.getElementById('node-detail-area').classList.add('hidden');
+}
+
+// ======== 模态框 ========
+function openCreateNodeModal() {
+    document.getElementById('node-modal-title').textContent = '{{ t("integration.add-node") }}';
+    document.getElementById('edit-node-id').value = '';
+    document.getElementById('node-label').value = '';
+    document.getElementById('node-mastery').value = 0;
+    document.getElementById('mastery-display').textContent = '0%';
+    document.getElementById('node-modal').classList.remove('hidden');
+}
+
+function editSelectedNode() {
+    if (!selectedNodeId) return;
+    const node = cy.getElementById(selectedNodeId);
+    if (!node.length) return;
+    const d = node.data();
+    document.getElementById('node-modal-title').textContent = '{{ t("integration.edit-node") }}';
+    document.getElementById('edit-node-id').value = d.id;
+    document.getElementById('node-label').value = d.label || '';
+    document.getElementById('node-mastery').value = d.mastery || 0;
+    document.getElementById('mastery-display').textContent = Math.round((d.mastery || 0) * 100) + '%';
+    document.getElementById('node-modal').classList.remove('hidden');
+}
+
+function openCreateEdgeModal() {
+    document.getElementById('edge-source').value = '';
+    document.getElementById('edge-target').value = '';
+    document.getElementById('edge-relation').value = 'related';
+    document.getElementById('edge-label').value = '';
+    document.getElementById('edge-modal').classList.remove('hidden');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+}
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e) { if (e.target === this) this.classList.add('hidden'); }));
+
+// ======== CRUD 操作 ========
+async function saveNode(e) {
+    e.preventDefault();
+    const nodeId = document.getElementById('edit-node-id').value;
+    const label = document.getElementById('node-label').value.trim();
+    const mastery = parseFloat(document.getElementById('node-mastery').value);
+
+    let url, method;
+    if (nodeId) { url = `/api/integration/nodes/${nodeId}`; method = 'PUT'; }
+    else { url = '/api/integration/nodes'; method = 'POST'; }
+
+    try {
+        const gid = await ensureGraph();
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ graph_id: gid, label, mastery_score: mastery })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        closeModal('node-modal');
+        showToast(nodeId ? '{{ t("integration.node-updated") }}' : '{{ t("integration.node-created") }}', 'success');
+        // 刷新时保留 graph_id 参数
+        setTimeout(() => window.location.href = `/integration/${PROJECT_ID}?graph_id=${gid}`, 800);
+    } catch(err) {
+        console.error(err);
+        showToast('{{ t("common.operation-failed") }}: ' + err.message, 'error');
+    }
+}
+
+// ======== 确认模态框 ========
+let confirmAction = null;
+
+function showConfirmModal(message, action) {
+    confirmAction = action;
+    document.getElementById('confirm-message').textContent = message;
+    document.getElementById('confirm-modal').classList.remove('hidden');
+}
+
+function executeConfirmAction() {
+    closeModal('confirm-modal');
+    if (confirmAction) {
+        confirmAction();
+        confirmAction = null;
+    }
+}
+
+async function deleteSelectedNode() {
+    if (!selectedNodeId) return;
+    
+    // 获取节点名称
+    const node = cy.getElementById(selectedNodeId);
+    if (!node.length) return;
+    const nodeName = node.data().label;
+    
+    showConfirmModal(
+        `{{ t("integration.confirm-delete-node-msg") }}【${nodeName}】`,
+        async () => {
+            try {
+                await fetch(`/api/integration/nodes/${selectedNodeId}`, { method: 'DELETE' });
+                showToast('{{ t("integration.node-deleted") }}', 'success');
+                setTimeout(() => window.location.href = `/integration/${PROJECT_ID}?graph_id=${GRAPH_ID}`, 500);
+            } catch(err) {
+                showToast('{{ t("common.delete-failed") }}', 'error');
+            }
+        }
+    );
+}
+
+async function saveEdge(e) {
+    e.preventDefault();
+    const src = document.getElementById('edge-source').value;
+    const tgt = document.getElementById('edge-target').value;
+    const rel = document.getElementById('edge-relation').value;
+    const lbl = document.getElementById('edge-label').value.trim();
+
+    if (src === tgt) { showToast('{{ t("integration.error-same-node") }}', 'error'); return; }
+
+    try {
+        const gid = await ensureGraph();
+        const res = await fetch('/api/integration/edges', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ graph_id: gid, source_node_id: src, target_node_id: tgt, relation: rel, label: lbl })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        closeModal('edge-modal');
+        showToast('{{ t("integration.edge-created") }}', 'success');
+        setTimeout(() => window.location.href = `/integration/${PROJECT_ID}?graph_id=${gid}`, 500);
+    } catch(err) {
+        showToast('{{ t("common.operation-failed") }}', 'error');
+    }
+}
+
+async function deleteEdge(edgeId) {
+    if (!confirm('{{ t("integration.confirm-delete-edge") }}')) return;
+    try {
+        await fetch(`/api/integration/edges/${edgeId}`, { method: 'DELETE' });
+        showToast('{{ t("integration.edge-deleted") }}', 'success');
+        setTimeout(() => window.location.href = `/integration/${PROJECT_ID}?graph_id=${GRAPH_ID}`, 500);
+    } catch(err) {
+        showToast('{{ t("common.delete-failed") }}', 'error');
+    }
+}
+
+// ======== 沉淀概念 ========
+async function promoteSelected() {
+    const cbs = document.querySelectorAll('.promote-cb:checked');
+    const ids = Array.from(cbs).map(cb => cb.value);
+    if (ids.length === 0) { showToast('{{ t("integration.select-concepts-first") }}', 'info'); return; }
+
+    try {
+        const gid = await ensureGraph();
+        const res = await fetch('/api/teaching/sessions/promote-by-ids', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: PROJECT_ID, concept_ids: ids })
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            // 动态移除已沉淀的概念checkbox项
+            cbs.forEach(cb => {
+                const item = cb.closest('.promote-item');
+                if (item) item.remove();
+            });
+
+            // 动态添加新节点到图谱可视化
+            if (data.concepts && data.concepts.length > 0) {
+                data.concepts.forEach(concept => {
+                    // 添加节点到Cytoscape图谱
+                    cy.add({
+                        group: 'nodes',
+                        data: {
+                            id: concept.node_id,
+                            label: concept.name,
+                            mastery_score: 0.3
+                        }
+                    });
+                });
+                // 重新布局图谱
+                cy.layout({ name: 'dagre', animate: true }).run();
+            }
+
+            // 检查是否还有待沉淀的概念
+            const remainingItems = document.querySelectorAll('.promote-item');
+            if (remainingItems.length === 0) {
+                // 所有概念已沉淀，显示空状态
+                const promotableList = document.getElementById('promotable-list');
+                if (promotableList) {
+                    promotableList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-text">{{ t('integration.no-promotable') }}</div>
+                            <div class="empty-state-hint">{{ t('integration.no-promotable-hint') }}</div>
+                        </div>`;
+                }
+                // 移除沉淀按钮
+                const promoteBtn = document.querySelector('[onclick="promoteSelected()"]');
+                if (promoteBtn) promoteBtn.remove();
+            }
+
+            showToast(`{{ t("integration.promote-success") }}`.replace('{}', data.promoted_count), 'success');
+
+            // 不刷新页面，只在需要时切换图谱
+            if (GRAPH_ID !== gid) {
+                setTimeout(() => window.location.href = `/integration/${PROJECT_ID}?graph_id=${gid}`, 500);
+            }
+        } else {
+            showToast(data.detail || '{{ t("integration.promote-failed") }}', 'error');
+        }
+    } catch(err) {
+        showToast('{{ t("common.network-error") }}', 'error');
+    }
+}
+
+// ======== Toast 提示 ========
+function showToast(msg, type) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const el = document.createElement('div');
+    el.className = `toast toast-${type || 'info'}`;
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => { if (el.parentNode) el.style.opacity = '0'; }, 2500);
+    setTimeout(() => el.remove(), 2900);
+}
+
+// ======== 初始化 ========
+document.addEventListener('DOMContentLoaded', () => {
+    initGraph();
+    setTimeout(fitGraph, 200);
+});
+
+// ======== 虚拟图功能 ========
+let virtualNodeCounter = 0;
+
+function openCreateVirtualGraphModal() {
+    document.getElementById('virtual-modal-title').textContent = '{{ t("integration.create-virtual-graph") }}';
+    document.getElementById('edit-virtual-graph-id').value = '';
+    document.getElementById('virtual-graph-name').value = '';
+    document.getElementById('virtual-graph-desc').value = '';
+    document.getElementById('virtual-session-select').value = '';
+    document.getElementById('virtual-graph-link').value = '';
+    document.getElementById('virtual-nodes-container').innerHTML = '';
+    virtualNodeCounter = 0;
+    addVirtualNodeInput(); // 默认添加一个节点输入
+    document.getElementById('virtual-graph-modal').classList.remove('hidden');
+}
+
+function addVirtualNodeInput() {
+    const container = document.getElementById('virtual-nodes-container');
+    const nodeId = `vnode-${virtualNodeCounter}`;
+    virtualNodeCounter++;
+    
+    const nodeHtml = `
+        <div id="${nodeId}" class="bg-white/5 p-3 rounded-lg border border-white/10">
+            <div class="flex items-center gap-2 mb-2">
+                <input type="text" class="vnode-label form-input flex-1" placeholder="{{ t('integration.label-name') }}" style="font-size:12px;padding:6px 8px">
+                <button type="button" onclick="removeVirtualNodeInput('${nodeId}')" class="text-red-400 text-xs">×</button>
+            </div>
+            <textarea class="vnode-content form-input w-full" placeholder="{{ t('integration.virtual-node-content') }}" style="font-size:12px;min-height:40px;padding:6px 8px"></textarea>
+            <input type="hidden" class="vnode-mastery" value="0">
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', nodeHtml);
+}
+
+function removeVirtualNodeInput(nodeId) {
+    const nodeEl = document.getElementById(nodeId);
+    if (nodeEl) nodeEl.remove();
+}
+
+async function saveVirtualGraph(e) {
+    e.preventDefault();
+    const vgId = document.getElementById('edit-virtual-graph-id').value;
+    const name = document.getElementById('virtual-graph-name').value.trim();
+    const desc = document.getElementById('virtual-graph-desc').value.trim();
+    const sessionId = document.getElementById('virtual-session-select').value;
+    const graphId = document.getElementById('virtual-graph-link').value;
+    
+    // 收集虚拟节点
+    const nodes = [];
+    document.querySelectorAll('#virtual-nodes-container > div').forEach((el, idx) => {
+        const label = el.querySelector('.vnode-label').value.trim();
+        const content = el.querySelector('.vnode-content').value.trim();
+        if (label) {
+            nodes.push({
+                label: label,
+                content: content,
+                order_index: idx,
+                mastery_score: 0
+            });
+        }
+    });
+    
+    if (!sessionId) {
+        showToast('{{ t("integration.select-session") }}', 'error');
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/integration/virtual-graphs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                session_id: sessionId,
+                graph_id: graphId || null,
+                name: name,
+                description: desc,
+                nodes: nodes,
+                edges: [],
+                node_connections: []
+            })
+        });
+        
+        if (!res.ok) throw new Error(await res.text());
+        
+        closeModal('virtual-graph-modal');
+        showToast('{{ t("integration.virtual-graph-created") }}', 'success');
+        setTimeout(() => window.location.href = `/integration/${PROJECT_ID}?graph_id=${GRAPH_ID}`, 800);
+    } catch(err) {
+        showToast('{{ t("common.operation-failed") }}: ' + err.message, 'error');
+    }
+}
+
+async function viewVirtualGraph(vgId) {
+    try {
+        const res = await fetch(`/api/integration/virtual-graph/${vgId}`);
+        if (!res.ok) throw new Error('Failed to load');
+        
+        const vg = await res.json();
+        const detailArea = document.getElementById('virtual-detail-area');
+        detailArea.classList.remove('hidden');
+        
+        document.getElementById('virtual-detail-name').textContent = vg.name;
+        document.getElementById('virtual-detail-desc').textContent = vg.description || '';
+        
+        // 显示虚拟节点列表
+        const nodesContainer = document.getElementById('virtual-detail-nodes');
+        if (vg.nodes && vg.nodes.length > 0) {
+            nodesContainer.innerHTML = vg.nodes.map(n => `
+                <div class="bg-white/5 p-2 rounded border border-white/10 mb-1">
+                    <div class="text-sm font-medium text-white">${n.label}</div>
+                    ${n.content ? `<div class="text-xs text-white/40 mt-1">${n.content.substring(0, 100)}...</div>` : ''}
+                </div>
+            `).join('');
+        } else {
+            nodesContainer.innerHTML = `<p class="text-xs text-white/30">{{ t("integration.no-virtual-nodes") }}</p>`;
+        }
+    } catch(err) {
+        showToast('{{ t("common.network-error") }}', 'error');
+    }
+}
+
+async function editVirtualGraph(vgId) {
+    try {
+        const res = await fetch(`/api/integration/virtual-graph/${vgId}`);
+        if (!res.ok) throw new Error('Failed to load');
+        
+        const vg = await res.json();
+        document.getElementById('virtual-modal-title').textContent = '{{ t("integration.edit-virtual-graph") }}';
+        document.getElementById('edit-virtual-graph-id').value = vg.id;
+        document.getElementById('virtual-graph-name').value = vg.name;
+        document.getElementById('virtual-graph-desc').value = vg.description || '';
+        document.getElementById('virtual-session-select').value = vg.session_id || '';
+        document.getElementById('virtual-graph-link').value = vg.graph_id || '';
+        
+        // 填充节点
+        const container = document.getElementById('virtual-nodes-container');
+        container.innerHTML = '';
+        virtualNodeCounter = 0;
+        if (vg.nodes) {
+            vg.nodes.forEach(n => addVirtualNodeInputWithData(n.label, n.content));
+        }
+        
+        document.getElementById('virtual-graph-modal').classList.remove('hidden');
+    } catch(err) {
+        showToast('{{ t("common.network-error") }}', 'error');
+    }
+}
+
+function addVirtualNodeInputWithData(label, content) {
+    addVirtualNodeInput();
+    const lastNode = document.getElementById('virtual-nodes-container').lastElementChild;
+    lastNode.querySelector('.vnode-label').value = label || '';
+    lastNode.querySelector('.vnode-content').value = content || '';
+}
+
+async function deleteVirtualGraph(vgId) {
+    showConfirmModal(
+        '{{ t("integration.confirm-delete-virtual-graph") }}',
+        async () => {
+            try {
+                await fetch(`/api/integration/virtual-graph/${vgId}`, { method: 'DELETE' });
+                showToast('{{ t("integration.virtual-graph-deleted") }}', 'success');
+                setTimeout(() => window.location.href = `/integration/${PROJECT_ID}?graph_id=${GRAPH_ID}`, 500);
+            } catch(err) {
+                showToast('{{ t("common.delete-failed") }}', 'error');
+            }
+        }
+    );
+}
+
+// 更新switchPanel函数以支持virtual tab
+function switchPanel(name) {
+    console.log('switchPanel called:', name);
+    ['detail', 'edges', 'virtual', 'promote'].forEach(p => {
+        const panel = document.getElementById(`panel-${p}`);
+        const tab = document.getElementById(`tab-${p}`);
+        console.log(`panel-${p}:`, panel, `tab-${p}:`, tab);
+        if (panel) panel.classList.remove('active');
+        if (tab) tab.classList.remove('active');
+    });
+    const targetPanel = document.getElementById(`panel-${name}`);
+    const targetTab = document.getElementById(`tab-${name}`);
+    if (targetPanel) targetPanel.classList.add('active');
+    if (targetTab) targetTab.classList.add('active');
+    console.log('switchPanel done, active panel:', targetPanel, 'active tab:', targetTab);
+}
+
+// ======== RAG搜索功能 ========
+let searchTimeout = null;
+
+async function searchVirtualGraphs() {
+    const query = document.getElementById('virtual-search-input').value.trim();
+    if (!query) {
+        clearSearchResults();
+        return;
+    }
+
+    const resultsContainer = document.getElementById('search-results-container');
+    const resultsList = document.getElementById('search-results-list');
+
+    // 显示加载状态
+    resultsContainer.classList.remove('hidden');
+    resultsList.innerHTML = `<div class="search-loading">{{ t('integration.search-loading') }}</div>`;
+
+    try {
+        const res = await fetch('/api/integration/virtual-graphs/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                project_id: PROJECT_ID,
+                query: query,
+                limit: 5
+            })
+        });
+
+        if (!res.ok) {
+            throw new Error(await res.text());
+        }
+
+        const data = await res.json();
+
+        if (data.results && data.results.length > 0) {
+            resultsList.innerHTML = data.results.map(result => `
+                <div class="search-result-item" onclick="jumpToSearchResult('${result.node_id}', '${result.virtual_graph_id}')">
+                    <div class="search-result-header">
+                        <div class="search-result-name">${result.node_label || '{{ t("integration.unnamed") }}'}</div>
+                        <div class="search-result-score">${Math.round(result.score * 100)}%</div>
+                    </div>
+                    <div class="search-result-preview">${result.preview || ''}</div>
+                    <div class="search-result-meta">
+                        {{ t('integration.search-from-graph') }}: ${result.virtual_graph_name || '{{ t("integration.unnamed") }}'}
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            resultsList.innerHTML = `<div class="search-empty">{{ t('integration.search-no-results') }}</div>`;
+        }
+    } catch(err) {
+        console.error('Search error:', err);
+        resultsList.innerHTML = `<div class="search-empty">{{ t('integration.search-error') }}</div>`;
+    }
+}
+
+function clearSearchResults() {
+    document.getElementById('virtual-search-input').value = '';
+    document.getElementById('search-results-container').classList.add('hidden');
+    document.getElementById('search-results-list').innerHTML = '';
+}
+
+async function jumpToSearchResult(nodeId, virtualGraphId) {
+    // 先查看虚拟图详情
+    if (virtualGraphId) {
+        await viewVirtualGraph(virtualGraphId);
+    }
+    showToast('{{ t("integration.search-node-found") }}', 'success');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,499 @@
+Total concepts: 68
+================================================================================
+
+Concept #1:
+  ID: abdeed45-8d80-4831-84e1-21b31804ee59
+  Session ID: 05d6c2d3-b540-4664-88e8-b6afea53ccfb
+  Name: "正弦函数"
+  Description: "在直角三角形中，正弦函数定义为对边与斜边的比值，记作 sin(θ)。"
+  Status: learning
+
+Concept #2:
+  ID: d34de215-972f-4242-ab71-3744d2912d51
+  Session ID: 05d6c2d3-b540-4664-88e8-b6afea53ccfb
+  Name: "余弦函数"
+  Description: "在直角三角形中，余弦函数定义为邻边与斜边的比值，记作 cos(θ)。"
+  Status: learning
+
+Concept #3:
+  ID: 8766db21-d59b-4b26-b59a-d9abf0d77b62
+  Session ID: 05d6c2d3-b540-4664-88e8-b6afea53ccfb
+  Name: "正切函数"
+  Description: "在直角三角形中，正切函数定义为对边与邻边的比值，记作 tan(θ)，也等于 sin(θ)/cos(θ)。"
+  Status: learning
+
+Concept #4:
+  ID: d5c2d0e8-8bd8-460e-8f15-efd168f29105
+  Session ID: 05d6c2d3-b540-4664-88e8-b6afea53ccfb
+  Name: "余切函数"
+  Description: "在直角三角形中，余切函数定义为邻边与对边的比值，记作 cot(θ)，也等于 cos(θ)/sin(θ)。"
+  Status: learning
+
+Concept #5:
+  ID: 1dbf0abf-2f82-4476-9991-c2cfe39daef7
+  Session ID: 05d6c2d3-b540-4664-88e8-b6afea53ccfb
+  Name: "正割函数"
+  Description: "正割函数定义为余弦函数的倒数，记作 sec(θ) = 1/cos(θ)。"
+  Status: learning
+
+Concept #6:
+  ID: 91b499e9-dcb1-437e-9111-f2e12a5b4652
+  Session ID: 05d6c2d3-b540-4664-88e8-b6afea53ccfb
+  Name: "余割函数"
+  Description: "余割函数定义为正弦函数的倒数，记作 csc(θ) = 1/sin(θ)。"
+  Status: learning
+
+Concept #7:
+  ID: a1adaf90-2d24-49a3-a61a-78c694138b4b
+  Session ID: 3e1b18f8-39d3-4c16-bfcd-385bd3ee219d
+  Name: "正弦函数"
+  Description: "在直角三角形中，正弦函数定义为对边与斜边的比值，是三角函数中最基本的函数之一。"
+  Status: learning
+
+Concept #8:
+  ID: 5c1aa681-2523-4428-afdd-4cb048ca62d0
+  Session ID: 3e1b18f8-39d3-4c16-bfcd-385bd3ee219d
+  Name: "余弦函数"
+  Description: "在直角三角形中，余弦函数定义为邻边与斜边的比值，与正弦函数密切相关。"
+  Status: learning
+
+Concept #9:
+  ID: 56746b7d-1760-4a24-b53b-bc39ccd22bc8
+  Session ID: 3e1b18f8-39d3-4c16-bfcd-385bd3ee219d
+  Name: "正切函数"
+  Description: "正切函数是正弦与余弦的比值，表示对边与邻边的比，在三角学中常用于角度计算。"
+  Status: learning
+
+Concept #10:
+  ID: 307e31ba-3e95-4d16-ad11-f80de4f57f78
+  Session ID: 3e1b18f8-39d3-4c16-bfcd-385bd3ee219d
+  Name: "余切函数"
+  Description: "余切函数是正切函数的倒数，定义为余弦与正弦的比值。"
+  Status: learning
+
+Concept #11:
+  ID: 02bc1268-c6ec-4d2b-9d58-c082af4f7c7b
+  Session ID: 3e1b18f8-39d3-4c16-bfcd-385bd3ee219d
+  Name: "正割函数"
+  Description: "正割函数是余弦函数的倒数，在三角恒等式和微积分中常用。"
+  Status: learning
+
+Concept #12:
+  ID: dab89b7d-92b3-4bf3-ad0c-506dce57d923
+  Session ID: 3e1b18f8-39d3-4c16-bfcd-385bd3ee219d
+  Name: "余割函数"
+  Description: "余割函数是正弦函数的倒数，与正割函数互为余函数。"
+  Status: learning
+
+Concept #13:
+  ID: 0ca9a427-6540-419e-a7c7-83d38b65baa0
+  Session ID: 9f40090f-8fe3-4c74-91c0-a0bb79676048
+  Name: "正弦函数"
+  Description: "正弦函数是三角函数的一种，表示直角三角形中对边与斜边的比值，或单位圆上点的纵坐标。"
+  Status: learning
+
+Concept #14:
+  ID: 2f913353-3875-4cf1-a8fa-34d18453b1a7
+  Session ID: 9f40090f-8fe3-4c74-91c0-a0bb79676048
+  Name: "余弦函数"
+  Description: "余弦函数是三角函数的一种，表示直角三角形中邻边与斜边的比值，或单位圆上点的横坐标。"
+  Status: learning
+
+Concept #15:
+  ID: cd5b31ca-d373-4c26-b359-b38c9e77b637
+  Session ID: 9f40090f-8fe3-4c74-91c0-a0bb79676048
+  Name: "正切函数"
+  Description: "正切函数是三角函数的一种，表示直角三角形中对边与邻边的比值，即正弦与余弦的比值。"
+  Status: learning
+
+Concept #16:
+  ID: d2a6fd6e-eef3-4790-8187-076040fbd9e9
+  Session ID: 9f40090f-8fe3-4c74-91c0-a0bb79676048
+  Name: "余切函数"
+  Description: "余切函数是正切函数的倒数，表示直角三角形中邻边与对边的比值。"
+  Status: learning
+
+Concept #17:
+  ID: a827fb91-b66d-4852-9ba8-2c07712607a9
+  Session ID: 9f40090f-8fe3-4c74-91c0-a0bb79676048
+  Name: "正割函数"
+  Description: "正割函数是余弦函数的倒数，表示直角三角形中斜边与邻边的比值。"
+  Status: learning
+
+Concept #18:
+  ID: 0f0d1a87-229a-4e35-8fe8-804765cdaedc
+  Session ID: 9f40090f-8fe3-4c74-91c0-a0bb79676048
+  Name: "余割函数"
+  Description: "余割函数是正弦函数的倒数，表示直角三角形中斜边与对边的比值。"
+  Status: learning
+
+Concept #19:
+  ID: 9c901860-86d5-4cef-aeaa-ff41bfae095a
+  Session ID: f3bf38b3-c282-4909-8e43-2cae49c556c5
+  Name: "正弦函数"
+  Description: "在直角三角形中，正弦函数定义为对边与斜边的比值，记作 sin(θ)。"
+  Status: learning
+
+Concept #20:
+  ID: fb61fd4f-8121-41c6-b76a-446bd601a4fc
+  Session ID: f3bf38b3-c282-4909-8e43-2cae49c556c5
+  Name: "余弦函数"
+  Description: "在直角三角形中，余弦函数定义为邻边与斜边的比值，记作 cos(θ)。"
+  Status: learning
+
+Concept #21:
+  ID: 6d3e6438-704b-402e-9314-5b1881218306
+  Session ID: f3bf38b3-c282-4909-8e43-2cae49c556c5
+  Name: "正切函数"
+  Description: "正切函数定义为正弦与余弦的比值，即 tan(θ) = sin(θ)/cos(θ)，在直角三角形中为对边与邻边的比值。"
+  Status: learning
+
+Concept #22:
+  ID: f54b1cf2-6a1a-422a-89b7-a2e9b6008100
+  Session ID: f3bf38b3-c282-4909-8e43-2cae49c556c5
+  Name: "余切函数"
+  Description: "余切函数定义为余弦与正弦的比值，即 cot(θ) = cos(θ)/sin(θ)，在直角三角形中为邻边与对边的比值。"
+  Status: learning
+
+Concept #23:
+  ID: 4b855288-18bd-45a1-90f7-dd3b4f5c21d6
+  Session ID: f3bf38b3-c282-4909-8e43-2cae49c556c5
+  Name: "正割函数"
+  Description: "正割函数定义为余弦的倒数，即 sec(θ) = 1/cos(θ)。"
+  Status: learning
+
+Concept #24:
+  ID: c716d763-0f48-426d-b919-eb4ab4854e3b
+  Session ID: f3bf38b3-c282-4909-8e43-2cae49c556c5
+  Name: "余割函数"
+  Description: "余割函数定义为正弦的倒数，即 csc(θ) = 1/sin(θ)。"
+  Status: learning
+
+Concept #25:
+  ID: c2ab3eda-8d5d-4315-a4f8-d4e06ab3ceb4
+  Session ID: f3bf38b3-c282-4909-8e43-2cae49c556c5
+  Name: "正弦函数"
+  Description: "None"
+  Status: mastered
+
+Concept #26:
+  ID: ea2cc732-2be6-406e-89fb-9ac83370891b
+  Session ID: 8749832d-3684-47ed-8146-1fe9c183a609
+  Name: "正弦函数"
+  Description: "在直角三角形中，正弦定义为对边与斜边的比值，记作sin(θ)。"
+  Status: learning
+
+Concept #27:
+  ID: 52d6290d-016b-4f17-bb5c-55217d3f9fa4
+  Session ID: 8749832d-3684-47ed-8146-1fe9c183a609
+  Name: "余弦函数"
+  Description: "在直角三角形中，余弦定义为邻边与斜边的比值，记作cos(θ)。"
+  Status: learning
+
+Concept #28:
+  ID: f5939128-93d8-4fc8-a49c-f13496a1de9a
+  Session ID: 8749832d-3684-47ed-8146-1fe9c183a609
+  Name: "正切函数"
+  Description: "在直角三角形中，正切定义为对边与邻边的比值，记作tan(θ)。"
+  Status: learning
+
+Concept #29:
+  ID: e04cdc75-ccb4-4982-b049-f54d2877c5ab
+  Session ID: 8749832d-3684-47ed-8146-1fe9c183a609
+  Name: "余切函数"
+  Description: "在直角三角形中，余切定义为邻边与对边的比值，记作cot(θ)。"
+  Status: learning
+
+Concept #30:
+  ID: 200ea60d-1c29-47d7-949b-67c5f2f10270
+  Session ID: 8749832d-3684-47ed-8146-1fe9c183a609
+  Name: "正割函数"
+  Description: "正割定义为斜边与邻边的比值，记作sec(θ)，是余弦的倒数。"
+  Status: learning
+
+Concept #31:
+  ID: 06971dbd-2aee-4325-832c-8d72605a4c99
+  Session ID: 8749832d-3684-47ed-8146-1fe9c183a609
+  Name: "余割函数"
+  Description: "余割定义为斜边与对边的比值，记作csc(θ)，是正弦的倒数。"
+  Status: learning
+
+Concept #32:
+  ID: ed14f2cb-af30-4dfa-a86a-e195894526af
+  Session ID: 8749832d-3684-47ed-8146-1fe9c183a609
+  Name: "正弦函数"
+  Description: "None"
+  Status: mastered
+
+Concept #33:
+  ID: f312996a-5385-46cf-beb6-0bb664caf1c7
+  Session ID: e9178714-cc6b-4b9c-9369-1222109ba741
+  Name: "正弦函数"
+  Description: "在直角三角形中，正弦函数定义为对边与斜边的比值，记作 sin(θ)。"
+  Status: learning
+
+Concept #34:
+  ID: ff9ed339-3126-4ca0-b7f3-ceb5f2d8a568
+  Session ID: e9178714-cc6b-4b9c-9369-1222109ba741
+  Name: "余弦函数"
+  Description: "在直角三角形中，余弦函数定义为邻边与斜边的比值，记作 cos(θ)。"
+  Status: learning
+
+Concept #35:
+  ID: 262f73af-7642-448d-bda1-ad6f94b05327
+  Session ID: e9178714-cc6b-4b9c-9369-1222109ba741
+  Name: "正切函数"
+  Description: "正切函数定义为正弦与余弦的比值，即 tan(θ) = sin(θ)/cos(θ)。"
+  Status: learning
+
+Concept #36:
+  ID: 8f472ee4-6ca2-4442-b49a-d7964e895e25
+  Session ID: e9178714-cc6b-4b9c-9369-1222109ba741
+  Name: "余切函数"
+  Description: "余切函数定义为余弦与正弦的比值，即 cot(θ) = cos(θ)/sin(θ)。"
+  Status: learning
+
+Concept #37:
+  ID: de85e10c-f374-446c-b2f7-7b014ee8f0ae
+  Session ID: e9178714-cc6b-4b9c-9369-1222109ba741
+  Name: "正割函数"
+  Description: "正割函数定义为余弦的倒数，即 sec(θ) = 1/cos(θ)。"
+  Status: learning
+
+Concept #38:
+  ID: c1b7f9e2-29e5-4313-b028-725555ccfbe1
+  Session ID: e9178714-cc6b-4b9c-9369-1222109ba741
+  Name: "余割函数"
+  Description: "余割函数定义为正弦的倒数，即 csc(θ) = 1/sin(θ)。"
+  Status: learning
+
+Concept #39:
+  ID: f4fc0a3c-d6c2-4687-9948-44bb3972ccd1
+  Session ID: 66c9b316-d3e0-4b6f-b2d8-e5c1b6b08685
+  Name: "正弦函数"
+  Description: "用户从直角三角形中正弦的定义（对边比斜边）讲起，然后引入单位圆定义法将其推广到任意角，指出定义域扩展至全体实数并通过纵坐标符号解释正负变化。最后讨论了正弦函数的周期2π和对称性sin(π-θ)=sinθ。"
+  Status: mastered
+
+Concept #40:
+  ID: da406f06-6ea4-40e2-b9fc-a3d0f59f8568
+  Session ID: 66c9b316-d3e0-4b6f-b2d8-e5c1b6b08685
+  Name: "余弦函数"
+  Description: "余弦函数在直角三角形中定义为邻边比斜边，推广到单位圆上定义为终边与单位圆交点的横坐标x。具有偶函数性质cos(-θ)=cosθ，以及对称性cos(π-θ)=-cosθ，周期为2π。"
+  Status: mastered
+
+Concept #41:
+  ID: 26e21913-278c-4093-82e9-09e9b9e8c48e
+  Session ID: 66c9b316-d3e0-4b6f-b2d8-e5c1b6b08685
+  Name: "正切函数"
+  Description: "正切函数定义为正弦与余弦的比值，即 tan(θ) = sin(θ) / cos(θ)。"
+  Status: learning
+
+Concept #42:
+  ID: adfa9bff-05f6-4cd9-ad44-0b7d7b70746d
+  Session ID: 66c9b316-d3e0-4b6f-b2d8-e5c1b6b08685
+  Name: "余切函数"
+  Description: "余切函数是正切函数的倒数，即 cot(θ) = cos(θ) / sin(θ)。"
+  Status: learning
+
+Concept #43:
+  ID: 0fe53d78-02c8-4c20-8d93-8b1584de61d0
+  Session ID: 66c9b316-d3e0-4b6f-b2d8-e5c1b6b08685
+  Name: "正割函数"
+  Description: "正割函数是余弦函数的倒数，即 sec(θ) = 1 / cos(θ)。"
+  Status: learning
+
+Concept #44:
+  ID: f544a80c-1715-4b2a-bca7-fc69649e8f09
+  Session ID: 66c9b316-d3e0-4b6f-b2d8-e5c1b6b08685
+  Name: "余割函数"
+  Description: "余割函数是正弦函数的倒数，即 csc(θ) = 1 / sin(θ)。"
+  Status: learning
+
+Concept #45:
+  ID: 9d00cc46-722d-451b-bab8-c6eaed6411a4
+  Session ID: e4a3ae64-2e98-4f7b-874a-ba6bba579cf4
+  Name: "正弦与余弦函数"
+  Description: "用户正确讲解了正弦和余弦在直角三角形中的定义：sin A = 对边/斜边 = BC/AB，cos A = 邻边/斜边 = AC/AB（∠C为直角）。两个定义均准确无误。"
+  Status: mastered
+
+Concept #46:
+  ID: 59fd2fe2-2aa1-41fd-87cc-d3dae562371f
+  Session ID: e4a3ae64-2e98-4f7b-874a-ba6bba579cf4
+  Name: "正切与余切函数"
+  Description: "正切(tan)和余切(cot)是由正弦与余弦导出的三角函数，分别等于正弦与余弦的比值及其倒数，两者互为倒数，常用于坡度、斜率等场景。"
+  Status: learning
+
+Concept #47:
+  ID: 61e569b9-a0ba-480e-9c7d-7da00543c5a2
+  Session ID: e4a3ae64-2e98-4f7b-874a-ba6bba579cf4
+  Name: "正割与余割函数"
+  Description: "正割(sec)和余割(csc)分别定义为余弦和正弦的倒数，在三角恒等式与微积分中作用重要，常与正切、余切配合使用。"
+  Status: learning
+
+Concept #48:
+  ID: 943172eb-3234-4499-97b6-7f058968a4c0
+  Session ID: ab1ead2d-b647-46c8-a529-4bd3559a50ed
+  Name: "正弦函数"
+  Description: "直角三角形中 sinA=对边/斜边；单位圆中 sinθ=y（纵坐标）。值域[-1,1]，周期2π，奇函数，中心对称(kπ,0)。五点描图：(0,0),(π/2,1),(π,0),(3π/2,-1),(2π,0)。与余弦关系 sinθ=cos(π/2-θ)。"
+  Status: promoted
+
+Concept #49:
+  ID: fb82319e-5822-4b3a-9973-817fdbc86e5e
+  Session ID: ab1ead2d-b647-46c8-a529-4bd3559a50ed
+  Name: "余弦函数"
+  Description: "直角三角形中 cosA=邻边/斜边；单位圆中 cosθ=x（横坐标）。值域[-1,1]，周期2π，偶函数，对称轴θ=kπ，对称中心(π/2+kπ,0)。五点：(0,1),(π/2,0),(π,-1),(3π/2,0),(2π,1)。与正弦关系 cosθ=sin(π/2+θ)。"
+  Status: promoted
+
+Concept #50:
+  ID: 0ab285f7-dd0e-4e91-98c6-d4c7530ce2d5
+  Session ID: ab1ead2d-b647-46c8-a529-4bd3559a50ed
+  Name: "正切函数"
+  Description: "tanθ=sinθ/cosθ=y/x。定义域θ≠π/2+kπ，值域R，奇函数，周期π，渐近线x=π/2+kπ，零点kπ。在(-π/2,π/2)内过(0,0)、(-π/4,-1)、(π/4,1)，全程单调上升。与余切关系：tanθ=-cot(θ+π/2)。"
+  Status: promoted
+
+Concept #51:
+  ID: 5a48ea0d-e031-4476-873c-ac20192a9c71
+  Session ID: ab1ead2d-b647-46c8-a529-4bd3559a50ed
+  Name: "余切函数"
+  Description: "cotθ=cosθ/sinθ=x/y。定义域θ≠kπ，值域R，奇函数，周期π，渐近线x=kπ，零点π/2+kπ。在(0,π)内过(π/2,0)、(π/4,1)、(3π/4,-1)，全程单调下降。"
+  Status: promoted
+
+Concept #52:
+  ID: 957bd6d5-6883-4935-b3ac-25c5788b5e86
+  Session ID: ab1ead2d-b647-46c8-a529-4bd3559a50ed
+  Name: "正割函数"
+  Description: "secθ=1/cosθ。定义域x≠π/2+kπ，值域(-∞,-1]∪[1,+∞)，偶函数，周期2π，渐近线x=π/2+kπ。图像过(0,1)、(π,-1)。平方恒等式：sec²θ=1+tan²θ。"
+  Status: promoted
+
+Concept #53:
+  ID: fc0e2b36-d365-4452-b664-5eb18a03d5de
+  Session ID: ab1ead2d-b647-46c8-a529-4bd3559a50ed
+  Name: "余割函数"
+  Description: "cscθ=1/sinθ。定义域x≠kπ，值域(-∞,-1]∪[1,+∞)，奇函数，周期2π，渐近线x=kπ。图像过(π/2,1)、(3π/2,-1)。平方恒等式：csc²θ=1+cot²θ。"
+  Status: promoted
+
+Concept #54:
+  ID: cf593d6c-1e1e-439d-a14c-c1d76f57412a
+  Session ID: 1856fbb4-7a07-4a8f-9e7e-379917ff1365
+  Name: "正弦函数"
+  Description: "正弦函数sin的定义：锐角时为对边/斜边，任意角时靠单位圆上的y坐标表示。周期为2π，值域[-1,1]。特殊值：sin0=0, sin(π/2)=1, sinπ=0, sin(3π/2)=-1。实际应用包括交流电、声波、弹簧振动等。与其他函数的关系：sin²+cos²=1，tan=sin/cos，余角互余（sin(90°-θ)=cosθ）。"
+  Status: promoted
+
+Concept #55:
+  ID: 7284ba79-025e-4f6b-9809-e605c3a37f81
+  Session ID: 1856fbb4-7a07-4a8f-9e7e-379917ff1365
+  Name: "余弦函数"
+  Description: "余弦函数通常表示为 cos(θ)，定义为直角三角形中邻边与斜边的比值。"
+  Status: learning
+
+Concept #56:
+  ID: 055d5b70-0b78-461d-a875-2936af836514
+  Session ID: 1856fbb4-7a07-4a8f-9e7e-379917ff1365
+  Name: "正切函数"
+  Description: "正切函数通常表示为 tan(θ)，定义为直角三角形中对边与邻边的比值，即 sin/cos。"
+  Status: learning
+
+Concept #57:
+  ID: 2f1140b9-4f54-4aff-9a89-d096eb9ad043
+  Session ID: 1856fbb4-7a07-4a8f-9e7e-379917ff1365
+  Name: "余切函数"
+  Description: "余切函数通常表示为 cot(θ)，定义为直角三角形中邻边与对边的比值，即 cos/sin。"
+  Status: learning
+
+Concept #58:
+  ID: a8db8112-82b7-458d-9109-d877e0708c0a
+  Session ID: 1856fbb4-7a07-4a8f-9e7e-379917ff1365
+  Name: "正割函数"
+  Description: "正割函数通常表示为 sec(θ)，定义为斜边与邻边的比值，即 1/cos。"
+  Status: learning
+
+Concept #59:
+  ID: aa5d0d3c-f134-4911-ab59-e9b9f8ec5c70
+  Session ID: 1856fbb4-7a07-4a8f-9e7e-379917ff1365
+  Name: "余割函数"
+  Description: "余割函数通常表示为 csc(θ)，定义为斜边与对边的比值，即 1/sin。"
+  Status: learning
+
+Concept #60:
+  ID: f67c074c-f7aa-4bb9-b515-ef936fdbc1cd
+  Session ID: 1856fbb4-7a07-4a8f-9e7e-379917ff1365
+  Name: "正弦函数 sin"
+  Description: "用户讲解了正弦函数的两种定义（锐角对边/斜边，任意角单位圆y坐标）、特殊值（0,1,0,-1对应0,π/2,π,3π/2）、周期2π、值域[-1,1]、实际应用（交流电、声波、弹簧振动）、以及与其他三角函数的关系（sin²+cos²=1, tan=sin/cos, 余角互余）"
+  Status: promoted
+
+Concept #61:
+  ID: 47ccba54-4153-4b94-991f-da85835f929e
+  Session ID: 1856fbb4-7a07-4a8f-9e7e-379917ff1365
+  Name: "sin函数"
+  Description: "用户讲解了sin函数的定义（锐角用对边/斜边，任意角用单位圆y坐标）、关键值（0,1,0,-1）、周期2π、应用场景（交流电、声波、弹簧振动）以及与其他三角函数的关系（sin²+cos²=1, tan=sin/cos, 余角互余）"
+  Status: mastered
+
+Concept #62:
+  ID: 92d1ccf3-84a5-48f0-a870-08b1ef9333d1
+  Session ID: 1856fbb4-7a07-4a8f-9e7e-379917ff1365
+  Name: "正弦函数(sin)"
+  Description: "锐角时为对边/斜边，任意角时用单位圆y坐标定义。周期2π，值域[-1,1]。关键值：sin0=0, sinπ/2=1, sinπ=0, sin3π/2=-1。应用：交流电、声波、弹簧振动。关系：sin²+cos²=1, tan=sin/cos, 余角互余。"
+  Status: promoted
+
+Concept #63:
+  ID: a456bed5-5073-4976-84a3-83b0719f87a9
+  Session ID: 779ddcc0-dc06-4568-8b0a-20881493e33a
+  Name: "正弦函数（sin）"
+  Description: "用户清晰讲解了sin函数的定义（对边/斜边，单位圆中纵坐标）、值域[-1,1]由单位圆半径=1决定、周期2π、物理应用（简谐运动、交流电）、工程应用（波浪、信号处理）、生活应用（潮汐、声波）、与cos的关系（相位差π/2，sin²x+cos²x=1，sin(x)=cos(π/2-x)）、0°→90°变化规律（从0到1，导数cos递减导致增速先快后慢）"
+  Status: mastered
+
+Concept #64:
+  ID: a8224160-5dd0-46f0-8c3c-0153e27438ac
+  Session ID: 779ddcc0-dc06-4568-8b0a-20881493e33a
+  Name: "余弦函数（cos）"
+  Description: "在直角三角形中，余弦函数定义为邻边与斜边的比值，是基本的三角函数之一。"
+  Status: learning
+
+Concept #65:
+  ID: 8ad6dbf8-0405-41aa-a077-5cc08403075f
+  Session ID: 779ddcc0-dc06-4568-8b0a-20881493e33a
+  Name: "正切函数（tan）"
+  Description: "在直角三角形中，正切函数定义为对边与邻边的比值，也可表示为正弦与余弦的比值。"
+  Status: learning
+
+Concept #66:
+  ID: 0f3a2e5f-c66a-4cf4-a4a7-beeab31462c7
+  Session ID: 779ddcc0-dc06-4568-8b0a-20881493e33a
+  Name: "余切函数（cot）"
+  Description: "在直角三角形中，余切函数定义为邻边与对边的比值，也可表示为余弦与正弦的比值。"
+  Status: learning
+
+Concept #67:
+  ID: 8a91b677-4bcf-4cad-878f-0a44deeeffbd
+  Session ID: 779ddcc0-dc06-4568-8b0a-20881493e33a
+  Name: "正割函数（sec）"
+  Description: "正割函数定义为斜边与邻边的比值，即余弦的倒数。"
+  Status: learning
+
+Concept #68:
+  ID: c40aadf6-542e-490b-a2f1-6afebe2e2f83
+  Session ID: 779ddcc0-dc06-4568-8b0a-20881493e33a
+  Name: "余割函数（csc）"
+  Description: "余割函数定义为斜边与对边的比值，即正弦的倒数。"
+  Status: learning
+
+
+================================================================================
+SUMMARY
+================================================================================
+
+Status Distribution:
+  learning: 52
+  mastered: 7
+  promoted: 9
+
+
+Name Field Issues:
+  No issues found.
+
+
+Description Field Issues:
+  No issues found.
+
+================================================================================
+Check completed.

@@ -1,0 +1,615 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Language: zh_CN\n"
+
+msgid "home.welcome"
+msgstr "欢迎使用 R6AX:/Learn"
+
+msgid "home.title"
+msgstr "AI 辅助学习平台"
+
+msgid "common.save"
+msgstr "保存"
+
+msgid "common.cancel"
+msgstr "取消"
+
+msgid "common.delete"
+msgstr "删除"
+
+msgid "auth.login"
+msgstr "登录"
+
+msgid "auth.register"
+msgstr "注册"
+
+msgid "auth.username"
+msgstr "用户名"
+
+msgid "auth.password"
+msgstr "密码"
+
+msgid "auth.logout"
+msgstr "退出登录"
+
+msgid "auth.password.confirm"
+msgstr "确认密码"
+
+msgid "project.create"
+msgstr "创建项目"
+
+msgid "project.delete"
+msgstr "删除项目"
+
+msgid "project.delete-confirm"
+msgstr "确定要删除项目"
+
+msgid "project.name"
+msgstr "项目名称"
+
+msgid "project.description"
+msgstr "项目描述"
+
+msgid "project.list"
+msgstr "项目列表"
+
+msgid "project.detail"
+msgstr "项目详情"
+
+msgid "project.edit"
+msgstr "编辑"
+
+msgid "project.empty"
+msgstr "暂无项目，点击上方按钮创建第一个项目"
+
+msgid "project.stats"
+msgstr "项目统计"
+
+msgid "project.quick-start"
+msgstr "快速开始"
+
+msgid "project.step-1"
+msgstr "创建笔记"
+
+msgid "project.step-1-desc"
+msgstr "先在「笔记管理」中添加你的学习笔记"
+
+msgid "project.step-2"
+msgstr "教AI以复习"
+
+msgid "project.step-2-desc"
+msgstr "提取笔记中的概念，向 AI 讲解来巩固理解"
+
+msgid "project.step-3"
+msgstr "沉淀到图谱"
+
+msgid "project.step-3-desc"
+msgstr "将掌握的概念沉淀到知识图谱中"
+
+msgid "project.step-4"
+msgstr "间隔练习"
+
+msgid "project.step-4-desc"
+msgstr "系统会根据你的学习情况安排复习计划"
+
+msgid "nav.navigation"
+msgstr "导航"
+
+msgid "input.notes"
+msgstr "笔记管理"
+
+msgid "input.directories"
+msgstr "目录"
+
+msgid "input.create-directory"
+msgstr "创建目录"
+
+msgid "input.no-directories"
+msgstr "暂无目录"
+
+msgid "input.all-notes"
+msgstr "全部笔记"
+
+msgid "input.select-dir"
+msgstr "请选择一个目录"
+
+msgid "input.no-notes"
+msgstr "暂无笔记"
+
+msgid "input.create-note"
+msgstr "创建笔记"
+
+msgid "input.note-title"
+msgstr "笔记标题"
+
+msgid "input.note-content"
+msgstr "笔记内容"
+
+msgid "teaching.session"
+msgstr "教 AI 以复习"
+
+msgid "practice.practice"
+msgstr "间隔练习"
+
+msgid "integration.graph"
+msgstr "知识图谱"
+
+msgid "error.username.exists"
+msgstr "用户名已存在"
+
+msgid "error.password.mismatch"
+msgstr "两次输入的密码不一致"
+
+msgid "error.login.failed"
+msgstr "用户名或密码错误"
+
+msgid "nav.home"
+msgstr "首页"
+
+msgid "nav.projects"
+msgstr "项目"
+
+msgid "nav.notes"
+msgstr "笔记"
+
+msgid "nav.teaching"
+msgstr "教学"
+
+msgid "nav.practice"
+msgstr "练习"
+
+msgid "nav.graph"
+msgstr "图谱"
+
+msgid "input.select-dir"
+msgstr "请选择一个目录"
+
+msgid "input.no-notes"
+msgstr "该目录暂无笔记"
+
+msgid "input.create-note"
+msgstr "创建笔记"
+
+msgid "input.note-title"
+msgstr "笔记标题"
+
+msgid "input.note-content"
+msgstr "笔记内容"
+
+msgid "input.extract-concepts"
+msgstr "提取概念"
+
+msgid "input.delete-directory"
+msgstr "删除目录"
+
+msgid "input.delete-directory-confirm"
+msgstr "确定要删除这个目录吗？目录下的所有笔记也会被删除。"
+
+msgid "input.note-content-placeholder"
+msgstr "支持 Markdown、KaTeX 数学公式（$...$）和 Mermaid 流程图（```mermaid）"
+
+msgid "input.preview"
+msgstr "预览"
+
+msgid "input.edit-note"
+msgstr "编辑笔记"
+
+msgid "input.delete-note"
+msgstr "删除笔记"
+
+msgid "input.delete-note-confirm"
+msgstr "确定要删除这条笔记吗？"
+
+# ====== Common (new) ======
+msgid "common.send"
+msgstr "发送"
+
+msgid "common.edit"
+msgstr "编辑"
+
+msgid "common.copy"
+msgstr "复制"
+
+msgid "common.confirm"
+msgstr "确定"
+
+msgid "common.operation-failed"
+msgstr "操作失败"
+
+msgid "common.delete-failed"
+msgstr "删除失败"
+
+msgid "common.network-error"
+msgstr "网络错误"
+
+# ====== Teaching (new) ======
+msgid "teaching.session-list"
+msgstr "教学会话"
+
+msgid "teaching.create-session"
+msgstr "创建新会话"
+
+msgid "teaching.no-sessions"
+msgstr "还没有教学会话"
+
+msgid "teaching.start-first-session"
+msgstr "开始第一个会话"
+
+msgid "teaching.prompt-concept-name"
+msgstr "请输入要学习的概念名称："
+
+msgid "teaching.session-title"
+msgstr "教AI复习"
+
+msgid "teaching.end-session"
+msgstr "结束会话"
+
+msgid "teaching.current-concept"
+msgstr "当前概念"
+
+msgid "teaching.progress"
+msgstr "学习进度"
+
+msgid "teaching.progress-done"
+msgstr "学习进度（已完成）"
+
+msgid "teaching.input-placeholder"
+msgstr "输入你的讲解或回答..."
+
+msgid "teaching.confirm-edit"
+msgstr "确认修改"
+
+msgid "teaching.confirm-edit-body"
+msgstr "修改此消息将删除其下方的所有内容并重新生成AI响应。此操作无法撤销，确定继续吗？"
+
+# ====== Integration (new) ======
+msgid "integration.add-node"
+msgstr "添加节点"
+
+msgid "integration.add-edge"
+msgstr "添加关联"
+
+msgid "integration.fit-view"
+msgstr "适应视图"
+
+msgid "integration.tab-detail"
+msgstr "详情"
+
+msgid "integration.tab-edges"
+msgstr "关联"
+
+msgid "integration.tab-promote"
+msgstr "待沉淀"
+
+msgid "integration.nodes"
+msgstr "节点"
+
+msgid "integration.click-node-hint"
+msgstr "点击图谱中的节点查看详情"
+
+msgid "integration.empty-graph"
+msgstr "知识图谱为空"
+
+msgid "integration.empty-hint-1"
+msgstr "从教学会话中沉淀概念"
+
+msgid "integration.empty-hint-2"
+msgstr "或手动添加节点"
+
+msgid "integration.add-first-node"
+msgstr "添加第一个节点"
+
+msgid "integration.mastery"
+msgstr "掌握度"
+
+msgid "integration.all-edges"
+msgstr "所有关联"
+
+msgid "integration.no-edges"
+msgstr "暂无关联"
+
+msgid "integration.no-edges-hint"
+msgstr "添加节点后建立连接"
+
+msgid "integration.promotable-title"
+msgstr "可沉淀概念"
+
+msgid "integration.promotable-desc"
+msgstr "已掌握但未进入图谱的概念"
+
+msgid "integration.status-mastered"
+msgstr "已掌握"
+
+msgid "integration.promote-selected"
+msgstr "沉淀选中概念"
+
+msgid "integration.no-promotable"
+msgstr "无待沉淀概念"
+
+msgid "integration.no-promotable-hint"
+msgstr "先去教学并标记为已掌握"
+
+msgid "integration.edit-node"
+msgstr "编辑节点"
+
+msgid "integration.label-name"
+msgstr "名称"
+
+msgid "integration.placeholder-node-example"
+msgstr "例：正弦函数"
+
+msgid "integration.label-desc"
+msgstr "描述"
+
+msgid "integration.placeholder-desc"
+msgstr "简要描述..."
+
+msgid "integration.label-mastery"
+msgstr "初始掌握度"
+
+msgid "integration.label-source"
+msgstr "起始节点"
+
+msgid "integration.label-target"
+msgstr "目标节点"
+
+msgid "integration.label-relation"
+msgstr "关系类型"
+
+msgid "integration.label-edge-label"
+msgstr "标签（可选）"
+
+msgid "integration.placeholder-edge-example"
+msgstr "例：是...的基础"
+
+msgid "integration.select-placeholder"
+msgstr "选择..."
+
+msgid "integration.relation-prereq"
+msgstr "前置"
+
+msgid "integration.relation-related"
+msgstr "相关"
+
+msgid "integration.relation-parent"
+msgstr "父概念"
+
+msgid "integration.unnamed"
+msgstr "未命名"
+
+msgid "integration.error-create-graph"
+msgstr "创建图谱失败"
+
+msgid "integration.node-updated"
+msgstr "节点已更新"
+
+msgid "integration.node-created"
+msgstr "节点已创建"
+
+msgid "integration.confirm-delete-title"
+msgstr "确认删除"
+
+msgid "integration.confirm-delete-warning"
+msgstr "删除节点将同时删除所有相关联的边，此操作不可撤销。"
+
+msgid "integration.confirm-delete-node-msg"
+msgstr "确定删除节点"
+
+msgid "integration.confirm-delete-node"
+msgstr "确定删除此节点及其关联？"
+
+msgid "integration.node-deleted"
+msgstr "节点已删除"
+
+msgid "integration.error-same-node"
+msgstr "起始和目标不能相同"
+
+msgid "integration.edge-created"
+msgstr "关联已创建"
+
+msgid "integration.confirm-delete-edge"
+msgstr "确定删除此关联？"
+
+msgid "integration.edge-deleted"
+msgstr "关联已删除"
+
+msgid "integration.select-concepts-first"
+msgstr "请先勾选概念"
+
+msgid "integration.promote-success"
+msgstr "成功沉淀 {} 个概念"
+
+msgid "integration.promote-failed"
+msgstr "沉淀失败"
+
+# ====== Teaching: Promote (F-11) ======
+msgid "teaching.promote-title"
+msgstr "沉淀到知识图谱"
+
+msgid "teaching.promote-hint"
+msgstr "勾选要沉淀的已掌握概念"
+
+msgid "teaching.concepts"
+msgstr "概念"
+
+msgid "teaching.no-mastered"
+msgstr "暂无已掌握的概念"
+
+msgid "teaching.promote-btn"
+msgstr "沉淀选中概念"
+
+msgid "teaching.go-to-graph"
+msgstr "查看知识图谱"
+
+msgid "teaching.promoting"
+msgstr "沉淀中"
+
+msgid "teaching.promote-success"
+msgstr "概念已成功沉淀到知识图谱！"
+
+msgid "teaching.promoted-count"
+msgstr "已沉淀 {} 个概念节点"
+
+msgid "teaching.promote-failed"
+msgstr "沉淀失败，请重试"
+
+# ====== Integration: Multi-Graph ======
+msgid "integration.current-graph"
+msgstr "当前图谱"
+
+msgid "integration.no-graphs"
+msgstr "暂无图谱"
+
+msgid "integration.create-graph"
+msgstr "创建图谱"
+
+msgid "integration.default-graph-name"
+msgstr "知识图谱"
+
+msgid "integration.graph-created"
+msgstr "图谱创建成功"
+
+msgid "integration.graph-name"
+msgstr "图谱名称"
+
+msgid "integration.link-directory"
+msgstr "关联目录"
+
+msgid "integration.no-directory"
+msgstr "不关联目录"
+
+msgid "integration.directory-hint"
+msgstr "关联目录后，图谱将与该目录的笔记内容对应"
+
+msgid "integration.no-graph-hint"
+msgstr "请先在笔记页面创建目录，图谱会自动生成"
+
+# ====== 虚拟图相关 ======
+msgid "integration.virtual-graph"
+msgstr "虚拟图"
+
+msgid "integration.virtual-graphs"
+msgstr "虚拟知识图"
+
+msgid "integration.tab-virtual"
+msgstr "虚拟图"
+
+msgid "integration.no-virtual-graphs"
+msgstr "暂无虚拟图"
+
+msgid "integration.no-virtual-graphs-hint"
+msgstr "从教学会话中创建虚拟知识结构"
+
+msgid "integration.create-virtual-graph"
+msgstr "创建虚拟图"
+
+msgid "integration.virtual-graph-name"
+msgstr "虚拟图名称"
+
+msgid "integration.virtual-graph-desc"
+msgstr "虚拟图描述"
+
+msgid "integration.virtual-graph-created"
+msgstr "虚拟图创建成功"
+
+msgid "integration.virtual-graph-deleted"
+msgstr "虚拟图已删除"
+
+msgid "integration.virtual-graph-detail"
+msgstr "虚拟图详情"
+
+msgid "integration.virtual-node"
+msgstr "虚拟节点"
+
+msgid "integration.virtual-node-content"
+msgstr "节点内容"
+
+msgid "integration.virtual-node-order"
+msgstr "排序"
+
+msgid "integration.virtual-edge"
+msgstr "虚拟边"
+
+msgid "integration.virtual-connection"
+msgstr "节点连接"
+
+msgid "integration.connection-type"
+msgstr "连接类型"
+
+msgid "integration.connection-contains"
+msgstr "包含"
+
+msgid "integration.connection-references"
+msgstr "引用"
+
+msgid "integration.connection-expands"
+msgstr "扩展"
+
+msgid "integration.edit-virtual-graph"
+msgstr "编辑虚拟图"
+
+msgid "integration.delete-virtual-graph"
+msgstr "删除虚拟图"
+
+msgid "integration.confirm-delete-virtual-graph"
+msgstr "确定删除此虚拟图及其所有节点和连接？"
+
+msgid "integration.select-session"
+msgstr "选择教学会话"
+
+msgid "integration.select-node"
+msgstr "选择节点"
+
+msgid "integration.add-virtual-node"
+msgstr "添加虚拟节点"
+
+msgid "integration.add-virtual-edge"
+msgstr "添加虚拟边"
+
+msgid "integration.from-session"
+msgstr "来源会话"
+
+msgid "integration.link-to-graph"
+msgstr "关联到图谱"
+
+msgid "integration.virtual-graph-list"
+msgstr "虚拟图列表"
+
+msgid "integration.virtual-node-count"
+msgstr "节点数"
+
+msgid "integration.view-virtual-graph"
+msgstr "查看虚拟图"
+
+msgid "integration.no-virtual-nodes"
+msgstr "暂无虚拟节点"
+
+msgid "integration.click-virtual-node-hint"
+msgstr "点击虚拟图节点查看详情"
+
+# ====== RAG搜索相关 ======
+msgid "integration.search-placeholder"
+msgstr "搜索虚拟图知识..."
+
+msgid "integration.search-results"
+msgstr "搜索结果"
+
+msgid "integration.search-loading"
+msgstr "搜索中..."
+
+msgid "integration.search-no-results"
+msgstr "未找到相关内容"
+
+msgid "integration.search-error"
+msgstr "搜索失败，请重试"
+
+msgid "integration.search-from-graph"
+msgstr "来源虚拟图"
+
+msgid "integration.search-node-found"
+msgstr "已定位到相关节点"
+
+msgid "common.clear"
+msgstr "清除"
