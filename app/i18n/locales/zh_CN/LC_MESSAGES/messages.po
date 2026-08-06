@@ -613,3 +613,160 @@ msgstr "已定位到相关节点"
 
 msgid "common.clear"
 msgstr "清除"
+
+msgid "common.retry"
+msgstr "重试"
+
+# ====== Practice (F-12 ~ F-15) ======
+msgid "practice.start-session"
+msgstr "开始完成习题"
+
+msgid "practice.start-session-hint"
+msgstr "从复习范围中选出 10 道题（含简单题与拓展题），题目不足时自动出题"
+
+msgid "practice.bank-title"
+msgstr "题库"
+
+msgid "practice.bank-hint"
+msgstr "查看所有题目，答案默认折叠，可按题目或考点搜索"
+
+msgid "practice.view-bank"
+msgstr "查看题库"
+
+msgid "practice.bank-search-placeholder"
+msgstr "搜索题目或考点..."
+
+msgid "practice.bank-empty"
+msgstr "题库为空"
+
+msgid "practice.bank-empty-hint"
+msgstr "先教学并标记概念为已掌握，再开始习题即可自动出题"
+
+msgid "practice.show-answer"
+msgstr "展开答案"
+
+msgid "practice.show-rationale"
+msgstr "查看出题思路"
+
+msgid "practice.simple-question"
+msgstr "简单题"
+
+msgid "practice.extension-question"
+msgstr "拓展题"
+
+msgid "practice.knowledge-points"
+msgstr "涉及知识点"
+
+msgid "practice.session-title"
+msgstr "习题"
+
+msgid "practice.session-progress"
+msgstr "作答进度"
+
+msgid "practice.question-n"
+msgstr "题目"
+
+msgid "practice.session-done"
+msgstr "本套习题已全部完成"
+
+msgid "practice.session-done-hint"
+msgstr "点击下方按钮结束本次习题"
+
+msgid "practice.end-session"
+msgstr "结束习题"
+
+msgid "practice.generating-questions"
+msgstr "正在出题"
+
+msgid "practice.cancel-generation"
+msgstr "撤销出题"
+
+msgid "practice.generation-cancelled"
+msgstr "已撤销出题，已生成的题目保留在题库中"
+
+msgid "practice.score"
+msgstr "得分"
+
+msgid "practice.your-answer"
+msgstr "你的答案"
+
+msgid "practice.next-review-in"
+msgstr "下次复习间隔"
+
+msgid "practice.days"
+msgstr "天"
+
+msgid "practice.difficulty"
+msgstr "难度"
+
+msgid "practice.concept"
+msgstr "考点"
+
+msgid "practice.type-choice"
+msgstr "选择题"
+
+msgid "practice.type-fill"
+msgstr "填空题"
+
+msgid "practice.type-short"
+msgstr "简答题"
+
+msgid "practice.type-code"
+msgstr "编程题"
+
+msgid "practice.answer-placeholder"
+msgstr "输入你的答案（支持 Markdown、KaTeX 公式与 Mermaid 图）..."
+
+msgid "practice.submit-answer"
+msgstr "提交答案"
+
+msgid "practice.grading"
+msgstr "AI 评审中"
+
+msgid "practice.answer-error"
+msgstr "评审失败或超时，请重试"
+
+msgid "practice.result-correct"
+msgstr "回答正确"
+
+msgid "practice.result-wrong"
+msgstr "回答错误"
+
+msgid "practice.feedback"
+msgstr "AI 反馈"
+
+msgid "practice.reference-answer"
+msgstr "参考答案"
+
+msgid "practice.explanation"
+msgstr "答案解析"
+
+msgid "practice.next-question"
+msgstr "下一题"
+
+msgid "practice.prev-question"
+msgstr "上一题"
+
+msgid "practice.back-to-practice"
+msgstr "返回练习"
+
+msgid "practice.sessions-in-progress"
+msgstr "未完成的习题"
+
+msgid "practice.sessions-completed"
+msgstr "已完成的习题"
+
+msgid "practice.no-sessions-in-progress"
+msgstr "暂无未完成的习题"
+
+msgid "practice.no-sessions-completed"
+msgstr "暂无已完成的习题"
+
+msgid "practice.resume-session"
+msgstr "继续"
+
+msgid "practice.view-session"
+msgstr "查看"
+
+msgid "practice.avg-score"
+msgstr "平均得分"

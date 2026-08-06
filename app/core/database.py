@@ -78,6 +78,25 @@ async def init_db():
             await session.commit()
             print("Added extra_data column to messages table")
 
+        # ===== Practice Level 迁移（F-12~F-15）=====
+        # questions 表：新增 is_extension / knowledge_points / rationale
+        try:
+            await session.execute(text("SELECT is_extension FROM questions LIMIT 1"))
+        except Exception:
+            await session.execute(text("ALTER TABLE questions ADD COLUMN is_extension BOOLEAN DEFAULT 0"))
+            await session.execute(text("ALTER TABLE questions ADD COLUMN knowledge_points TEXT"))
+            await session.execute(text("ALTER TABLE questions ADD COLUMN rationale TEXT"))
+            await session.commit()
+            print("Added is_extension, knowledge_points, rationale columns to questions table")
+
+        # review_records 表：新增 score
+        try:
+            await session.execute(text("SELECT score FROM review_records LIMIT 1"))
+        except Exception:
+            await session.execute(text("ALTER TABLE review_records ADD COLUMN score FLOAT DEFAULT 0.0"))
+            await session.commit()
+            print("Added score column to review_records table")
+
         # ===== 虚拟图相关表迁移 =====
         # 检查 virtual_graphs 表是否存在
         try:

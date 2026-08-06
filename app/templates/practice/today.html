@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('practice.practice') }} - {{ project.name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <style>
+        :root {
+            --apple-blue: #0071e3;
+            --dark-gray: #1a1a1a;
+            --near-black: #0d0d0d;
+            --white: #ffffff;
+            --card-dark: #272729;
+            --card-dark-alt: #2a2a2d;
+            --link-blue: #2997ff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--near-black);
+            color: var(--white);
+            margin: 0;
+        }
+
+        .nav-glass {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card {
+            background-color: var(--card-dark);
+            border-radius: 8px;
+            box-shadow: rgba(0, 0, 0, 0.5) 3px 5px 30px 0px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+        }
+
+        .btn-primary {
+            background-color: var(--apple-blue);
+            color: var(--white);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 10px 22px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .btn-primary:hover { background-color: #0077ed; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--white);
+            font-size: 14px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .btn-secondary:hover { background-color: rgba(255, 255, 255, 0.15); }
+
+        .tag {
+            display: inline-block;
+            font-size: 12px;
+            padding: 0 8px;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.12);
+        }
+        .tag.blue { background-color: rgba(0, 113, 227, 0.25); color: var(--link-blue); }
+        .tag.green { background-color: rgba(48, 209, 88, 0.15); color: #30d158; }
+        .tag.orange { background-color: rgba(255, 159, 10, 0.15); color: #ff9f0a; }
+        .tag.gray { color: rgba(255, 255, 255, 0.6); }
+
+        .form-input {
+            background-color: #2a2a2d;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--white);
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+        .form-input:focus { border-color: var(--apple-blue); }
+        .form-input::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+        details.bank-answer summary { cursor: pointer; list-style: none; }
+        details.bank-answer summary::-webkit-details-marker { display: none; }
+        details.bank-answer summary .chevron { transition: transform 0.15s ease; display: inline-block; }
+        details.bank-answer[open] summary .chevron { transform: rotate(90deg); }
+    </style>
+</head>
+<body>
+    <nav class="nav-glass fixed top-0 left-0 right-0 h-12 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="/" class="text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
+                <a href="/projects" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('nav.projects') }}</a>
+                <span class="text-white/40">/</span>
+                <a href="/projects/{{ project.id }}" class="text-white/80 hover:text-white text-sm transition-colors">{{ project.name }}</a>
+                <span class="text-white/40">/</span>
+                <span class="text-white/80 text-sm">{{ t('practice.practice') }}</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-white/80 text-sm">{{ user.username }}</span>
+                <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 style="font-size: 28px; font-weight: 600; line-height: 1.14;" class="text-white mb-2">{{ t('practice.practice') }}</h1>
+                <p class="text-white/60 text-sm">{{ project.name }}</p>
+            </div>
+            <a href="/projects/{{ project.id }}" class="text-sm transition-colors" style="color: var(--link-blue);">{{ t('project.detail') }} ></a>
+        </div>
+
+        <!-- 开始完成习题入口 -->
+        <section class="mb-8">
+            <div class="card flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-medium text-white mb-1">{{ t('practice.start-session') }}</h2>
+                    <p class="text-white/50 text-sm">{{ t('practice.start-session-hint') }}</p>
+                </div>
+                <button class="btn-primary" onclick="startSession()" id="start-session-btn">{{ t('practice.start-session') }}</button>
+            </div>
+        </section>
+
+        <!-- 正在出题（题目不足时显示，可撤销） -->
+        <section id="generating-panel" class="mb-8 hidden">
+            <div class="card">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-lg font-medium text-white">{{ t('practice.generating-questions') }}</h2>
+                    <span class="text-white/40 text-sm" id="gen-progress"></span>
+                </div>
+                <div class="w-full bg-[#2a2a2d] rounded-lg h-2 mb-4 overflow-hidden">
+                    <div id="gen-bar" class="h-2 rounded-lg transition-all duration-300" style="width:0%; background-color:#0071e3;"></div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="btn-secondary" onclick="cancelGeneration()" id="cancel-gen-btn">{{ t('practice.cancel-generation') }}</button>
+                    <span class="text-white/40 text-xs" id="gen-status"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 未完成的习题（题库入口上方） -->
+        <section class="mb-8">
+            <h2 class="text-lg font-medium text-white mb-4">{{ t('practice.sessions-in-progress') }} <span class="text-white/40 text-sm">({{ active_sessions|length }})</span></h2>
+            {% if active_sessions %}
+            <div class="space-y-3">
+                {% for s in active_sessions %}
+                <a href="/practice/session/{{ s.id }}" class="card block hover:bg-[#2a2a2d] transition-colors no-underline">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white/90 text-sm">{{ t('practice.session-progress') }}: {{ s.answered_count }} / {{ s.q_count }}</p>
+                            <p class="text-white/40 text-xs mt-1">{{ s.created_at[:16] }}</p>
+                        </div>
+                        <span class="tag blue">{{ t('practice.resume-session') }} ></span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card text-center py-6">
+                <p class="text-white/40 text-sm">{{ t('practice.no-sessions-in-progress') }}</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- 题库入口 -->
+        <section class="mb-8">
+            <div class="card flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-medium text-white mb-1">{{ t('practice.bank-title') }}</h2>
+                    <p class="text-white/50 text-sm">{{ t('practice.bank-hint') }}</p>
+                </div>
+                <a href="/practice/{{ project.id }}/bank" class="btn-secondary no-underline inline-block">{{ t('practice.view-bank') }} ></a>
+            </div>
+        </section>
+
+        <!-- 已完成的习题（题库入口下方） -->
+        <section>
+            <h2 class="text-lg font-medium text-white mb-4">{{ t('practice.sessions-completed') }} <span class="text-white/40 text-sm">({{ completed_sessions|length }})</span></h2>
+            {% if completed_sessions %}
+            <div class="space-y-3">
+                {% for s in completed_sessions %}
+                <a href="/practice/session/{{ s.id }}" class="card block hover:bg-[#2a2a2d] transition-colors no-underline">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white/90 text-sm">{{ t('practice.session-progress') }}: {{ s.answered_count }} / {{ s.q_count }}
+                                {% if s.avg_score is not none %}
+                                · {{ t('practice.avg-score') }}: {{ '%.1f'|format(s.avg_score) }}
+                                {% endif %}
+                            </p>
+                            <p class="text-white/40 text-xs mt-1">{{ s.completed_at[:16] if s.completed_at else s.created_at[:16] }}</p>
+                        </div>
+                        <span class="tag green">{{ t('practice.view-session') }} ></span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card text-center py-6">
+                <p class="text-white/40 text-sm">{{ t('practice.no-sessions-completed') }}</p>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        let currentJobId = null;
+        let pollTimer = null;
+
+        function startSession() {
+            const btn = document.getElementById('start-session-btn');
+            btn.disabled = true;
+            fetch('/api/practice/sessions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ project_id: '{{ project.id }}' })
+            }).then(r => r.json()).then(data => {
+                if (data.status !== 'ok') {
+                    btn.disabled = false;
+                    alert('{{ t("common.operation-failed") }}');
+                    return;
+                }
+                sessionStorage.setItem('practice_session_id', data.session_id);
+                if (data.generating && data.job_id) {
+                    currentJobId = data.job_id;
+                    document.getElementById('generating-panel').classList.remove('hidden');
+                    pollJob();
+                } else {
+                    window.location.href = '/practice/session/' + data.session_id;
+                }
+            }).catch(() => {
+                btn.disabled = false;
+                alert('{{ t("common.network-error") }}');
+            });
+        }
+
+        function pollJob() {
+            if (!currentJobId) return;
+            fetch('/api/practice/generate-job/' + currentJobId).then(r => r.json()).then(job => {
+                const total = job.total || 10;
+                const done = job.generated || 0;
+                document.getElementById('gen-progress').textContent = done + ' / ' + total;
+                document.getElementById('gen-bar').style.width = Math.round(done / total * 100) + '%';
+                if (job.status === 'done' || job.status === 'cancelled' || job.status === 'error' || done >= total) {
+                    clearInterval(pollTimer);
+                    const sid = sessionStorage.getItem('practice_session_id') || '';
+                    if (sid) setTimeout(() => window.location.href = '/practice/session/' + sid, 400);
+                } else {
+                    pollTimer = setTimeout(pollJob, 2000);
+                }
+            }).catch(() => {
+                pollTimer = setTimeout(pollJob, 2000);
+            });
+        }
+
+        function cancelGeneration() {
+            if (!currentJobId) return;
+            fetch('/api/practice/generate-job/' + currentJobId + '/cancel', { method: 'POST' })
+                .then(r => r.json()).then(job => {
+                    document.getElementById('gen-status').textContent = '{{ t("practice.generation-cancelled") }}';
+                    document.getElementById('cancel-gen-btn').disabled = true;
+                    clearInterval(pollTimer);
+                    const sid = sessionStorage.getItem('practice_session_id') || '';
+                    if (sid) {
+                        setTimeout(() => window.location.href = '/practice/session/' + sid, 1000);
+                    }
+                });
+        }
+    </script>
+</body>
+</html>

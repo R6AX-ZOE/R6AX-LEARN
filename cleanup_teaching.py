@@ -4,19 +4,32 @@ import os
 db_path = os.path.join(os.path.dirname(__file__), 'data', 'r6ax.db')
 if os.path.exists(db_path):
     conn = sqlite3.connect(db_path)
+    conn.execute("PRAGMA foreign_keys = ON")
     cursor = conn.cursor()
-    
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    tables = cursor.fetchall()
-    print('All tables:', tables)
-    
-    # Delete teaching related data
-    for table in tables:
-        table_name = table[0]
-        if 'teaching' in table_name or 'message' in table_name:
-            cursor.execute(f"DELETE FROM {table_name}")
-            print(f'Deleted from table: {table_name}')
-    
+
+    # 断开 nodes -> concepts 的引用（保留图谱节点，避免孤儿外键）
+    cursor.execute("UPDATE nodes SET concept_id = NULL WHERE concept_id IS NOT NULL")
+    print('Cleared concept_id references in nodes')
+
+    # 按外键依赖逆序删除 teaching 相关数据（子表在前，父表在后）
+    delete_order = [
+        'review_records',                # -> review_schedules
+        'review_schedules',              # -> questions
+        'questions',                     # -> concepts
+        'messages',                      # -> teaching_sessions
+        'concepts',                      # -> teaching_sessions
+        'misconceptions',                # -> teaching_sessions
+        'virtual_graph_edges',           # -> virtual_graph_nodes
+        'virtual_graph_nodes',           # -> virtual_graphs
+        'virtual_graph_to_node_edges',   # -> virtual_graphs
+        'virtual_graph_embeddings',      # -> virtual_graphs
+        'virtual_graphs',                # -> teaching_sessions
+        'teaching_sessions',
+    ]
+    for table in delete_order:
+        cursor.execute(f"DELETE FROM {table}")
+        print(f'Deleted from table: {table}')
+
     conn.commit()
     conn.close()
     print('Done')

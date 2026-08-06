@@ -1407,25 +1407,9 @@ function performSave(messageId, newContent) {
     }).then(response => response.json())
     .then(data => {
         if (data.status === 'ok') {
-            // 显示 thinking indicator
-            thinkingIndicator.classList.remove('hidden');
-            
-            // 创建 pending 容器用于接收流式响应
-            pendingMessageContainer = document.createElement('div');
-            pendingMessageContainer.className = 'message-container message-assistant';
-            pendingMessageContainer.innerHTML = `
-                <div class="message-bubble-wrapper">
-                    <div class="message-bubble markdown-content"></div>
-                </div>
-                <div class="message-actions">
-                    <button class="action-btn" onclick="copyMessage('pending')">{{ t('common.copy') }}</button>
-                </div>
-            `;
-            messagesList.appendChild(pendingMessageContainer);
-            pendingMarkdownContent = '';  // Reset markdown content
-            
-            // 连接 SSE 流来接收重新生成的消息
-            connectStream('{{ session_id }}', '{{ project_id }}');
+            // PUT 已在服务端同步生成新的 AI 回复（parent_id 指向该消息），
+            // 直接刷新页面显示新回复，避免再次打开 SSE 流导致重复生成
+            window.location.reload();
         }
     }).catch(err => {
         console.error('Error updating message:', err);

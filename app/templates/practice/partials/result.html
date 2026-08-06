@@ -1,0 +1,43 @@
+<div class="rounded-lg p-4 {% if result.is_correct %}bg-green-900/20 border border-green-500/20{% else %}bg-red-900/20 border border-red-500/20{% endif %}">
+    <div class="flex items-center gap-2 mb-3 flex-wrap">
+        {% if result.is_correct %}
+        <span class="tag green" style="font-size: 14px; background-color: rgba(48, 209, 88, 0.2); color: #30d158;">✓ {{ t('practice.result-correct') }}</span>
+        {% else %}
+        <span class="tag red" style="font-size: 14px; background-color: rgba(255, 69, 58, 0.2); color: #ff453a;">✗ {{ t('practice.result-wrong') }}</span>
+        {% endif %}
+        <span class="tag" style="font-size: 14px;">{{ t('practice.score') }}: {{ result.score }}</span>
+        <span class="tag gray">{{ t('practice.next-review-in') }} {{ result.interval_days }} {{ t('practice.days') }}</span>
+        {% if result.is_extension %}
+        <span class="tag orange">{{ t('practice.extension-question') }}</span>
+        {% endif %}
+    </div>
+
+    {% if result.feedback %}
+    <div class="mb-3">
+        <h3 class="text-sm font-medium text-white mb-1">{{ t('practice.feedback') }}</h3>
+        <p class="text-white/80 text-sm leading-relaxed whitespace-pre-wrap">{{ result.feedback }}</p>
+    </div>
+    {% endif %}
+
+    <div class="mb-3">
+        <h3 class="text-sm font-medium text-white mb-1">{{ t('practice.your-answer') }}</h3>
+        <p class="text-white/80 text-sm leading-relaxed whitespace-pre-wrap">{{ result.user_answer }}</p>
+    </div>
+
+    <div class="mb-3">
+        <h3 class="text-sm font-medium text-white mb-1">{{ t('practice.reference-answer') }}</h3>
+        <p class="text-white/70 text-sm leading-relaxed whitespace-pre-wrap">{{ result.reference_answer }}</p>
+    </div>
+
+    {% if result.explanation %}
+    <div class="mb-3">
+        <h3 class="text-sm font-medium text-white mb-1">{{ t('practice.explanation') }}</h3>
+        <p class="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">{{ result.explanation }}</p>
+    </div>
+    {% endif %}
+
+    <div class="flex items-center gap-3 mt-4">
+        <button class="btn-primary" onclick="nextQuestion()">{{ t('practice.next-question') }} ></button>
+        <a href="/practice/{{ result.project_id }}" class="btn-secondary no-underline inline-block">{{ t('practice.back-to-practice') }}</a>
+    </div>
+</div>

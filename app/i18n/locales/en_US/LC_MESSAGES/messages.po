@@ -573,3 +573,160 @@ msgstr "Located related node"
 
 msgid "common.clear"
 msgstr "Clear"
+
+msgid "common.retry"
+msgstr "Retry"
+
+# ====== Practice (F-12 ~ F-15) ======
+msgid "practice.start-session"
+msgstr "Start Practice Session"
+
+msgid "practice.start-session-hint"
+msgstr "Pick 10 questions from your review scope (simple + extension). New questions are generated automatically when needed"
+
+msgid "practice.bank-title"
+msgstr "Question Bank"
+
+msgid "practice.bank-hint"
+msgstr "Browse all questions. Answers are collapsed by default; search by question or concept"
+
+msgid "practice.view-bank"
+msgstr "View Question Bank"
+
+msgid "practice.bank-search-placeholder"
+msgstr "Search questions or concepts..."
+
+msgid "practice.bank-empty"
+msgstr "Question bank is empty"
+
+msgid "practice.bank-empty-hint"
+msgstr "Teach and master concepts first, then questions are generated when you start a session"
+
+msgid "practice.show-answer"
+msgstr "Show answer"
+
+msgid "practice.show-rationale"
+msgstr "View design rationale"
+
+msgid "practice.simple-question"
+msgstr "Simple"
+
+msgid "practice.extension-question"
+msgstr "Extension"
+
+msgid "practice.knowledge-points"
+msgstr "Knowledge points"
+
+msgid "practice.session-title"
+msgstr "Practice Session"
+
+msgid "practice.session-progress"
+msgstr "Progress"
+
+msgid "practice.question-n"
+msgstr "Question"
+
+msgid "practice.session-done"
+msgstr "All questions in this session are answered"
+
+msgid "practice.session-done-hint"
+msgstr "Click the button below to end this session"
+
+msgid "practice.end-session"
+msgstr "End Session"
+
+msgid "practice.generating-questions"
+msgstr "Generating questions"
+
+msgid "practice.cancel-generation"
+msgstr "Cancel generation"
+
+msgid "practice.generation-cancelled"
+msgstr "Generation cancelled. Questions already generated remain in the bank"
+
+msgid "practice.score"
+msgstr "Score"
+
+msgid "practice.your-answer"
+msgstr "Your answer"
+
+msgid "practice.next-review-in"
+msgstr "Next review in"
+
+msgid "practice.days"
+msgstr "days"
+
+msgid "practice.difficulty"
+msgstr "Difficulty"
+
+msgid "practice.concept"
+msgstr "Concept"
+
+msgid "practice.type-choice"
+msgstr "Multiple Choice"
+
+msgid "practice.type-fill"
+msgstr "Fill in the Blank"
+
+msgid "practice.type-short"
+msgstr "Short Answer"
+
+msgid "practice.type-code"
+msgstr "Coding"
+
+msgid "practice.answer-placeholder"
+msgstr "Type your answer (Markdown, KaTeX formulas and Mermaid diagrams supported)..."
+
+msgid "practice.submit-answer"
+msgstr "Submit Answer"
+
+msgid "practice.grading"
+msgstr "AI grading..."
+
+msgid "practice.answer-error"
+msgstr "Grading failed or timed out. Please retry"
+
+msgid "practice.result-correct"
+msgstr "Correct"
+
+msgid "practice.result-wrong"
+msgstr "Incorrect"
+
+msgid "practice.feedback"
+msgstr "AI Feedback"
+
+msgid "practice.reference-answer"
+msgstr "Reference Answer"
+
+msgid "practice.explanation"
+msgstr "Explanation"
+
+msgid "practice.next-question"
+msgstr "Next question"
+
+msgid "practice.prev-question"
+msgstr "Previous question"
+
+msgid "practice.back-to-practice"
+msgstr "Back to Practice"
+
+msgid "practice.sessions-in-progress"
+msgstr "Sessions in Progress"
+
+msgid "practice.sessions-completed"
+msgstr "Completed Sessions"
+
+msgid "practice.no-sessions-in-progress"
+msgstr "No sessions in progress"
+
+msgid "practice.no-sessions-completed"
+msgstr "No completed sessions"
+
+msgid "practice.resume-session"
+msgstr "Resume"
+
+msgid "practice.view-session"
+msgstr "View"
+
+msgid "practice.avg-score"
+msgstr "Avg score"

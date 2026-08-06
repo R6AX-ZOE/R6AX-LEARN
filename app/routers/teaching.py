@@ -14,6 +14,7 @@ from app.models.teaching import TeachingSession, Message, Concept, Misconception
 from app.schemas.teaching import TeachingSessionCreate, TeachingSessionResponse, MessageCreate, MessageResponse, ConceptResponse
 from app.services.ai_service import chat_completion, stream_chat_completion
 from app.services.teaching_agent import TeachingAgent
+from app.services.graph_mount import merge_or_create_node, mount_node, sync_virtual_graph_to_real
 from app.i18n.i18n import t
 
 router = APIRouter()
@@ -32,7 +33,8 @@ VIRTUAL_GRAPH_TOOLS = {
 }
 
 async def _get_project_graph_id(db, session_id: str):
-    """获取session所属项目合适的图谱ID（优先 source_note -> directory -> graph 路径）"""
+    """获取session所属项目合适的图谱ID（优先 source_note -> directory -> graph 路径；
+    fallback 时创建与目录同名的图谱）"""
     session_result = await db.execute(
         text("SELECT project_id, source_note_id FROM teaching_sessions WHERE id = :sid"),
         {"sid": session_id}
@@ -43,7 +45,8 @@ async def _get_project_graph_id(db, session_id: str):
     project_id = session_row[0]
     source_note_id = session_row[1]
 
-    graph_id = None
+    directory_id = None
+    directory_name = None
     if source_note_id:
         note_result = await db.execute(
             text("SELECT directory_id FROM notes WHERE id = :note_id"),
@@ -51,24 +54,43 @@ async def _get_project_graph_id(db, session_id: str):
         )
         note_row = note_result.first()
         if note_row and note_row[0]:
+            directory_id = note_row[0]
+            dir_result = await db.execute(
+                text("SELECT name FROM directories WHERE id = :directory_id"),
+                {"directory_id": directory_id}
+            )
+            dir_row = dir_result.first()
+            directory_name = dir_row[0] if dir_row else None
             graph_result = await db.execute(
                 text("SELECT id FROM graphs WHERE directory_id = :directory_id"),
-                {"directory_id": note_row[0]}
+                {"directory_id": directory_id}
             )
             graph_row = graph_result.first()
             if graph_row:
-                graph_id = graph_row[0]
+                return graph_row[0]
 
-    if not graph_id:
-        graph_result = await db.execute(
-            text("SELECT id FROM graphs WHERE project_id = :pid ORDER BY created_at LIMIT 1"),
-            {"pid": project_id}
+    # fallback：笔记有目录但目录还没有图谱 → 创建与目录同名的图谱
+    if directory_id:
+        new_graph_id = str(uuid4())
+        await db.execute(
+            text("""INSERT INTO graphs (id, project_id, directory_id, name, created_at, updated_at)
+                   VALUES (:id, :pid, :did, :name, datetime('now'), datetime('now'))"""),
+            {"id": new_graph_id, "pid": project_id, "did": directory_id,
+             "name": directory_name or "知识图谱"}
         )
-        graph_row = graph_result.first()
-        if graph_row:
-            graph_id = graph_row[0]
+        await db.commit()
+        return new_graph_id
 
-    return graph_id
+    # 无目录上下文：fallback 到项目第一个图谱
+    graph_result = await db.execute(
+        text("SELECT id FROM graphs WHERE project_id = :pid ORDER BY created_at LIMIT 1"),
+        {"pid": project_id}
+    )
+    graph_row = graph_result.first()
+    if graph_row:
+        return graph_row[0]
+
+    return None
 
 async def _insert_virtual_graph_nodes_and_edges(db, vg_id: str, nodes: list, edges: list):
     """插入虚拟图节点和内部边，返回 {label: vnode_id} 映射"""
@@ -593,9 +615,11 @@ async def update_message_and_create_branch(session_id: str, message_id: str, mes
     print(f"Finished processing AI response in update_message. Tool calls: {tool_calls_buffer}")
 
     # 创建新的AI响应消息（工具调用XML会在所有工具执行完后统一追加到消息内容中，见update_message_and_create_branch末尾）
+    # parent_id 指向被编辑的user消息，保证SSE幂等检查能识别"已有回复"，避免与流式路径双写
     assistant_message = Message(
         id=str(uuid4()),
         session_id=session_id,
+        parent_id=message_id,
         role="assistant",
         content=response_text,
         is_active=True
@@ -1753,14 +1777,27 @@ async def update_message_and_create_branch(session_id: str, message_id: str, mes
 async def generate_streaming_response(session_id: str, project_id: str, db):
     agent = TeachingAgent(db, session_id)
 
-    yield f"data: {json.dumps({'type': 'thinking'})}\n\n"
-
     messages_result = await db.execute(text("SELECT * FROM messages WHERE session_id = :session_id AND is_active = 1 ORDER BY created_at"), {"session_id": session_id})
     messages = [dict(row._mapping) for row in messages_result.fetchall()]
 
     user_messages = [m for m in messages if m['role'] == 'user']
     last_user_message = user_messages[-1]['content'] if user_messages else ""
     last_user_message_id = user_messages[-1]['id'] if user_messages else None
+
+    # 幂等保护：最后一条user消息若已有assistant回复（SSE重连/重复触发时），直接结束，
+    # 避免同一输入生成多条AI消息
+    if last_user_message_id:
+        existing_reply = await db.execute(
+            text("""SELECT id FROM messages WHERE session_id = :sid AND role = 'assistant'
+                    AND parent_id = :pid AND is_active = 1"""),
+            {"sid": session_id, "pid": last_user_message_id}
+        )
+        if existing_reply.first():
+            print(f"[stream] message {last_user_message_id} already has assistant reply, skipping")
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+            return
+
+    yield f"data: {json.dumps({'type': 'thinking'})}\n\n"
 
     # 收集完整的响应文本和工具调用
     full_response = ''
@@ -2597,6 +2634,8 @@ async def promote_concepts(session_id: str, request: Request, current_user: User
 
     # 获取正确的图谱ID：优先使用 source_note -> directory -> graph 的路径
     graph_id = None
+    directory_id = None
+    directory_name = None
     if session.get("source_note_id"):
         # 通过 source_note 找到目录，再找到图谱
         note_result = await db.execute(
@@ -2605,15 +2644,33 @@ async def promote_concepts(session_id: str, request: Request, current_user: User
         )
         note_row = note_result.first()
         if note_row and note_row[0]:
+            directory_id = note_row[0]
+            dir_result = await db.execute(
+                text("SELECT name FROM directories WHERE id = :directory_id"),
+                {"directory_id": directory_id}
+            )
+            dir_row = dir_result.first()
+            directory_name = dir_row[0] if dir_row else None
             graph_result = await db.execute(
                 text("SELECT id FROM graphs WHERE directory_id = :directory_id"),
-                {"directory_id": note_row[0]}
+                {"directory_id": directory_id}
             )
             graph_row = graph_result.first()
             if graph_row:
                 graph_id = graph_row[0]
-    
-    # 如果没有找到，使用项目的第一个图谱
+
+    # fallback：笔记有目录但目录还没有图谱 → 创建与目录同名的图谱
+    if not graph_id and directory_id:
+        new_graph_id = str(uuid4())
+        await db.execute(
+            text("""INSERT INTO graphs (id, project_id, directory_id, name, created_at, updated_at)
+                   VALUES (:id, :pid, :did, :name, datetime('now'), datetime('now'))"""),
+            {"id": new_graph_id, "pid": project_id, "did": directory_id,
+             "name": directory_name or "知识图谱"}
+        )
+        graph_id = new_graph_id
+
+    # 无目录上下文：如果没有找到，使用项目的第一个图谱
     if not graph_id:
         graph_result = await db.execute(
             text("SELECT id FROM graphs WHERE project_id = :project_id ORDER BY created_at LIMIT 1"),
@@ -2650,23 +2707,15 @@ async def promote_concepts(session_id: str, request: Request, current_user: User
             print(f"Found concept: name={concept_name}, status={status}")
 
             if status == 'mastered':
-                # 检查是否已存在同名节点
-                existing_node = await db.execute(
-                    text("SELECT * FROM nodes WHERE graph_id = :graph_id AND label = :label"),
-                    {"graph_id": graph_id, "label": concept_name}
+                # 挂载式合并：同名节点复用（mastery取较大值、补concept_id），新节点自动挂载到图谱网络
+                node_id, created = await merge_or_create_node(
+                    db, graph_id, concept_name, concept_id=concept_id, mastery=0.3
                 )
-                if existing_node.first():
-                    print(f"Node already exists: {concept_name}")
-                else:
-                    # 创建Node（手动沉淀的概念初始掌握度为0.3）
-                    node_id = str(uuid4())
-                    await db.execute(
-                        text("""INSERT INTO nodes (id, graph_id, concept_id, label, mastery_score)
-                               VALUES (:id, :graph_id, :concept_id, :label, 0.3)"""),
-                        {"id": node_id, "graph_id": graph_id, "concept_id": concept_id,
-                         "label": concept_name}
-                    )
+                if created:
+                    await mount_node(db, graph_id, node_id, concept_name)
                     print(f"Created node: id={node_id}, label={concept_name}, graph_id={graph_id}")
+                else:
+                    print(f"Merged into existing node: id={node_id}, label={concept_name}")
 
                 # 更新concept状态为promoted
                 await db.execute(
@@ -2675,6 +2724,20 @@ async def promote_concepts(session_id: str, request: Request, current_user: User
                 )
 
                 promoted_concepts.append({"name": concept_name, "node_id": node_id})
+
+    # 同步虚拟图到真实图谱：补全虚拟图所有节点 + 投影内部边（形成完整结构网络）
+    projected_edges = []
+    synced_nodes = []
+    if promoted_concepts:
+        vg_result = await db.execute(
+            text("SELECT id FROM virtual_graphs WHERE session_id = :sid"),
+            {"sid": session_id}
+        )
+        for vg_row in vg_result.fetchall():
+            result = await sync_virtual_graph_to_real(db, graph_id, vg_row[0])
+            synced_nodes.extend(result["nodes"])
+            projected_edges.extend(result["edges"])
+        print(f"promote_concepts: synced {len(synced_nodes)} nodes, projected {len(projected_edges)} edges from virtual graphs")
 
     # 更新graph的updated_at
     await db.execute(
@@ -2687,6 +2750,7 @@ async def promote_concepts(session_id: str, request: Request, current_user: User
         "promoted_count": len(promoted_concepts),
         "concepts": promoted_concepts,
         "graph_id": graph_id,
+        "projected_edges": projected_edges,
         "status": "ok"
     }
 
@@ -2718,6 +2782,7 @@ async def promote_by_ids(request: Request, current_user: User = Depends(get_curr
         graph_id = graph[0]
 
     promoted = []
+    session_ids = set()
 
     for cid in concept_ids:
         result = await db.execute(
@@ -2730,29 +2795,39 @@ async def promote_by_ids(request: Request, current_user: User = Depends(get_curr
 
         name = concept[2]  # name字段在第2列（索引2）
         description = concept[3] if len(concept) > 3 else ""  # description字段在第3列
+        session_ids.add(concept[1])  # session_id字段在第1列
 
-        # 去重
-        exists = await db.execute(
-            text("SELECT 1 FROM nodes WHERE graph_id = :gid AND label = :label"),
-            {"gid": graph_id, "label": name}
+        # 挂载式合并：同名节点复用，新节点自动挂载到图谱网络
+        node_id, created = await merge_or_create_node(
+            db, graph_id, name, concept_id=cid, mastery=0.3
         )
-        if exists.first():
+        if created:
+            await mount_node(db, graph_id, node_id, name)
+        else:
             continue
-
-        node_id = str(uuid4())
-        await db.execute(
-            text("""INSERT INTO nodes (id, graph_id, concept_id, label, mastery_score)
-                   VALUES (:id, :gid, :cid, :label, 0.3)"""),
-            {"id": node_id, "gid": graph_id, "cid": cid, "label": name}
-        )
 
         await db.execute(text("UPDATE concepts SET status = 'promoted' WHERE id = :cid"), {"cid": cid})
         promoted.append({"name": name, "node_id": node_id})
 
+    # 同步虚拟图到真实图谱：补全虚拟图所有节点 + 投影内部边
+    projected_edges = []
+    synced_nodes = []
+    if promoted:
+        for sid in session_ids:
+            vg_result = await db.execute(
+                text("SELECT id FROM virtual_graphs WHERE session_id = :sid"),
+                {"sid": sid}
+            )
+            for vg_row in vg_result.fetchall():
+                result = await sync_virtual_graph_to_real(db, graph_id, vg_row[0])
+                synced_nodes.extend(result["nodes"])
+                projected_edges.extend(result["edges"])
+
     await db.execute(text("UPDATE graphs SET updated_at = datetime('now') WHERE id = :gid"), {"gid": graph_id})
     await db.commit()
 
-    return {"status": "ok", "promoted_count": len(promoted), "concepts": promoted}
+    return {"status": "ok", "promoted_count": len(promoted), "concepts": promoted,
+            "synced_nodes": synced_nodes, "projected_edges": projected_edges}
 
 @router.delete("/sessions/{session_id}")
 async def delete_session(session_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):

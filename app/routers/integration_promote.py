@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.requests import Request
-from uuid import uuid4
 import json
 
 from sqlalchemy import text
 from app.core.deps import get_current_user, get_db
 from app.models.user import User
+from app.services.graph_mount import merge_or_create_node, ensure_edge, mount_node, project_virtual_graph_edges
 
 router = APIRouter()
 
@@ -16,7 +16,9 @@ async def promote_virtual_node(
     current_user: User = Depends(get_current_user),
     db = Depends(get_db)
 ):
-    """推送虚拟图节点到Integration Level，创建主node、子nodes和边"""
+    """推送虚拟图节点到Integration Level（挂载式合并）：
+    同名节点复用合并，新节点自动挂载到图谱最近邻节点，边去重，
+    并把虚拟图内部的 vnode→vnode 边投影为真实图谱边。"""
     body = await request.json() if request else {}
     graph_id = body.get("graph_id")
 
@@ -51,47 +53,44 @@ async def promote_virtual_node(
     if not graph_id:
         raise HTTPException(status_code=400, detail="Graph ID required")
 
-    # 创建主node
-    main_node_id = str(uuid4())
-    await db.execute(
-        text("""INSERT INTO nodes (id, graph_id, label, mastery_score, created_at)
-               VALUES (:id, :gid, :label, 0.0, datetime('now'))"""),
-        {"id": main_node_id, "gid": graph_id, "label": main_label}
-    )
+    # 主node：合并式创建（同名复用）
+    main_node_id, main_created = await merge_or_create_node(db, graph_id, main_label)
 
-    # 为每个二元组创建子node和边
+    # 为每个二元组创建/复用子node和边（边去重）
     child_node_ids = []
     for prop in properties:
         if len(prop) >= 2:
             relation = prop[0]  # 和node的关系（边的relation）
             child_name = prop[1]  # 名称（子node的label）
 
-            # 创建子node（掌握度0.0）
-            child_node_id = str(uuid4())
-            await db.execute(
-                text("""INSERT INTO nodes (id, graph_id, label, mastery_score, created_at)
-                       VALUES (:id, :gid, :label, 0.0, datetime('now'))"""),
-                {"id": child_node_id, "gid": graph_id, "label": child_name}
-            )
+            child_node_id, _ = await merge_or_create_node(db, graph_id, child_name)
             child_node_ids.append(child_node_id)
 
-            # 创建边：主node → 子node，relation为和node的关系
-            edge_id = str(uuid4())
-            await db.execute(
-                text("""INSERT INTO edges (id, graph_id, source_node_id, target_node_id, relation, created_at)
-                       VALUES (:id, :gid, :src, :tgt, :rel, datetime('now'))"""),
-                {"id": edge_id, "gid": graph_id, "src": main_node_id, "tgt": child_node_id, "rel": relation}
-            )
+            await ensure_edge(db, graph_id, main_node_id, child_node_id, relation)
 
-    # 计算主node的掌握度（所有子node的平均值）
+    # 计算主node的掌握度（子节点平均值，但与已有掌握度取较大值，避免覆盖）
     if child_node_ids:
-        # 所有子node初始掌握度都是0.0，所以平均值也是0.0
-        # 但如果后续子node掌握度更新，主node也需要更新
-        main_mastery = 0.0
+        total = 0.0
+        for cid in child_node_ids:
+            result = await db.execute(
+                text("SELECT mastery_score FROM nodes WHERE id = :nid"),
+                {"nid": cid}
+            )
+            row = result.first()
+            total += float(row[0] or 0.0) if row else 0.0
+        main_mastery = total / len(child_node_ids)
         await db.execute(
-            text("UPDATE nodes SET mastery_score = :ms WHERE id = :nid"),
+            text("UPDATE nodes SET mastery_score = MAX(mastery_score, :ms) WHERE id = :nid"),
             {"ms": main_mastery, "nid": main_node_id}
         )
+
+    # 投影虚拟图内部边：把 vnode→vnode 关系（parent/prerequisite等）沉淀为真实图谱边
+    projected = await project_virtual_graph_edges(db, graph_id, vnode_id=vnode_id)
+
+    # 挂载：把新主node接入已有图谱网络（related边到最近邻节点，已有精确边时跳过）
+    mounted = []
+    if main_created:
+        mounted = await mount_node(db, graph_id, main_node_id, main_label)
 
     # 更新虚拟图节点的node_id字段，关联到真实node
     await db.execute(
@@ -111,7 +110,11 @@ async def promote_virtual_node(
         "status": "ok",
         "main_node_id": main_node_id,
         "main_label": main_label,
+        "merged": not main_created,
         "child_count": len(child_node_ids),
         "children": [{"id": cid, "label": properties[i][1], "relation": properties[i][0]}
-                     for i, cid in enumerate(child_node_ids) if i < len(properties)]
+                     for i, cid in enumerate(child_node_ids) if i < len(properties)],
+        "mounted": [{"node_id": m["node_id"], "label": m["label"], "score": round(m["score"], 3)}
+                    for m in mounted],
+        "projected_edges": projected
     }

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('practice.bank-title') }} - {{ project.name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <style>
+        :root {
+            --apple-blue: #0071e3;
+            --dark-gray: #1a1a1a;
+            --near-black: #0d0d0d;
+            --white: #ffffff;
+            --card-dark: #272729;
+            --link-blue: #2997ff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--near-black);
+            color: var(--white);
+            margin: 0;
+        }
+
+        .nav-glass {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card {
+            background-color: var(--card-dark);
+            border-radius: 8px;
+            box-shadow: rgba(0, 0, 0, 0.5) 3px 5px 30px 0px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--white);
+            font-size: 14px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .btn-secondary:hover { background-color: rgba(255, 255, 255, 0.15); }
+
+        .tag {
+            display: inline-block;
+            font-size: 12px;
+            padding: 0 8px;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.12);
+        }
+        .tag.blue { background-color: rgba(0, 113, 227, 0.25); color: var(--link-blue); }
+        .tag.green { background-color: rgba(48, 209, 88, 0.15); color: #30d158; }
+        .tag.orange { background-color: rgba(255, 159, 10, 0.15); color: #ff9f0a; }
+        .tag.gray { color: rgba(255, 255, 255, 0.6); }
+
+        .form-input {
+            background-color: #2a2a2d;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--white);
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+        .form-input:focus { border-color: var(--apple-blue); }
+        .form-input::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+        details.bank-answer summary { cursor: pointer; list-style: none; }
+        details.bank-answer summary::-webkit-details-marker { display: none; }
+        details.bank-answer summary .chevron { transition: transform 0.15s ease; display: inline-block; }
+        details.bank-answer[open] summary .chevron { transform: rotate(90deg); }
+    </style>
+</head>
+<body>
+    <nav class="nav-glass fixed top-0 left-0 right-0 h-12 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="/" class="text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
+                <a href="/projects" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('nav.projects') }}</a>
+                <span class="text-white/40">/</span>
+                <a href="/projects/{{ project.id }}" class="text-white/80 hover:text-white text-sm transition-colors">{{ project.name }}</a>
+                <span class="text-white/40">/</span>
+                <a href="/practice/{{ project.id }}" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('practice.practice') }}</a>
+                <span class="text-white/40">/</span>
+                <span class="text-white/80 text-sm">{{ t('practice.bank-title') }}</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-white/80 text-sm">{{ user.username }}</span>
+                <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 style="font-size: 28px; font-weight: 600; line-height: 1.14;" class="text-white mb-2">{{ t('practice.bank-title') }} <span class="text-white/40 text-sm">({{ bank|length }})</span></h1>
+                <p class="text-white/60 text-sm">{{ project.name }}</p>
+            </div>
+            <a href="/practice/{{ project.id }}" class="text-sm transition-colors" style="color: var(--link-blue);">&lt; {{ t('practice.back-to-practice') }}</a>
+        </div>
+
+        <div class="mb-4">
+            <input type="text" id="bank-search" class="form-input" placeholder="{{ t('practice.bank-search-placeholder') }}"
+                   hx-get="/practice/{{ project.id }}/bank-search" hx-trigger="keyup changed delay:400ms, search"
+                   hx-target="#bank-list" hx-include="this" name="q" autocomplete="off">
+        </div>
+
+        <div id="bank-list">
+            {% include "practice/partials/bank.html" %}
+        </div>
+    </main>
+</body>
+</html>

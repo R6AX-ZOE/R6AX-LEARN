@@ -112,7 +112,7 @@ TOOLS = [
                     },
                     "edges": {
                         "type": "array",
-                        "description": "虚拟图中节点之间的关联",
+                        "description": "虚拟图中节点之间的关联（必填，必须把所有节点连成网络，不允许孤立节点）。支持 parent(父子：子概念→父概念)、prerequisite(前置)、related(相关)、next(后续)、detail(细节)、example(示例)。沉淀时这些边会投影为真实图谱的边。",
                         "items": {
                             "type": "object",
                             "properties": {
@@ -126,8 +126,8 @@ TOOLS = [
                                 },
                                 "relation": {
                                     "type": "string",
-                                    "enum": ["prerequisite", "related", "next", "detail", "example"],
-                                    "description": "关系类型：prerequisite(前置)、related(相关)、next(后续)、detail(细节)、example(示例)"
+                                    "enum": ["prerequisite", "related", "next", "detail", "example", "parent"],
+                                    "description": "关系类型：parent(父子：源是子的父概念)、prerequisite(前置)、related(相关)、next(后续)、detail(细节)、example(示例)"
                                 }
                             },
                             "required": ["source_label", "target_label", "relation"]
@@ -381,12 +381,21 @@ class TeachingAgent:
         - 虚拟图的每个节点可以通过properties字段定义多个子node关系
         - 虚拟图节点可以连接到知识图谱中的真实节点
         
-        ## 关联 (Edge)
-        关联表示概念间的逻辑关系。
+         ## 关联 (Edge)
+        关联表示概念间的逻辑关系，**是构建统一结构网络的核心，必须为每个概念建立关联**。
         关系类型：
         - prerequisite: 前置关系（A → B：A是B的前置知识）
         - related: 相关关系（A → B：A与B有联系但非直接依赖）
         - parent: 父概念关系（A → B：A是B的父概念，即B是A的子概念）
+        
+        ### 关联创建规范（必须严格遵守）
+        1. **虚拟图创建时必须包含 edges 字段**（不允许省略或为空），把虚拟图内所有节点连成一个网络：
+           - 每个节点至少与一个其他节点有边（parent / prerequisite / related）
+           - 不要创建孤立的节点
+        2. 识别父子概念关系时，必须用 parent 边连接（子 → 父）
+        3. 识别先后依赖时，必须用 prerequisite 边连接
+        4. 无法确定层级关系时，用 related 边连接
+        5. 沉淀时，虚拟图内的边会**原样投影**到真实图谱，节点间关系会保留在最终图谱中
         
         ### 层级结构示例（必须识别父子关系）
         ```
@@ -449,10 +458,11 @@ class TeachingAgent:
              - label: 简洁精确的名称，**不超过10个字**（如"sin函数"，不要"正弦函数定义"）
              - description: 节点简要描述（一句话核心）
              - content: 用户讲解的完整内容
-             - 可以创建虚拟图内部的节点关联（edges）
+             - **必须创建虚拟图内部的节点关联（edges）**，把节点连成网络，不允许孤立节点
           3. 虚拟图创建后，内容会自动显示在teaching右侧沉淀栏供用户查看
           4. 用户可以选择将虚拟图节点推送到Integration Level（真实图谱）
           5. Integration Level只存储节点名称，详细内容保持在虚拟图中
+          6. **虚拟图内的 edges 会在沉淀时投影为真实图谱的边**，形成统一结构网络
         - 可以使用 search_virtual_graph_nodes 在虚拟图内部查找特定知识点
         - 调用 get_virtual_graphs 查看当前项目的所有虚拟图
         - 调用 get_virtual_graph 查看指定虚拟图的详细信息
@@ -461,7 +471,7 @@ class TeachingAgent:
         - 识别父子概念关系，例如：
           * 如果用户讲解"sin函数"，应识别它属于"三角函数"
           * 如果用户讲解"线性回归"，应识别它属于"机器学习算法"
-        - 在虚拟图中创建节点关联时，可以使用parent关系表示父子关系
+        - 在虚拟图中创建节点关联时，必须使用parent关系表示父子关系，用prerequisite表示前置依赖
         
         注意事项：
         - mark_concepts_mastered 是必须调用的，否则学习进度不会被记录！
@@ -500,9 +510,10 @@ class TeachingAgent:
              * label: 简洁精确的名称，**不超过10个字**（如"sin函数"，不要"正弦函数定义及性质"）
              * description: 一句话核心描述（不要冗长细节）
              * content: 用户讲解的完整内容
-             * edges: 节点之间的关联（可选）
+             * edges: **必填**，节点之间的关联，必须把节点连成网络（parent父子 / prerequisite前置 / related相关），不允许孤立节点
            - 创建虚拟图前，先使用search_virtual_graphs_rag搜索是否已有相似结构
            - 可以使用search_virtual_graph_nodes在虚拟图内部查找特定知识点
+           - 沉淀到Integration Level时，虚拟图内部的edges会原样投影为真实图谱的边，因此必须在创建时就规划好完整的节点网络
         
         请根据以上信息进行回应，并在适当的时候调用工具。最后一定要调用task_complete工具结束！
         """).strip()

@@ -2,6 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
+from datetime import datetime, timedelta
+import json
+from uuid import uuid4
+
 from sqlalchemy import text
 
 from app.core.database import get_db
@@ -159,6 +163,231 @@ async def teaching_page(request: Request, project_id: str, current_user: User = 
 
     template = jinja_env.get_template("teaching/session_list.html")
     html_content = template.render(request=request, user=current_user, project=project, sessions=sessions)
+    return HTMLResponse(content=html_content)
+
+@router.get("/practice/{project_id}", response_class=HTMLResponse)
+async def practice_page(request: Request, project_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    project_result = await db.execute(text("SELECT * FROM projects WHERE id = :project_id AND user_id = :user_id"),
+                              {"project_id": project_id, "user_id": current_user.id})
+    project_row = project_result.first()
+
+    if not project_row:
+        raise HTTPException(status_code=404, detail="项目不存在")
+
+    project = dict(project_row._mapping)
+
+    # 习题会话列表：未完成（active）与已完成（completed）
+    sessions_result = await db.execute(
+        text("""SELECT ps.*,
+                       (SELECT COUNT(*) FROM practice_session_questions WHERE session_id = ps.id) AS q_count,
+                       (SELECT COUNT(*) FROM practice_session_questions WHERE session_id = ps.id AND answered_at IS NOT NULL) AS answered_count,
+                       (SELECT AVG(score) FROM practice_session_questions WHERE session_id = ps.id AND answered_at IS NOT NULL) AS avg_score
+                FROM practice_sessions ps
+                WHERE ps.user_id = :uid AND ps.project_id = :pid
+                ORDER BY ps.created_at DESC"""),
+        {"uid": current_user.id, "pid": project_id}
+    )
+    all_sessions = [dict(row._mapping) for row in sessions_result.fetchall()]
+    active_sessions = [s for s in all_sessions if s.get("status") == "active"]
+    completed_sessions = [s for s in all_sessions if s.get("status") == "completed"]
+
+    template = jinja_env.get_template("practice/today.html")
+    html_content = template.render(
+        request=request,
+        user=current_user,
+        project=project,
+        active_sessions=active_sessions,
+        completed_sessions=completed_sessions
+    )
+    return HTMLResponse(content=html_content)
+
+@router.get("/practice/{project_id}/bank", response_class=HTMLResponse)
+async def practice_bank_page(request: Request, project_id: str, q: str = "", current_user: User = Depends(get_current_user), db = Depends(get_db)):
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    project_result = await db.execute(text("SELECT * FROM projects WHERE id = :project_id AND user_id = :user_id"),
+                              {"project_id": project_id, "user_id": current_user.id})
+    project_row = project_result.first()
+
+    if not project_row:
+        raise HTTPException(status_code=404, detail="项目不存在")
+
+    project = dict(project_row._mapping)
+
+    like = f"%{q.strip()}%" if q and q.strip() else None
+    if like:
+        result = await db.execute(
+            text("""SELECT q.*, c.name AS concept_name, ts.title AS session_title
+                    FROM questions q
+                    LEFT JOIN concepts c ON q.concept_id = c.id
+                    LEFT JOIN teaching_sessions ts ON c.session_id = ts.id
+                    WHERE ts.project_id = :pid AND (q.prompt LIKE :like OR c.name LIKE :like)
+                    ORDER BY q.created_at DESC, q.id DESC"""),
+            {"pid": project_id, "like": like}
+        )
+    else:
+        result = await db.execute(
+            text("""SELECT q.*, c.name AS concept_name, ts.title AS session_title
+                    FROM questions q
+                    LEFT JOIN concepts c ON q.concept_id = c.id
+                    LEFT JOIN teaching_sessions ts ON c.session_id = ts.id
+                    WHERE ts.project_id = :pid
+                    ORDER BY q.created_at DESC, q.id DESC"""),
+            {"pid": project_id}
+        )
+    bank = []
+    for row in result.fetchall():
+        item = dict(row._mapping)
+        try:
+            item["knowledge_points"] = json.loads(item.get("knowledge_points") or "[]")
+        except Exception:
+            item["knowledge_points"] = []
+        bank.append(item)
+
+    template = jinja_env.get_template("practice/bank.html")
+    html_content = template.render(
+        request=request,
+        user=current_user,
+        project=project,
+        bank=bank
+    )
+    return HTMLResponse(content=html_content)
+
+@router.get("/practice/{project_id}/bank-search")
+async def practice_bank_search(request: Request, project_id: str, q: str = "", current_user: User = Depends(get_current_user), db = Depends(get_db)):
+    """题库搜索 partial：按题目内容或考点（概念名）搜索。"""
+    like = f"%{q.strip()}%" if q and q.strip() else None
+    if like:
+        result = await db.execute(
+            text("""SELECT q.*, c.name AS concept_name, ts.title AS session_title
+                    FROM questions q
+                    LEFT JOIN concepts c ON q.concept_id = c.id
+                    LEFT JOIN teaching_sessions ts ON c.session_id = ts.id
+                    WHERE ts.project_id = :pid AND (q.prompt LIKE :like OR c.name LIKE :like)
+                    ORDER BY q.created_at DESC, q.id DESC"""),
+            {"pid": project_id, "like": like}
+        )
+    else:
+        result = await db.execute(
+            text("""SELECT q.*, c.name AS concept_name, ts.title AS session_title
+                    FROM questions q
+                    LEFT JOIN concepts c ON q.concept_id = c.id
+                    LEFT JOIN teaching_sessions ts ON c.session_id = ts.id
+                    WHERE ts.project_id = :pid
+                    ORDER BY q.created_at DESC, q.id DESC"""),
+            {"pid": project_id}
+        )
+    bank = []
+    for row in result.fetchall():
+        item = dict(row._mapping)
+        try:
+            item["knowledge_points"] = json.loads(item.get("knowledge_points") or "[]")
+        except Exception:
+            item["knowledge_points"] = []
+        bank.append(item)
+
+    template = jinja_env.get_template("practice/partials/bank.html")
+    html_content = template.render(request=request, user=current_user, bank=bank)
+    return HTMLResponse(content=html_content)
+
+@router.get("/practice/session/{session_id}", response_class=HTMLResponse)
+async def practice_session_page(request: Request, session_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    session_result = await db.execute(
+        text("SELECT * FROM practice_sessions WHERE id = :sid AND user_id = :uid"),
+        {"sid": session_id, "uid": current_user.id}
+    )
+    session_row = session_result.first()
+    if not session_row:
+        raise HTTPException(status_code=404, detail="Session not found")
+    session = dict(session_row._mapping)
+
+    project_result = await db.execute(
+        text("SELECT * FROM projects WHERE id = :pid AND user_id = :uid"),
+        {"pid": session["project_id"], "uid": current_user.id}
+    )
+    project_row = project_result.first()
+    if not project_row:
+        raise HTTPException(status_code=404, detail="项目不存在")
+    project = dict(project_row._mapping)
+
+    # 会话题目（含作答状态）
+    items_result = await db.execute(
+        text("""SELECT psq.id AS sq_id, psq.order_index, psq.user_answer, psq.score, psq.feedback, psq.answered_at,
+                       q.*, q.id AS question_id, c.id AS concept_id, c.name AS concept_name, ts.title AS session_title
+                FROM practice_session_questions psq
+                JOIN questions q ON psq.question_id = q.id
+                LEFT JOIN concepts c ON q.concept_id = c.id
+                LEFT JOIN teaching_sessions ts ON c.session_id = ts.id
+                WHERE psq.session_id = :sid
+                ORDER BY psq.order_index"""),
+        {"sid": session_id}
+    )
+    questions = []
+    for row in items_result.fetchall():
+        item = dict(row._mapping)
+        try:
+            item["knowledge_points"] = json.loads(item.get("knowledge_points") or "[]")
+        except Exception:
+            item["knowledge_points"] = []
+        questions.append(item)
+
+    # 若会话题目不足 10 道，用项目中最新题目补足（含刚生成/刚撤销保留的题目）；
+    # 同样排除短期内已作答的题目（避免重复）
+    existing_ids = [q["question_id"] for q in questions]
+    if len(questions) < 10:
+        need = 10 - len(questions)
+        cutoff = datetime.utcnow() - timedelta(hours=24)
+        base_sql = """SELECT q.id FROM questions q
+                      LEFT JOIN concepts c ON q.concept_id = c.id
+                      LEFT JOIN teaching_sessions ts ON c.session_id = ts.id
+                      WHERE ts.project_id = :pid
+                        AND NOT EXISTS (SELECT 1 FROM review_records rr2
+                                        JOIN review_schedules rs2 ON rr2.schedule_id = rs2.id
+                                        WHERE rs2.user_id = :uid AND rs2.question_id = q.id
+                                          AND rr2.reviewed_at > :cutoff)"""
+        if existing_ids:
+            placeholders = ",".join([f":eid{i}" for i in range(len(existing_ids))])
+            params = {f"eid{i}": eid for i, eid in enumerate(existing_ids)}
+            params.update({"pid": project["id"], "uid": current_user.id, "cutoff": cutoff, "need": need})
+            fill_result = await db.execute(
+                text(f"{base_sql} AND q.id NOT IN ({placeholders})"
+                     f" ORDER BY q.created_at DESC, q.id DESC LIMIT :need"),
+                params
+            )
+        else:
+            fill_result = await db.execute(
+                text(base_sql + " ORDER BY q.created_at DESC, q.id DESC LIMIT :need"),
+                {"pid": project["id"], "uid": current_user.id, "cutoff": cutoff, "need": need}
+            )
+        fill_rows = fill_result.fetchall()
+        for idx, frow in enumerate(fill_rows):
+            sq_id = str(uuid4())
+            await db.execute(
+                text("INSERT INTO practice_session_questions (id, session_id, question_id, order_index) VALUES (:id, :sid, :qid, :idx)"),
+                {"id": sq_id, "sid": session_id, "qid": frow[0], "idx": len(questions) + idx}
+            )
+        if fill_rows:
+            await db.commit()
+            return RedirectResponse(url=f"/practice/session/{session_id}", status_code=302)
+
+    answered = sum(1 for q in questions if q.get("answered_at"))
+    template = jinja_env.get_template("practice/session.html")
+    html_content = template.render(
+        request=request,
+        user=current_user,
+        project=project,
+        session=session,
+        questions=questions,
+        answered=answered,
+        total=len(questions)
+    )
     return HTMLResponse(content=html_content)
 
 @router.get("/integration/{project_id}", response_class=HTMLResponse)

@@ -1,0 +1,101 @@
+{# 可复用 Markdown 编辑器（textarea + 预览，支持 KaTeX / Mermaid）。
+   使用方式：在页面底部 include 本文件一次，然后为每个编辑器放置占位元素：
+     <div id="md-editor-xxx" class="md-editor" data-editor-id="xxx"
+          data-textarea-name="user_answer" data-placeholder="..." data-rows="8"></div>
+   并调用 initMarkdownEditor('md-editor-xxx') 初始化。 #}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script src="/static/js/markdown-render.js"></script>
+<script>
+    window.MD_I18N = {
+        edit: "{{ t('common.edit') }}",
+        preview: "{{ t('input.preview') }}"
+    };
+</script>
+<style>
+    .md-editor-textarea {
+        width: 100%;
+        background-color: #2a2a2d;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+        font-size: 14px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        padding: 10px 12px;
+        border-radius: 8px;
+        outline: none;
+        transition: border-color 0.15s ease;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+    .md-editor-textarea:focus { border-color: #0071e3; }
+    .md-editor-textarea::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+    .md-editor-preview {
+        width: 100%;
+        min-height: 120px;
+        background-color: #1a1a1a;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 12px 14px;
+        overflow-y: auto;
+        font-size: 14px;
+        line-height: 1.6;
+        box-sizing: border-box;
+    }
+
+    /* 宽屏：编辑与预览并排（等宽），预览区与编辑区等高对齐 */
+    .md-editor-body { display: flex; flex-direction: column; gap: 12px; }
+    .md-editor-body > .md-editor-textarea,
+    .md-editor-body > .md-editor-preview { min-height: 120px; }
+
+    .md-side-by-side .md-editor-body {
+        flex-direction: row;
+        align-items: stretch;
+    }
+    .md-side-by-side .md-editor-body > .md-editor-textarea,
+    .md-side-by-side .md-editor-body > .md-editor-preview {
+        flex: 1 1 50%;
+        width: 50%;
+        min-width: 0;
+        resize: vertical;
+    }
+    .md-side-by-side .md-editor-preview { max-height: 480px; }
+
+    .md-mode-btn {
+        background-color: transparent;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 12px;
+        padding: 4px 12px;
+        border-radius: 5px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .md-mode-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
+    .md-mode-active {
+        background-color: #0071e3;
+        border-color: #0071e3;
+        color: #ffffff;
+    }
+
+    /* 渲染出的 markdown 内容样式 */
+    .markdown-content { word-break: break-word; }
+    .markdown-content h1, .markdown-content h2, .markdown-content h3 { color: #fff; margin: 0.6em 0 0.3em; }
+    .markdown-content h1 { font-size: 1.4em; }
+    .markdown-content h2 { font-size: 1.25em; }
+    .markdown-content h3 { font-size: 1.1em; }
+    .markdown-content p { margin: 0.4em 0; }
+    .markdown-content ul, .markdown-content ol { padding-left: 1.4em; margin: 0.4em 0; }
+    .markdown-content code { background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
+    .markdown-content pre { background: rgba(0,0,0,0.4); padding: 10px 12px; border-radius: 8px; overflow-x: auto; }
+    .markdown-content pre code { background: transparent; padding: 0; }
+    .markdown-content a { color: #2997ff; }
+    .markdown-content blockquote { border-left: 3px solid #0071e3; padding-left: 12px; color: rgba(255,255,255,0.6); margin: 0.5em 0; }
+    .markdown-content table { border-collapse: collapse; margin: 0.5em 0; }
+    .markdown-content th, .markdown-content td { border: 1px solid rgba(255,255,255,0.2); padding: 4px 10px; }
+    .markdown-content .mermaid { margin: 10px 0; }
+    .markdown-content .katex-display { margin: 0.6em 0; overflow-x: auto; }
+</style>

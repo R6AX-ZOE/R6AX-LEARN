@@ -1,0 +1,57 @@
+{% if bank %}
+<div class="space-y-3">
+    {% for item in bank %}
+    <div class="card !py-4">
+        <div class="flex items-center gap-2 mb-2 flex-wrap">
+            <span class="tag {% if item.question_type == 'choice' %}blue{% elif item.question_type == 'code' %}green{% else %}gray{% endif %}">
+                {{ t('practice.type-' ~ item.question_type) }}
+            </span>
+            {% if item.is_extension %}
+            <span class="tag orange">{{ t('practice.extension-question') }}</span>
+            {% else %}
+            <span class="tag">{{ t('practice.simple-question') }}</span>
+            {% endif %}
+            {% if item.concept_name %}
+            <span class="tag gray">{{ t('practice.concept') }}: {{ item.concept_name }}</span>
+            {% endif %}
+            <span class="tag gray">{{ t('practice.difficulty') }} {{ item.difficulty }}</span>
+            <span class="text-white/30 text-xs ml-auto">{{ item.session_title or '' }}</span>
+        </div>
+
+        <div class="text-white/90 text-sm leading-relaxed">{{ item.prompt }}</div>
+
+        {% if item.knowledge_points %}
+        <div class="mt-2 flex items-center gap-1 flex-wrap">
+            <span class="text-white/35 text-xs">{{ t('practice.knowledge-points') }}:</span>
+            {% for kp in item.knowledge_points %}
+            <span class="tag gray">{{ kp }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <details class="bank-answer mt-3">
+            <summary class="text-sm" style="color: var(--link-blue);">
+                <span class="chevron">></span> {{ t('practice.show-answer') }}
+            </summary>
+            <div class="mt-3 pt-3 border-t border-white/10">
+                <div class="mb-2">
+                    <div class="text-white/50 text-xs mb-1">{{ t('practice.reference-answer') }}</div>
+                    <div class="text-white/80 text-sm whitespace-pre-wrap">{{ item.answer }}</div>
+                </div>
+                {% if item.explanation %}
+                <div>
+                    <div class="text-white/50 text-xs mb-1">{{ t('practice.explanation') }}</div>
+                    <div class="text-white/60 text-sm whitespace-pre-wrap">{{ item.explanation }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </details>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card text-center py-10">
+    <p class="text-white/40">{{ t('practice.bank-empty') }}</p>
+    <p class="text-white/25 text-sm mt-2">{{ t('practice.bank-empty-hint') }}</p>
+</div>
+{% endif %}
