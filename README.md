@@ -100,7 +100,6 @@ app/
 ├── templates/         # Jinja2 模板
 └── static/            # 静态资源
 data/                  # 运行时数据（SQLite，git-ignored）
-docs/                  # PRD 与功能规格文档
 tests/                 # 冒烟测试
 ```
 
@@ -112,11 +111,6 @@ pytest tests/ -v
 
 ## 文档
 
-- [产品需求文档 docs/PRD.md](docs/PRD.md)
-- [练习功能设计 docs/practice.md](docs/practice.md)
-- [集成功能设计 docs/integration_guide.md](docs/integration_guide.md)
-- [UI 组件规范 docs/widgets.md](docs/widgets.md)
-- [设计系统 DESIGN.md](DESIGN.md)
 - [安装指南 install.md](install.md)
 - [快速启动 bootstrap.md](bootstrap.md)
 
