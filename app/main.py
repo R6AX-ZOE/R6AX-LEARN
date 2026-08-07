@@ -6,6 +6,8 @@ from starlette.responses import HTMLResponse
 
 from app.core.database import init_db
 
+from app.i18n.middleware import LocaleMiddleware
+
 from fastapi.responses import RedirectResponse
 
 from app.core.deps import get_current_user, oauth2_scheme
@@ -22,6 +24,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(LocaleMiddleware)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 

@@ -5,7 +5,7 @@ print("Compiling translation files...")
 
 try:
     result = subprocess.run(
-        [sys.executable, "-m", "babel", "compile", "-d", "app/i18n/locales"],
+        [sys.executable, "-m", "babel.messages.frontend", "compile", "-d", "app/i18n/locales"],
         capture_output=True,
         text=True,
         cwd="E:\_Victor_Programming\_Victor_AiAssisted\R6AX-LEARN"

@@ -67,32 +67,50 @@ msgstr "No projects yet, click the button above to create your first project"
 msgid "project.stats"
 msgstr "Project Stats"
 
-msgid "project.quick-start"
-msgstr "Quick Start"
+msgid "widget.streak-days"
+msgstr "Day streak"
 
-msgid "project.step-1"
-msgstr "Create Notes"
+msgid "widget.notes-continue"
+msgstr "Continue in: %(dir)s"
 
-msgid "project.step-1-desc"
-msgstr "First add your study notes in the Notes section"
+msgid "widget.teach-continue"
+msgstr "Continue teaching: %(session)s"
 
-msgid "project.step-2"
-msgstr "Teach AI"
+msgid "widget.practice-continue"
+msgstr "Continue practice: %(session)s"
 
-msgid "project.step-2-desc"
-msgstr "Extract concepts from notes and explain to AI to reinforce understanding"
+msgid "widget.new-practice"
+msgstr "Start practice: %(topic)s"
 
-msgid "project.step-3"
-msgstr "Build Knowledge Graph"
+msgid "widget.menu-hint"
+msgstr "Right-click or long-press to edit"
 
-msgid "project.step-3-desc"
-msgstr "Deposit mastered concepts into the knowledge graph"
+msgid "widget.menu-edit"
+msgstr "Edit content"
 
-msgid "project.step-4"
-msgstr "Practice"
+msgid "widget.menu-move"
+msgstr "Move widget"
 
-msgid "project.step-4-desc"
-msgstr "The system will arrange review plans based on your learning progress"
+msgid "widget.menu-hide"
+msgstr "Hide"
+
+msgid "widget.edit-dir-title"
+msgstr "Edit content · choose directory"
+
+msgid "widget.edit-topic-title"
+msgstr "Edit content · practice topic"
+
+msgid "widget.select-dir"
+msgstr "Select directory"
+
+msgid "widget.topic-placeholder"
+msgstr "Enter a topic..."
+
+msgid "widget.restore"
+msgstr "Restore hidden widgets"
+
+msgid "widget.move-hint"
+msgstr "Drag widgets to reorder, click anywhere to finish"
 
 msgid "nav.navigation"
 msgstr "Navigation"
@@ -583,6 +601,40 @@ msgstr "Start Practice Session"
 
 msgid "practice.start-session-hint"
 msgstr "Pick 10 questions from your review scope (simple + extension). New questions are generated automatically when needed"
+
+# ====== Practice: wrong-answer teaching trigger (F-16) & mastery update (F-17) ======
+msgid "practice.trigger-banner-title"
+msgstr "Suggested Re-teach"
+
+msgid "practice.trigger-banner-text"
+msgstr "\"%(name)s\" was answered wrong repeatedly; consider teaching it to AI again"
+
+msgid "practice.trigger-result-hint"
+msgstr "Wrong answers for \"%(name)s\" reached the threshold. Re-teach it to AI and it will probe your weak points"
+
+msgid "practice.trigger-go"
+msgstr "Re-teach"
+
+msgid "practice.trigger-session-title"
+msgstr "Review: %(name)s"
+
+msgid "practice.trigger-session-default"
+msgstr "Review wrong answers"
+
+msgid "practice.trigger-system-hint"
+msgstr "This session was triggered by Practice wrong answers (F-16). The user repeatedly failed \"%(name)s\". Context of recent wrong answers below - probe the weak points accordingly:"
+
+msgid "practice.trigger-system-item"
+msgstr ""
+"Question: %(prompt)s\n"
+"Your answer: %(answer)s\n"
+"AI feedback: %(feedback)s"
+
+msgid "practice.mastery-up"
+msgstr "Mastery +5%"
+
+msgid "practice.mastery-down"
+msgstr "Mastery -5%"
 
 msgid "practice.bank-title"
 msgstr "Question Bank"

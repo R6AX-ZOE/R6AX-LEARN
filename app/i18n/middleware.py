@@ -6,7 +6,9 @@ from app.i18n.i18n import set_locale
 
 class LocaleMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
-        locale = request.headers.get("Accept-Language", "zh_CN").split(",")[0].replace("-", "_")
+        locale = request.cookies.get("locale")
+        if not locale:
+            locale = request.headers.get("Accept-Language", "zh_CN").split(",")[0].replace("-", "_")
         if locale not in ["zh_CN", "en_US"]:
             locale = "zh_CN"
         

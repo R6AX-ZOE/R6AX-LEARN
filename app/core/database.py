@@ -58,6 +58,14 @@ async def init_db():
         except Exception as e:
             print(f"Migration check for notes table: {e}")
 
+        # 检查 teaching_sessions 表是否有 trigger_concept_id 字段（F-16：错题触发 Teaching 的标记）
+        try:
+            await session.execute(text("SELECT trigger_concept_id FROM teaching_sessions LIMIT 1"))
+        except Exception:
+            await session.execute(text("ALTER TABLE teaching_sessions ADD COLUMN trigger_concept_id VARCHAR"))
+            await session.commit()
+            print("Added trigger_concept_id column to teaching_sessions table")
+
         # 检查 messages 表是否有 parent_id, branch_id, is_active, extra_data 字段
         try:
             await session.execute(text("SELECT parent_id FROM messages LIMIT 1"))

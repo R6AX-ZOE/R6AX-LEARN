@@ -778,6 +778,20 @@
                 }
                 document.getElementById('confirm-modal').style.display = 'none';
             });
+
+            // 支持 /input/{project_id}?dir={directory_id} 直达目录
+            const dirParam = new URLSearchParams(window.location.search).get('dir');
+            if (dirParam) {
+                document.body.addEventListener('htmx:afterSwap', function onDirTreeLoaded(e) {
+                    if (e.detail && e.detail.target && e.detail.target.id === 'directory-tree') {
+                        document.body.removeEventListener('htmx:afterSwap', onDirTreeLoaded);
+                        const item = document.querySelector('.directory-item[data-directory-id="' + dirParam + '"]');
+                        if (item) {
+                            loadNotes(item.dataset.directoryId, item.dataset.directoryName);
+                        }
+                    }
+                });
+            }
         });
 
         function loadNotes(directoryId, directoryName) {

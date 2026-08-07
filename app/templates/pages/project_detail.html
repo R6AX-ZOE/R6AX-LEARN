@@ -40,11 +40,19 @@
         }
 
         .nav-item {
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             padding: 8px 16px;
             border-radius: 8px;
             text-decoration: none;
             transition: background-color 0.15s ease;
+        }
+
+        .nav-item-icon {
+            width: 18px;
+            height: 18px;
+            flex: none;
         }
 
         .nav-item.active {
@@ -54,6 +62,182 @@
 
         .nav-item:hover {
             background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-primary {
+            background-color: var(--apple-blue);
+            color: var(--white);
+            font-size: 14px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0077ed;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--white);
+            font-size: 14px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* ===== Widgets ===== */
+        .widgets-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .widget {
+            display: flex;
+            flex-direction: column;
+            width: 150px;
+            padding: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: manipulation;
+            position: relative;
+            min-width: 0;
+            transition: border-color 0.15s ease, transform 0.1s ease;
+        }
+
+        .widget:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .widget-square {
+            height: 150px;
+        }
+
+        .widget-rect {
+            height: 300px;
+        }
+
+        .widget-icon {
+            width: 24px;
+            height: 24px;
+            flex: none;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .widget-title {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 12px;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+        }
+
+        .widget-meta {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            margin-top: auto;
+            padding-top: 10px;
+        }
+
+        .move-mode .widget {
+            border-style: dashed;
+            border-color: rgba(0, 113, 227, 0.45);
+            cursor: grab;
+        }
+
+        .widget.drag-over {
+            border-color: var(--apple-blue);
+            box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.35);
+        }
+
+        /* ===== 右键 / 长按菜单 ===== */
+        .widget-menu {
+            display: none;
+            position: fixed;
+            z-index: 60;
+            background-color: var(--light-gray);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            box-shadow: rgba(0, 0, 0, 0.6) 0 10px 30px 0;
+            padding: 4px;
+            min-width: 140px;
+        }
+
+        .widget-menu.open {
+            display: block;
+        }
+
+        .widget-menu button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+            border: none;
+            background: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .widget-menu button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .widget-menu button:disabled {
+            color: rgba(255, 255, 255, 0.25);
+            cursor: not-allowed;
+        }
+
+        .widget-menu button:disabled:hover {
+            background-color: transparent;
+        }
+
+        /* ===== 编辑弹窗 ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-input,
+        .modal-select {
+            width: 100%;
+            background-color: var(--light-gray);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: var(--white);
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+
+        .modal-input:focus,
+        .modal-select:focus {
+            border-color: var(--apple-blue);
         }
     </style>
 </head>
@@ -86,10 +270,10 @@
                 <div class="card p-6">
                     <h3 class="text-lg font-medium text-white mb-4">{{ t('nav.navigation') }}</h3>
                     <nav class="space-y-2">
-                        <a href="/input/{{ project.id }}" class="nav-item active">📝 {{ t('input.notes') }}</a>
-                        <a href="/teaching/{{ project.id }}" class="nav-item text-white/80">🎓 {{ t('teaching.session') }}</a>
-                        <a href="/practice/{{ project.id }}" class="nav-item text-white/80">📚 {{ t('practice.practice') }}</a>
-                        <a href="/integration/{{ project.id }}" class="nav-item text-white/80">🧠 {{ t('integration.graph') }}</a>
+                        <a href="/input/{{ project.id }}" class="nav-item active"><svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>{{ t('input.notes') }}</a>
+                        <a href="/teaching/{{ project.id }}" class="nav-item text-white/80"><svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>{{ t('teaching.session') }}</a>
+                        <a href="/practice/{{ project.id }}" class="nav-item text-white/80"><svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>{{ t('practice.practice') }}</a>
+                        <a href="/integration/{{ project.id }}" class="nav-item text-white/80"><svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>{{ t('integration.graph') }}</a>
                     </nav>
                 </div>
                 
@@ -117,41 +301,407 @@
             </div>
             
             <div class="lg:col-span-3">
-                <div class="card p-6">
-                    <h3 class="text-lg font-medium text-white mb-4">{{ t('project.quick-start') }}</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-start space-x-4 p-4 bg-blue-900/30 rounded-lg border border-blue-500/20">
-                            <div class="text-2xl">1️⃣</div>
-                            <div>
-                                <h4 class="font-medium text-white">{{ t('project.step-1') }}</h4>
-                                <p class="text-white/60 text-sm">{{ t('project.step-1-desc') }}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-4 p-4 bg-green-900/30 rounded-lg border border-green-500/20">
-                            <div class="text-2xl">2️⃣</div>
-                            <div>
-                                <h4 class="font-medium text-white">{{ t('project.step-2') }}</h4>
-                                <p class="text-white/60 text-sm">{{ t('project.step-2-desc') }}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-4 p-4 bg-purple-900/30 rounded-lg border border-purple-500/20">
-                            <div class="text-2xl">3️⃣</div>
-                            <div>
-                                <h4 class="font-medium text-white">{{ t('project.step-3') }}</h4>
-                                <p class="text-white/60 text-sm">{{ t('project.step-3-desc') }}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-4 p-4 bg-orange-900/30 rounded-lg border border-orange-500/20">
-                            <div class="text-2xl">4️⃣</div>
-                            <div>
-                                <h4 class="font-medium text-white">{{ t('project.step-4') }}</h4>
-                                <p class="text-white/60 text-sm">{{ t('project.step-4-desc') }}</p>
-                            </div>
+                <div class="flex justify-end mb-4">
+                    <button id="restore-widgets" type="button" class="hidden text-xs text-white/40 hover:text-white transition-colors">↩ {{ t('widget.restore') }}</button>
+                </div>
+                <div id="move-hint" class="hidden mb-4 px-4 py-3 rounded-lg border border-dashed border-blue-500/50 text-sm text-blue-300">{{ t('widget.move-hint') }}</div>
+
+                <div id="widget-grid" class="widgets-grid"
+                     data-tpl-note-continue="{{ t('widget.notes-continue') }}"
+                     data-tpl-new-practice="{{ t('widget.new-practice') }}">
+
+                    <!-- 1. 连胜组件 -->
+                    <div class="widget widget-square card" data-widget-id="streak">
+                        <div class="flex flex-col items-center justify-center h-full text-center">
+                            <svg class="widget-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                            <span class="text-4xl font-semibold text-white mt-3">{{ streak_days }}</span>
+                            <span class="widget-meta mt-2">{{ t('widget.streak-days') }}</span>
                         </div>
                     </div>
+
+                    <!-- 2. 笔记组件：具体的笔记目录（1~3 个） -->
+                    {% for d in note_widgets %}
+                    <a href="/input/{{ project.id }}?dir={{ d.id }}" class="widget widget-rect card" data-widget-id="notes:{{ d.id }}">
+                        <svg class="widget-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        <span class="widget-title">{{ t('widget.notes-continue', dir=d.name) }}</span>
+                        <span class="widget-meta">{{ d.note_count }} {{ t('nav.notes') }}</span>
+                    </a>
+                    {% endfor %}
+
+                    <!-- 3. 教 AI 以复习组件：未完成的 session -->
+                    {% for s in teaching_widgets %}
+                    <a href="/api/teaching/sessions/{{ s.id }}" class="widget widget-rect card" data-widget-id="teaching:{{ s.id }}">
+                        <svg class="widget-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+                        <span class="widget-title">{{ t('widget.teach-continue', session=s.title) }}</span>
+                        <span class="widget-meta">{{ s.created_at[:16] }}</span>
+                    </a>
+                    {% endfor %}
+
+                    <!-- 4. 继续练习组件：未完成的 session -->
+                    {% for s in practice_widgets %}
+                    <a href="/practice/session/{{ s.id }}" class="widget widget-square card" data-widget-id="practice:{{ s.id }}">
+                        <svg class="widget-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                        <span class="widget-title">{{ t('widget.practice-continue', session=s.created_at[:16]) }}</span>
+                        <span class="widget-meta">{{ s.answered_count }} / {{ s.q_count }}</span>
+                    </a>
+                    {% endfor %}
+
+                    <!-- 5. 新练习组件 -->
+                    <a href="/practice/{{ project.id }}" class="widget widget-rect card" data-widget-id="newpractice">
+                        <svg class="widget-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3z"/></svg>
+                        <span class="widget-title">{{ t('widget.new-practice', topic=default_topic) }}</span>
+                        <span class="widget-meta">{{ t('widget.menu-hint') }}</span>
+                    </a>
                 </div>
             </div>
         </div>
     </main>
+
+    <!-- 右键 / 长按菜单 -->
+    <div id="widget-menu" class="widget-menu">
+        <button type="button" data-action="edit">{{ t('widget.menu-edit') }}</button>
+        <button type="button" data-action="move">{{ t('widget.menu-move') }}</button>
+        <button type="button" data-action="hide">{{ t('widget.menu-hide') }}</button>
+    </div>
+
+    <!-- 编辑内容弹窗 -->
+    <div id="widget-modal" class="modal-overlay"
+         data-title-dir="{{ t('widget.edit-dir-title') }}"
+         data-title-topic="{{ t('widget.edit-topic-title') }}">
+        <div class="card p-6 w-80">
+            <h3 id="widget-modal-title" class="text-base font-medium text-white mb-4"></h3>
+            <div id="widget-modal-dir">
+                <select id="widget-dir-select" class="modal-select" data-placeholder="{{ t('widget.select-dir') }}"></select>
+            </div>
+            <div id="widget-modal-topic" class="hidden">
+                <input id="widget-topic-input" type="text" class="modal-input" placeholder="{{ t('widget.topic-placeholder') }}">
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button id="widget-modal-cancel" type="button" class="btn-secondary">{{ t('common.cancel') }}</button>
+                <button id="widget-modal-save" type="button" class="btn-primary">{{ t('common.save') }}</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PROJECT_ID = '{{ project.id }}';
+        const DIRECTORIES = {{ directories_json | safe }};
+        const DEFAULT_TOPIC = {{ default_topic | tojson }};
+        const STATE_KEY = 'r6ax_widgets_' + PROJECT_ID;
+
+        const grid = document.getElementById('widget-grid');
+        const menu = document.getElementById('widget-menu');
+        const modal = document.getElementById('widget-modal');
+        const moveHint = document.getElementById('move-hint');
+        const restoreBtn = document.getElementById('restore-widgets');
+
+        const TPL_NOTE_CONTINUE = grid.dataset.tplNoteContinue;
+        const TPL_NEW_PRACTICE = grid.dataset.tplNewPractice;
+
+        let state = {};
+        let moveMode = false;
+        let justActivatedMove = false;
+        let menuWidgetId = null;
+        let editingId = null;
+        let dragId = null;
+        let pressTimer = null;
+        let longPressActive = false;
+        let pressWidgetId = null;
+        let pressStartX = 0;
+        let pressStartY = 0;
+        const LONG_PRESS_MS = 500;
+        const MOVE_THRESHOLD = 10;
+
+        function loadState() {
+            try {
+                return JSON.parse(localStorage.getItem(STATE_KEY)) || {};
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem(STATE_KEY, JSON.stringify(state));
+        }
+
+        function applyConfig(id, cfg) {
+            const el = grid.querySelector('[data-widget-id="' + id + '"]');
+            if (!el) return;
+            if (id.startsWith('notes:')) {
+                el.href = '/input/' + PROJECT_ID + '?dir=' + cfg.dir;
+                const title = el.querySelector('.widget-title');
+                if (title) title.textContent = TPL_NOTE_CONTINUE.replace('%(dir)s', cfg.dirName);
+                const meta = el.querySelector('.widget-meta');
+                if (meta) meta.remove();
+            } else if (id === 'newpractice' && cfg.topic) {
+                const title = el.querySelector('.widget-title');
+                if (title) title.textContent = TPL_NEW_PRACTICE.replace('%(topic)s', cfg.topic);
+            }
+        }
+
+        function applyConfigs() {
+            const cfg = state.config || {};
+            Object.keys(cfg).forEach(id => applyConfig(id, cfg[id]));
+        }
+
+        function applyOrder() {
+            const order = state.order || [];
+            if (!order.length) return;
+            const widgets = Array.from(grid.querySelectorAll('.widget'));
+            widgets.sort((a, b) => {
+                const ia = order.indexOf(a.dataset.widgetId);
+                const ib = order.indexOf(b.dataset.widgetId);
+                return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+            });
+            widgets.forEach(w => grid.appendChild(w));
+        }
+
+        function saveOrder() {
+            state.order = Array.from(grid.querySelectorAll('.widget')).map(w => w.dataset.widgetId);
+            saveState();
+        }
+
+        function hideWidget(id) {
+            const el = grid.querySelector('[data-widget-id="' + id + '"]');
+            if (!el) return;
+            state.hidden = state.hidden || [];
+            if (state.hidden.indexOf(id) === -1) state.hidden.push(id);
+            saveState();
+            el.remove();
+            restoreBtn.classList.remove('hidden');
+        }
+
+        function setMoveMode(on) {
+            moveMode = on;
+            grid.classList.toggle('move-mode', on);
+            moveHint.classList.toggle('hidden', !on);
+            grid.querySelectorAll('.widget').forEach(w => { w.draggable = on; });
+        }
+
+        function showWidgetMenu(x, y, id) {
+            menuWidgetId = id;
+            const editBtn = menu.querySelector('[data-action="edit"]');
+            editBtn.disabled = !(id.startsWith('notes:') || id === 'newpractice');
+            menu.classList.add('open');
+            const r = menu.getBoundingClientRect();
+            menu.style.left = Math.min(x, window.innerWidth - r.width - 8) + 'px';
+            menu.style.top = Math.min(y, window.innerHeight - r.height - 8) + 'px';
+        }
+
+        function hideWidgetMenu() {
+            menu.classList.remove('open');
+        }
+
+        function openEditModal(id) {
+            editingId = id;
+            const dirSection = document.getElementById('widget-modal-dir');
+            const topicSection = document.getElementById('widget-modal-topic');
+            const modalTitle = document.getElementById('widget-modal-title');
+            const cfg = (state.config || {})[id];
+            if (id.startsWith('notes:')) {
+                modalTitle.textContent = modal.dataset.titleDir;
+                topicSection.classList.add('hidden');
+                dirSection.classList.remove('hidden');
+                const select = document.getElementById('widget-dir-select');
+                select.innerHTML = '';
+                const ph = document.createElement('option');
+                ph.value = '';
+                ph.textContent = select.dataset.placeholder;
+                ph.disabled = true;
+                ph.selected = true;
+                select.appendChild(ph);
+                DIRECTORIES.forEach(d => {
+                    const o = document.createElement('option');
+                    o.value = d.id;
+                    o.textContent = d.name;
+                    select.appendChild(o);
+                });
+                const bound = cfg ? cfg.dir : id.replace('notes:', '');
+                if (bound) select.value = bound;
+            } else {
+                modalTitle.textContent = modal.dataset.titleTopic;
+                dirSection.classList.add('hidden');
+                topicSection.classList.remove('hidden');
+                const input = document.getElementById('widget-topic-input');
+                input.value = cfg ? (cfg.topic || '') : DEFAULT_TOPIC;
+            }
+            modal.classList.add('open');
+        }
+
+        function closeModal() {
+            modal.classList.remove('open');
+            editingId = null;
+        }
+
+        function saveEdit() {
+            if (!editingId) return;
+            state.config = state.config || {};
+            if (editingId.startsWith('notes:')) {
+                const dirId = document.getElementById('widget-dir-select').value;
+                if (!dirId) return;
+                const d = DIRECTORIES.find(x => x.id === dirId);
+                state.config[editingId] = { dir: dirId, dirName: d ? d.name : dirId };
+            } else {
+                const topic = document.getElementById('widget-topic-input').value.trim();
+                state.config[editingId] = { topic: topic || DEFAULT_TOPIC };
+            }
+            saveState();
+            applyConfig(editingId, state.config[editingId]);
+            closeModal();
+        }
+
+        /* ===== 菜单触发：右键 与 长按 ===== */
+        grid.addEventListener('contextmenu', function(e) {
+            const w = e.target.closest('.widget');
+            if (!w) return;
+            e.preventDefault();
+            showWidgetMenu(e.clientX, e.clientY, w.dataset.widgetId);
+        });
+
+        /* ===== 菜单触发：右键 与 长按（pointer 事件统一鼠标 / 触屏 / 触控笔） ===== */
+        function cancelPress() {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+        }
+
+        grid.addEventListener('pointerdown', function(e) {
+            if (e.pointerType === 'mouse' && e.button !== 0) return; // 右键交给 contextmenu
+            const w = e.target.closest('.widget');
+            if (!w) return;
+            pressWidgetId = w.dataset.widgetId;
+            pressStartX = e.clientX;
+            pressStartY = e.clientY;
+            longPressActive = false;
+            cancelPress();
+            pressTimer = setTimeout(function() {
+                pressTimer = null;
+                longPressActive = true;
+                showWidgetMenu(pressStartX, pressStartY, pressWidgetId);
+            }, LONG_PRESS_MS);
+        });
+
+        grid.addEventListener('pointermove', function(e) {
+            if (!pressTimer) return;
+            if (Math.hypot(e.clientX - pressStartX, e.clientY - pressStartY) > MOVE_THRESHOLD) {
+                cancelPress();
+            }
+        });
+
+        grid.addEventListener('pointerup', cancelPress);
+        grid.addEventListener('pointercancel', cancelPress);
+
+        /* ===== 菜单操作 ===== */
+        menu.addEventListener('click', function(e) {
+            if (longPressActive) return; // 吞掉长按抬手时落在菜单上的合成 click
+            const btn = e.target.closest('button');
+            if (!btn || btn.disabled) return;
+            const action = btn.dataset.action;
+            const id = menuWidgetId;
+            hideWidgetMenu();
+            if (action === 'hide') {
+                hideWidget(id);
+            } else if (action === 'move') {
+                justActivatedMove = true;
+                setMoveMode(true);
+                setTimeout(function() { justActivatedMove = false; }, 100);
+            } else if (action === 'edit') {
+                openEditModal(id);
+            }
+        });
+
+        /* ===== 点击其他区域：关菜单 / 退出移动模式 ===== */
+        document.addEventListener('click', function(e) {
+            if (longPressActive) {
+                longPressActive = false;
+                return;
+            }
+            if (e.target.closest('#widget-menu')) return;
+            if (e.target.closest('#widget-modal')) return;
+            hideWidgetMenu();
+            if (moveMode && !justActivatedMove) setMoveMode(false);
+        });
+
+        /* ===== 点击组件：长按后抑制跳转 / 移动模式下不跳转 ===== */
+        grid.addEventListener('click', function(e) {
+            if (longPressActive) {
+                e.preventDefault();
+                e.stopPropagation();
+                longPressActive = false;
+                return;
+            }
+            if (moveMode) {
+                e.preventDefault();
+            }
+        });
+
+        /* ===== 移动组件：拖拽排序 ===== */
+        grid.addEventListener('dragstart', function(e) {
+            if (!moveMode) { e.preventDefault(); return; }
+            const w = e.target.closest('.widget');
+            if (!w) return;
+            dragId = w.dataset.widgetId;
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        grid.addEventListener('dragover', function(e) {
+            if (moveMode) e.preventDefault();
+        });
+
+        grid.addEventListener('dragenter', function(e) {
+            if (!moveMode) return;
+            const w = e.target.closest('.widget');
+            if (w) w.classList.add('drag-over');
+        });
+
+        grid.addEventListener('dragleave', function(e) {
+            const w = e.target.closest('.widget');
+            if (w) w.classList.remove('drag-over');
+        });
+
+        grid.addEventListener('drop', function(e) {
+            if (!moveMode) return;
+            e.preventDefault();
+            grid.querySelectorAll('.drag-over').forEach(x => x.classList.remove('drag-over'));
+            const target = e.target.closest('.widget');
+            if (!target || !dragId || target.dataset.widgetId === dragId) return;
+            const src = grid.querySelector('[data-widget-id="' + dragId + '"]');
+            if (src) {
+                target.parentNode.insertBefore(src, target.nextSibling);
+                saveOrder();
+            }
+            dragId = null;
+        });
+
+        grid.addEventListener('dragend', function() {
+            grid.querySelectorAll('.drag-over').forEach(x => x.classList.remove('drag-over'));
+            dragId = null;
+        });
+
+        /* ===== 弹窗按钮 ===== */
+        document.getElementById('widget-modal-save').addEventListener('click', saveEdit);
+        document.getElementById('widget-modal-cancel').addEventListener('click', closeModal);
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) closeModal();
+        });
+
+        restoreBtn.addEventListener('click', function() {
+            state.hidden = [];
+            saveState();
+            location.reload();
+        });
+
+        /* ===== 初始化 ===== */
+        state = loadState();
+        const hidden = state.hidden || [];
+        hidden.forEach(function(id) {
+            const el = grid.querySelector('[data-widget-id="' + id + '"]');
+            if (el) el.remove();
+        });
+        if (hidden.length) restoreBtn.classList.remove('hidden');
+        applyConfigs();
+        applyOrder();
+    </script>
 </body>
 </html>

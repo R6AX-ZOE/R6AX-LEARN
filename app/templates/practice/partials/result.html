@@ -7,6 +7,9 @@
         {% endif %}
         <span class="tag" style="font-size: 14px;">{{ t('practice.score') }}: {{ result.score }}</span>
         <span class="tag gray">{{ t('practice.next-review-in') }} {{ result.interval_days }} {{ t('practice.days') }}</span>
+        {% if result.mastery_delta %}
+        <span class="tag blue" style="font-size: 14px;">{% if result.mastery_delta > 0 %}{{ t('practice.mastery-up') }}{% else %}{{ t('practice.mastery-down') }}{% endif %}</span>
+        {% endif %}
         {% if result.is_extension %}
         <span class="tag orange">{{ t('practice.extension-question') }}</span>
         {% endif %}
@@ -33,6 +36,13 @@
     <div class="mb-3">
         <h3 class="text-sm font-medium text-white mb-1">{{ t('practice.explanation') }}</h3>
         <p class="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">{{ result.explanation }}</p>
+    </div>
+    {% endif %}
+
+    {% if result.trigger %}
+    <div class="mb-4 rounded-lg p-4 border border-orange-500/30 bg-orange-900/20">
+        <p class="text-white/85 text-sm mb-3">{{ t('practice.trigger-result-hint', name=result.trigger.concept_name) }}</p>
+        <a href="/api/teaching/sessions/{{ result.trigger.session_id }}" class="btn-secondary no-underline inline-block text-sm">{{ t('practice.trigger-go') }} ></a>
     </div>
     {% endif %}
 

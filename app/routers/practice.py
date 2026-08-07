@@ -29,6 +29,90 @@ jinja_env.globals['t'] = t
 SESSION_SIZE = 10          # 一次习题会话包含 10 道题
 RECENT_ANSWER_HOURS = 24   # 短时间内避免重复做同一道题
 
+# ====== F-16: 错题累积触发新一轮 Teaching 的阈值 ======
+TRIGGER_CONSECUTIVE_WRONG = 3   # 同一 concept 连续答错次数阈值
+TRIGGER_WINDOW = 10             # 滚动窗口：最近 N 次作答
+TRIGGER_WRONG_MIN = 6           # 窗口内答错次数阈值
+
+
+async def _check_and_trigger_teaching(db, user_id: str, project_id: str, concept_id: str) -> dict | None:
+    """F-16：同一 concept 错题累积达到阈值时，创建新一轮 Teaching 会话（幂等）。
+
+    阈值：① 连续答错 >= TRIGGER_CONSECUTIVE_WRONG 次；或
+         ② 最近 TRIGGER_WINDOW 次作答中答错 >= TRIGGER_WRONG_MIN 次（且累计答错 >= 3 次）。
+    已存在未归档的 practice_trigger 会话时不重复创建。
+    返回 {"session_id", "concept_name"} 或 None。
+    """
+    if not concept_id:
+        return None
+
+    # 幂等保护：该 concept 已有未归档的 practice_trigger 会话则不重复创建
+    existing = await db.execute(
+        text("SELECT id FROM teaching_sessions WHERE trigger_concept_id = :cid AND status = 'active'"),
+        {"cid": concept_id}
+    )
+    if existing.first():
+        return None
+
+    # 该 concept 的全部作答记录（新→旧）
+    rows = await db.execute(
+        text("""SELECT rr.is_correct, rr.reviewed_at, q.prompt, rr.user_answer, rr.ai_feedback
+                FROM review_records rr
+                JOIN review_schedules rs ON rr.schedule_id = rs.id
+                JOIN questions q ON rs.question_id = q.id
+                WHERE q.concept_id = :cid AND rs.user_id = :uid
+                ORDER BY rr.reviewed_at DESC"""),
+        {"cid": concept_id, "uid": user_id}
+    )
+    records = rows.fetchall()
+    if not records:
+        return None
+
+    consecutive_wrong = 0
+    for r in records:
+        if not r[0]:
+            consecutive_wrong += 1
+        else:
+            break
+
+    window = records[:TRIGGER_WINDOW]
+    wrong_in_window = sum(1 for r in window if not r[0])
+    total_wrong = sum(1 for r in records if not r[0])
+
+    triggered = (
+        consecutive_wrong >= TRIGGER_CONSECUTIVE_WRONG
+        or (total_wrong >= 3 and wrong_in_window >= TRIGGER_WRONG_MIN)
+    )
+    if not triggered:
+        return None
+
+    concept_row = (await db.execute(text("SELECT name FROM concepts WHERE id = :cid"), {"cid": concept_id})).first()
+    concept_name = concept_row[0] if concept_row else ""
+
+    session_id = str(uuid4())
+    title = t("practice.trigger-session-title", name=concept_name) if concept_name else t("practice.trigger-session-default")
+    now = datetime.utcnow()
+    await db.execute(
+        text("""INSERT INTO teaching_sessions (id, project_id, title, status, trigger_concept_id, created_at, updated_at)
+                VALUES (:id, :pid, :title, 'active', :cid, :now, :now)"""),
+        {"id": session_id, "pid": project_id, "title": title, "cid": concept_id, "now": now}
+    )
+
+    # 错题背景写入首条 system 消息，作为 Teaching AI 的开局上下文
+    lines = [t("practice.trigger-system-hint", name=concept_name)]
+    for r in records[:3]:
+        lines.append(t("practice.trigger-system-item",
+                       prompt=(r[2] or "")[:300],
+                       answer=(r[3] or "")[:200],
+                       feedback=(r[4] or "")[:300]))
+    await db.execute(
+        text("""INSERT INTO messages (id, session_id, role, content, is_active, created_at)
+                VALUES (:id, :sid, 'system', :content, 1, :now)"""),
+        {"id": str(uuid4()), "sid": session_id, "content": "\n".join(lines), "now": now}
+    )
+
+    return {"session_id": session_id, "concept_name": concept_name}
+
 
 def _question_with_context(row) -> dict:
     r = dict(row._mapping)
@@ -321,22 +405,30 @@ async def submit_answer(request: Request, current_user: User = Depends(get_curre
         record_id = None
         next_interval = 1
 
-    # 更新节点 MasteryScore（F-17）：答对 +5%，答错 -5%
+    # 更新节点 MasteryScore（F-17）：答对 +5%，答错 -5%（同一 concept 关联的全部节点）
+    mastery_delta = None
     if sq.get("concept_id"):
         node_result = await db.execute(
             text("SELECT id, mastery_score FROM nodes WHERE concept_id = :cid"),
             {"cid": sq["concept_id"]}
         )
-        node_row = node_result.first()
-        if node_row:
+        for node_row in node_result.fetchall():
             if is_correct:
-                new_mastery = min(node_row[1] + 0.05, 1.0)
+                new_mastery = min((node_row[1] or 0) + 0.05, 1.0)
             else:
-                new_mastery = max(node_row[1] - 0.05, 0.0)
+                new_mastery = max((node_row[1] or 0) - 0.05, 0.0)
             await db.execute(
                 text("UPDATE nodes SET mastery_score = :ms WHERE id = :nid"),
                 {"ms": new_mastery, "nid": node_row[0]}
             )
+            mastery_delta = 0.05 if is_correct else -0.05
+
+    # F-16: 错题累积到阈值 → 创建新一轮 Teaching 会话（幂等）
+    trigger = None
+    if not is_correct and sq.get("concept_id"):
+        trigger = await _check_and_trigger_teaching(
+            db, current_user.id, sq["project_id"], sq["concept_id"]
+        )
 
     await db.commit()
 
@@ -355,6 +447,8 @@ async def submit_answer(request: Request, current_user: User = Depends(get_curre
         "concept_name": sq.get("concept_name") or "",
         "interval_days": next_interval,
         "record_id": record_id,
+        "mastery_delta": mastery_delta,
+        "trigger": trigger,
     }
 
     # 下一道未作答题目

@@ -124,6 +124,26 @@
             <a href="/projects/{{ project.id }}" class="text-sm transition-colors" style="color: var(--link-blue);">{{ t('project.detail') }} ></a>
         </div>
 
+        <!-- F-16：错题触发的"建议重新教一遍"提醒 -->
+        {% if trigger_sessions %}
+        <section class="mb-8">
+            <h2 class="text-lg font-medium text-white mb-4">{{ t('practice.trigger-banner-title') }} <span class="text-white/40 text-sm">({{ trigger_sessions|length }})</span></h2>
+            <div class="space-y-3">
+                {% for ts in trigger_sessions %}
+                <a href="/api/teaching/sessions/{{ ts.id }}" class="card block hover:bg-[#2a2a2d] transition-colors no-underline" style="border: 1px solid rgba(255, 159, 10, 0.3);">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white/90 text-sm">{{ t('practice.trigger-banner-text', name=ts.concept_name or ts.title) }}</p>
+                            <p class="text-white/40 text-xs mt-1">{{ ts.created_at[:16] }}</p>
+                        </div>
+                        <span class="tag orange">{{ t('practice.trigger-go') }} ></span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
         <!-- 开始完成习题入口 -->
         <section class="mb-8">
             <div class="card flex items-center justify-between">

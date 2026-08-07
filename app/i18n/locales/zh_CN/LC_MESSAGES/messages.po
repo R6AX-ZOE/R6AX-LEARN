@@ -67,32 +67,50 @@ msgstr "暂无项目，点击上方按钮创建第一个项目"
 msgid "project.stats"
 msgstr "项目统计"
 
-msgid "project.quick-start"
-msgstr "快速开始"
+msgid "widget.streak-days"
+msgstr "连续打卡天数"
 
-msgid "project.step-1"
-msgstr "创建笔记"
+msgid "widget.notes-continue"
+msgstr "继续键入：%(dir)s"
 
-msgid "project.step-1-desc"
-msgstr "先在「笔记管理」中添加你的学习笔记"
+msgid "widget.teach-continue"
+msgstr "继续教学会话：%(session)s"
 
-msgid "project.step-2"
-msgstr "教AI以复习"
+msgid "widget.practice-continue"
+msgstr "继续练习：%(session)s"
 
-msgid "project.step-2-desc"
-msgstr "提取笔记中的概念，向 AI 讲解来巩固理解"
+msgid "widget.new-practice"
+msgstr "开始练习：%(topic)s"
 
-msgid "project.step-3"
-msgstr "沉淀到图谱"
+msgid "widget.menu-hint"
+msgstr "右键或长按可编辑"
 
-msgid "project.step-3-desc"
-msgstr "将掌握的概念沉淀到知识图谱中"
+msgid "widget.menu-edit"
+msgstr "编辑内容"
 
-msgid "project.step-4"
-msgstr "间隔练习"
+msgid "widget.menu-move"
+msgstr "移动组件"
 
-msgid "project.step-4-desc"
-msgstr "系统会根据你的学习情况安排复习计划"
+msgid "widget.menu-hide"
+msgstr "不再显示"
+
+msgid "widget.edit-dir-title"
+msgstr "编辑内容 · 选择目录"
+
+msgid "widget.edit-topic-title"
+msgstr "编辑内容 · 练习主题"
+
+msgid "widget.select-dir"
+msgstr "选择目录"
+
+msgid "widget.topic-placeholder"
+msgstr "输入练习主题..."
+
+msgid "widget.restore"
+msgstr "恢复隐藏的组件"
+
+msgid "widget.move-hint"
+msgstr "拖拽组件调整顺序，点击任意位置完成"
 
 msgid "nav.navigation"
 msgstr "导航"
@@ -623,6 +641,40 @@ msgstr "开始完成习题"
 
 msgid "practice.start-session-hint"
 msgstr "从复习范围中选出 10 道题（含简单题与拓展题），题目不足时自动出题"
+
+# ====== Practice: 错题触发 Teaching（F-16）与掌握度更新（F-17） ======
+msgid "practice.trigger-banner-title"
+msgstr "建议重新讲一遍"
+
+msgid "practice.trigger-banner-text"
+msgstr "「%(name)s」近期多次答错，建议重新教 AI 一遍"
+
+msgid "practice.trigger-result-hint"
+msgstr "「%(name)s」的错题已累积到阈值，建议重新讲一遍，AI 会针对你的薄弱点追问"
+
+msgid "practice.trigger-go"
+msgstr "去讲解"
+
+msgid "practice.trigger-session-title"
+msgstr "复习：%(name)s"
+
+msgid "practice.trigger-session-default"
+msgstr "复习错题"
+
+msgid "practice.trigger-system-hint"
+msgstr "本会话由 Practice 错题触发（F-16）。用户对「%(name)s」反复答错，以下是最近错题背景，请据此针对薄弱点追问："
+
+msgid "practice.trigger-system-item"
+msgstr ""
+"题目：%(prompt)s\n"
+"用户答案：%(answer)s\n"
+"AI 反馈：%(feedback)s"
+
+msgid "practice.mastery-up"
+msgstr "掌握度 +5%"
+
+msgid "practice.mastery-down"
+msgstr "掌握度 -5%"
 
 msgid "practice.bank-title"
 msgstr "题库"

@@ -11,6 +11,7 @@ class TeachingSession(Base):
     id = Column(String, primary_key=True, index=True)
     project_id = Column(String, ForeignKey("projects.id"))
     source_note_id = Column(String, ForeignKey("notes.id"), nullable=True)
+    trigger_concept_id = Column(String, ForeignKey("concepts.id"), nullable=True)
     title = Column(String, nullable=False)
     status = Column(Enum("active", "archived"), default="active")
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -18,7 +19,7 @@ class TeachingSession(Base):
     
     project = relationship("Project", back_populates="teaching_sessions")
     messages = relationship("Message", back_populates="session")
-    concepts = relationship("Concept", back_populates="session")
+    concepts = relationship("Concept", back_populates="session", foreign_keys="Concept.session_id")
     misconceptions = relationship("Misconception", back_populates="session")
 
 class Message(Base):
@@ -47,7 +48,7 @@ class Concept(Base):
     user_explanation = Column(Text)
     status = Column(Enum("mastered", "learning"), default="learning")
     
-    session = relationship("TeachingSession", back_populates="concepts")
+    session = relationship("TeachingSession", back_populates="concepts", foreign_keys=[session_id])
     questions = relationship("Question", back_populates="concept")
     node = relationship("Node", back_populates="concept", uselist=False)
 

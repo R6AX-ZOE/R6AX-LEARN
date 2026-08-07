@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
-from datetime import datetime, timedelta
+from datetime import date as _date, datetime, timedelta
 import json
 from uuid import uuid4
 
@@ -123,8 +123,92 @@ async def project_detail(request: Request, project_id: str, current_user: User =
     if not project:
         raise HTTPException(status_code=404, detail="项目不存在")
     
+    # 目录（用于笔记组件绑定选项，按最近笔记活动排序）
+    dirs_result = await db.execute(
+        text("""SELECT d.id, d.name, COUNT(n.id) AS note_count, MAX(n.updated_at) AS last_note
+                FROM directories d LEFT JOIN notes n ON n.directory_id = d.id
+                WHERE d.project_id = :pid
+                GROUP BY d.id
+                ORDER BY d.order_index"""),
+        {"pid": project_id}
+    )
+    all_directories = [dict(row._mapping) for row in dirs_result.fetchall()]
+    
+    # 笔记组件（1~3 个）：优先最近有笔记活动的目录，否则取最新目录
+    active_dirs = [d for d in all_directories if d.get("last_note")]
+    active_dirs.sort(key=lambda d: d["last_note"], reverse=True)
+    note_widgets = (active_dirs or all_directories)[:3]
+    
+    # 教 AI 以复习组件：全部未完成的 session
+    ts_result = await db.execute(
+        text("SELECT id, title, created_at FROM teaching_sessions WHERE project_id = :pid AND status = 'active' ORDER BY created_at DESC"),
+        {"pid": project_id}
+    )
+    teaching_widgets = [dict(row._mapping) for row in ts_result.fetchall()]
+    
+    # 继续练习组件：全部未完成的 session（含进度）
+    ps_result = await db.execute(
+        text("""SELECT ps.id, ps.status, ps.created_at,
+                       (SELECT COUNT(*) FROM practice_session_questions WHERE session_id = ps.id) AS q_count,
+                       (SELECT COUNT(*) FROM practice_session_questions WHERE session_id = ps.id AND answered_at IS NOT NULL) AS answered_count
+                FROM practice_sessions ps
+                WHERE ps.user_id = :uid AND ps.project_id = :pid AND ps.status = 'active'
+                ORDER BY ps.created_at DESC"""),
+        {"uid": current_user.id, "pid": project_id}
+    )
+    practice_widgets = [dict(row._mapping) for row in ps_result.fetchall()]
+    
+    # 连胜组件：项目内连续有学习活动（练习作答 / 教学消息 / 笔记）的天数
+    act_result = await db.execute(
+        text("""SELECT DISTINCT date(answered_at) FROM practice_session_questions
+                WHERE answered_at IS NOT NULL
+                  AND session_id IN (SELECT id FROM practice_sessions WHERE user_id = :uid AND project_id = :pid)
+                UNION
+                SELECT DISTINCT date(created_at) FROM messages
+                WHERE role = 'user'
+                  AND session_id IN (SELECT id FROM teaching_sessions WHERE project_id = :pid)
+                UNION
+                SELECT DISTINCT date(created_at) FROM notes
+                WHERE directory_id IN (SELECT id FROM directories WHERE project_id = :pid)"""),
+        {"uid": current_user.id, "pid": project_id}
+    )
+    active_days = {_date.fromisoformat(row[0]) for row in act_result.fetchall()}
+    cursor = datetime.utcnow().date()
+    if cursor not in active_days:
+        cursor -= timedelta(days=1)
+    streak_days = 0
+    while cursor in active_days:
+        streak_days += 1
+        cursor -= timedelta(days=1)
+    
+    # 新练习组件默认主题：最近一个概念名
+    topic_result = await db.execute(
+        text("""SELECT c.name FROM concepts c
+                JOIN teaching_sessions ts ON c.session_id = ts.id
+                WHERE ts.project_id = :pid
+                ORDER BY ts.created_at DESC, c.rowid DESC LIMIT 1"""),
+        {"pid": project_id}
+    )
+    topic_row = topic_result.first()
+    default_topic = topic_row[0] if topic_row else project.name
+    
+    directories_json = json.dumps(
+        [{"id": d["id"], "name": d["name"]} for d in all_directories],
+        ensure_ascii=False
+    )
+    
     template = jinja_env.get_template("pages/project_detail.html")
-    html_content = template.render(request=request, user=current_user, project=project)
+    html_content = template.render(
+        request=request,
+        user=current_user,
+        project=project,
+        note_widgets=note_widgets,
+        teaching_widgets=teaching_widgets,
+        practice_widgets=practice_widgets,
+        streak_days=streak_days,
+        default_topic=default_topic,
+        directories_json=directories_json
+    )
     return HTMLResponse(content=html_content)
 
 @router.get("/input/{project_id}", response_class=HTMLResponse)
@@ -194,13 +278,25 @@ async def practice_page(request: Request, project_id: str, current_user: User = 
     active_sessions = [s for s in all_sessions if s.get("status") == "active"]
     completed_sessions = [s for s in all_sessions if s.get("status") == "completed"]
 
+    # F-16：错题触发的 Teaching 会话（未归档）→ 首页横幅提醒
+    trigger_result = await db.execute(
+        text("""SELECT ts.id, ts.title, ts.created_at, c.name AS concept_name
+                FROM teaching_sessions ts
+                LEFT JOIN concepts c ON ts.trigger_concept_id = c.id
+                WHERE ts.project_id = :pid AND ts.trigger_concept_id IS NOT NULL AND ts.status = 'active'
+                ORDER BY ts.created_at DESC"""),
+        {"pid": project_id}
+    )
+    trigger_sessions = [dict(row._mapping) for row in trigger_result.fetchall()]
+
     template = jinja_env.get_template("practice/today.html")
     html_content = template.render(
         request=request,
         user=current_user,
         project=project,
         active_sessions=active_sessions,
-        completed_sessions=completed_sessions
+        completed_sessions=completed_sessions,
+        trigger_sessions=trigger_sessions
     )
     return HTMLResponse(content=html_content)
 
