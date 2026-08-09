@@ -5,7 +5,7 @@ import sqlite3
 import os
 from uuid import uuid4
 
-db_path = os.path.join(os.path.dirname(__file__), 'data', 'r6ax.db')
+db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'r6ax.db')
 
 def migrate():
     conn = sqlite3.connect(db_path)

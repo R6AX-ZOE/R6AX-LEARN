@@ -3,13 +3,16 @@
 管理员用户管理工具
 
 使用方法:
-    python admin.py create_user <username> <password>
-    python admin.py list_users
-    python admin.py delete_user <username>
+    python scripts/admin.py create_user <username> <password>
+    python scripts/admin.py list_users
+    python scripts/admin.py delete_user <username>
 """
 
 import asyncio
+import os
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import select
 

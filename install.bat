@@ -96,10 +96,10 @@ if not errorlevel 1 (
     echo [install] 编译 i18n 翻译文件 ...
     pybabel compile -d app\i18n\locales 2>nul
     if errorlevel 1 python -m babel.messages.frontend compile -d app\i18n\locales 2>nul
-    if errorlevel 1 python compile_i18n.py 2>nul
-    if errorlevel 1 echo [warn] i18n 编译跳过 (可稍后运行 python compile_i18n.py)
+    if errorlevel 1 python scripts\compile_i18n.py 2>nul
+    if errorlevel 1 echo [warn] i18n 编译跳过 (可稍后运行 python scripts\compile_i18n.py)
 ) else (
-    echo [warn] 未安装 babel, 跳过 i18n 编译 (可稍后运行 python compile_i18n.py)
+    echo [warn] 未安装 babel, 跳过 i18n 编译 (可稍后运行 python scripts\compile_i18n.py)
 )
 
 REM ---------- 完成 ----------

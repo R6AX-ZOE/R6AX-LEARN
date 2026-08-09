@@ -25,7 +25,7 @@
 启动后访问 <http://localhost:8000>，首次使用请先创建账号：
 
 ```bash
-python admin.py create_user <username> <password>
+python scripts/admin.py create_user <username> <password>
 ```
 
 ### 自定义端口 / 监听地址
@@ -41,7 +41,7 @@ bootstrap 脚本暂未提供 `.bat` 版本，请手动执行等价步骤：
 
 ```powershell
 .\.venv\Scripts\activate          # 若未安装，先运行 .\install.bat
-python compile_i18n.py
+python scripts/compile_i18n.py
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -59,7 +59,7 @@ docker compose up -d --build
 | 检查项 | 方法 |
 |--------|------|
 | 服务已启动 | 浏览器打开 <http://localhost:8000> 应跳转到登录页 |
-| 用户账号 | `python admin.py create_user <用户名> <密码>` 创建 |
+| 用户账号 | `python scripts/admin.py create_user <用户名> <密码>` 创建 |
 | API 文档 | <http://localhost:8000/docs> |
 | AI 功能正常 | 登录后任意页面试用一次"教 AI"会话 |
 | 数据库初始化 | 首次启动自动建库并执行迁移（不再自动创建默认管理员） |

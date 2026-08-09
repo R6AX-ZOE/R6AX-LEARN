@@ -21,7 +21,7 @@
 | 基础调度 | 答对间隔翻倍（上限 100 天），答错减半（下限 1 天）；24 小时内作答过的题目不重复进入新会话 | `app/routers/practice.py` |
 | Markdown 编辑器 | 复用带 KaTeX/Mermaid 的 markdown 编辑器（编辑/预览），宽屏时编辑与预览并排实时刷新 | `app/static/js/markdown-render.js`、`app/templates/components/markdown_editor.html` |
 | 数据模型 | questions 增加 is_extension / knowledge_points / rationale；review_records 增加 score；新增 practice_sessions / practice_session_questions 表 | `app/models/practice.py`、`app/core/database.py` |
-| 测试 | 端到端冒烟测试（登录 → 出题 → 会话 → 作答 → 反馈 → 撤销 → 会话记录），以及无头浏览器（Edge+Selenium）验证 | `tests/smoke_practice.py` |
+| 测试 | 端到端冒烟测试（登录 → 出题 → 会话 → 作答 → 反馈 → 撤销 → 会话记录），以及无头浏览器（Edge+Selenium）验证 | `tests/smoke_practice.py`（本地冒烟脚本，未入库） |
 
 ### 1.2 关键设计决策
 
@@ -192,7 +192,7 @@ https://www.changingminds.org/techniques/questioning/socratic_questions.htm
 
 ## 5. 验证与测试
 
-- `tests/smoke_practice.py`：端到端冒烟测试（TestClient）
+- `tests/smoke_practice.py`：端到端冒烟测试（TestClient，本地脚本，未入库）
   覆盖：hub/题库页/搜索 partial → 会话创建与后台出题 → 10 题会话 → HTMX 作答
   （含原答案回显断言）→ 重复作答拒绝 → 会话完成 → 撤销出题且题目保留 → 会话记录展示顺序
 - 无头浏览器（Edge + Selenium）验证：提交答案 → "AI 评审中" → `htmx:beforeSwap/afterSwap`

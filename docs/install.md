@@ -117,7 +117,7 @@ cp .env.example .env        # 若尚未创建
 # 编辑 .env 填入 DEEPSEEK_API_KEY / JWT_SECRET
 
 # 编译翻译文件（若 .po 有更新）
-python compile_i18n.py
+python scripts/compile_i18n.py
 
 # 启动开发服务器
 uvicorn app.main:app --reload --port 8000
@@ -156,7 +156,7 @@ python -m pip install -e ".[dev]"
 copy .env.example .env
 # 编辑 .env 填入 DEEPSEEK_API_KEY / JWT_SECRET
 
-python compile_i18n.py
+python scripts/compile_i18n.py
 
 uvicorn app.main:app --reload --port 8000
 ```
@@ -178,6 +178,8 @@ uvicorn app.main:app --reload --port 8000
 ---
 
 ## 测试
+
+`tests/` 为本地冒烟测试（未入库），运行方式：
 
 ```bash
 # Linux / macOS

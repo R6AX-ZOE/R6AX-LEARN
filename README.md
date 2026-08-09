@@ -48,7 +48,7 @@ docker compose up -d
 ./bootstrap.sh          # 未安装时自动走 install.sh，然后直接启动
 ```
 
-亦可分步进行（Windows 用户见 [install.md](install.md)）：
+亦可分步进行（Windows 用户见 [install.md](docs/install.md)）：
 
 ```bash
 # 安装（Windows 运行 install.bat，Linux/macOS 运行 install.sh）
@@ -58,7 +58,7 @@ docker compose up -d
 ./bootstrap.sh        # 或 uvicorn app.main:app --reload --port 8000
 ```
 
-> `install` 负责安装环境，`bootstrap` 负责快速启动，详见 [install.md](install.md) 与 [bootstrap.md](bootstrap.md)。
+> `install` 负责安装环境，`bootstrap` 负责快速启动，详见 [install.md](docs/install.md) 与 [bootstrap.md](docs/bootstrap.md)。
 
 ## 配置
 
@@ -75,9 +75,9 @@ docker compose up -d
 首次启动不会再自动创建默认管理员。请用管理员工具手动创建：
 
 ```bash
-python admin.py create_user <username> <password>
-python admin.py list_users
-python admin.py delete_user <username>
+python scripts/admin.py create_user <username> <password>
+python scripts/admin.py list_users
+python scripts/admin.py delete_user <username>
 ```
 
 > 安全说明：登录 cookie 启用 `HttpOnly` + `SameSite=Lax`；`DEBUG=false`（生产）时自动启用 `Secure`。所有需要登录的状态变更请求（POST/PUT/PATCH/DELETE）由双提交 CSRF cookie 防护。
@@ -108,19 +108,29 @@ app/
 ├── templates/         # Jinja2 模板
 └── static/            # 静态资源
 data/                  # 运行时数据（SQLite，git-ignored）
-tests/                 # 冒烟测试
+docs/                  # 文档（安装指南 / 快速启动 / 功能规范）
+scripts/               # 工具脚本（admin 用户管理 / 数据迁移 / 清理 / i18n 编译）
 ```
 
-## 测试
+## 工具脚本
 
 ```bash
-pytest tests/ -v
+python scripts/admin.py create_user <username> <password>   # 创建用户
+python scripts/admin.py list_users                          # 列出用户
+python scripts/admin.py delete_user <username>              # 删除用户
+python scripts/compile_i18n.py                              # 编译翻译文件
+python scripts/cleanup_graphs.py                            # 清空图谱数据
+python scripts/cleanup_teaching.py                          # 清空教学数据
+python scripts/migrate_multi_graph.py                       # 多图谱迁移
+python scripts/migrate_graphs_for_dirs.py                   # 为目录创建图谱
 ```
+
+> 测试为本地冒烟脚本（不入库），运行方式：`pytest tests/ -v`。
 
 ## 文档
 
-- [安装指南 install.md](install.md)
-- [快速启动 bootstrap.md](bootstrap.md)
+- [安装指南 install.md](docs/install.md)
+- [快速启动 bootstrap.md](docs/bootstrap.md)
 
 ## License
 

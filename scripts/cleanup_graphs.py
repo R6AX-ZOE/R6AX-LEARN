@@ -4,6 +4,11 @@ Keep this script for future reuse.
 """
 
 import asyncio
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from sqlalchemy import text
 from app.core.database import async_engine
 

@@ -13,6 +13,16 @@ data/
 !data/.gitkeep
 *.log
 
+# Test & lint caches
+.pytest_cache/
+.ruff_cache/
+tests/
+
+# Local test artifacts
+all_concepts_check.txt
+concept_check_output.txt
+detail_nt.html
+
 # IDE
 .vscode/
 .idea/
@@ -26,10 +36,7 @@ Thumbs.db
 # i18n compiled
 *.mo
 
-# Project specific
+# Build
 dist/
 build/
 *.egg-info/
-
-# Project specific
-docs/

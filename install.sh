@@ -88,10 +88,10 @@ if python -c "import babel" >/dev/null 2>&1; then
     info "编译 i18n 翻译文件 ..."
     pybabel compile -d app/i18n/locales 2>/dev/null \
         || python -m babel.messages.frontend compile -d app/i18n/locales 2>/dev/null \
-        || python compile_i18n.py 2>/dev/null \
-        || warn "i18n 编译跳过（可稍后运行 python compile_i18n.py）"
+        || python scripts/compile_i18n.py 2>/dev/null \
+        || warn "i18n 编译跳过（可稍后运行 python scripts/compile_i18n.py）"
 else
-    warn "未安装 babel，跳过 i18n 编译（可稍后运行 python compile_i18n.py）"
+    warn "未安装 babel，跳过 i18n 编译（可稍后运行 python scripts/compile_i18n.py）"
 fi
 
 # ---------- 完成 ----------
