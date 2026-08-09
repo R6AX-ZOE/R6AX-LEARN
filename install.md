@@ -171,7 +171,6 @@ uvicorn app.main:app --reload --port 8000
 
 | 问题 | 解决方案 |
 |------|----------|
-| `sqlite-vec` 编译 / 安装失败 | 尝试升级 pip 与 setuptools：`python -m pip install --upgrade pip setuptools wheel`；或改用 Docker 方式 |
 | 登录后 AI 无回复 | 检查 `.env` 中的 `DEEPSEEK_API_KEY` 是否正确；查看启动时的日志输出 |
 | 页面显示乱码 | 应用已强制 UTF-8；确认终端编码为 UTF-8 |
 | 默认端口被占用 | 修改 `.env` 中的 `PORT`，并以 `uvicorn app.main:app --port <端口>` 启动 |

@@ -116,7 +116,7 @@ class EmbeddingService:
         project_id: str,
         top_k: int = 5
     ) -> List[Dict[str, Any]]:
-        """使用sqlite-vec搜索相似虚拟图"""
+        """搜索相似虚拟图（sqlite3 读取 embedding + NumPy 余弦相似度）"""
 
         # 生成query embedding
         query_embedding = self.generate_embedding(query)
