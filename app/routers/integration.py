@@ -4,15 +4,26 @@ from uuid import uuid4
 import json
 
 from sqlalchemy import text
-from app.core.deps import get_current_user, get_db
+from app.core.deps import (
+    get_current_active_user,
+    get_db,
+    require_project,
+    require_session,
+    require_graph,
+    require_node,
+    require_edge,
+    require_virtual_graph,
+)
 from app.models.user import User
 from app.services.embedding_service import get_embedding_service
 
 router = APIRouter()
 
 @router.get("/graphs/{project_id}")
-async def list_graphs(project_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def list_graphs(project_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """获取项目的所有图谱列表"""
+    await require_project(db, project_id, current_user.id)
+
     result = await db.execute(
         text("SELECT g.*, d.name as directory_name FROM graphs g LEFT JOIN directories d ON g.directory_id = d.id WHERE g.project_id = :project_id ORDER BY g.created_at"),
         {"project_id": project_id}
@@ -20,8 +31,10 @@ async def list_graphs(project_id: str, current_user: User = Depends(get_current_
     return [dict(row._mapping) for row in result.fetchall()]
 
 @router.post("/graphs/{project_id}")
-async def create_graph(project_id: str, request: Request, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def create_graph(project_id: str, request: Request, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """创建新图谱，可关联目录"""
+    await require_project(db, project_id, current_user.id)
+
     body = await request.json() if request else {}
     name = body.get("name", "知识图谱")
     directory_id = body.get("directory_id")
@@ -35,8 +48,10 @@ async def create_graph(project_id: str, request: Request, current_user: User = D
     return {"id": new_id, "name": name, "status": "ok"}
 
 @router.get("/graph/{graph_id}")
-async def get_graph_detail(graph_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def get_graph_detail(graph_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """获取单个图谱详情"""
+    await require_graph(db, graph_id, current_user.id)
+
     result = await db.execute(
         text("SELECT g.*, d.name as directory_name FROM graphs g LEFT JOIN directories d ON g.directory_id = d.id WHERE g.id = :gid"),
         {"gid": graph_id}
@@ -47,8 +62,10 @@ async def get_graph_detail(graph_id: str, current_user: User = Depends(get_curre
     return dict(row._mapping)
 
 @router.put("/graph/{graph_id}")
-async def update_graph(graph_id: str, request: Request, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def update_graph(graph_id: str, request: Request, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """更新图谱信息"""
+    await require_graph(db, graph_id, current_user.id)
+
     body = await request.json()
     name = body.get("name")
     directory_id = body.get("directory_id")
@@ -70,8 +87,10 @@ async def update_graph(graph_id: str, request: Request, current_user: User = Dep
     return {"status": "ok"}
 
 @router.delete("/graph/{graph_id}")
-async def delete_graph(graph_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def delete_graph(graph_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """删除图谱及其所有节点和边"""
+    await require_graph(db, graph_id, current_user.id)
+
     # 删除关联的边
     await db.execute(text("DELETE FROM edges WHERE graph_id = :gid"), {"gid": graph_id})
     # 删除关联的节点
@@ -82,7 +101,9 @@ async def delete_graph(graph_id: str, current_user: User = Depends(get_current_u
     return {"status": "ok"}
 
 @router.get("/nodes/{graph_id}")
-async def list_nodes(graph_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def list_nodes(graph_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_graph(db, graph_id, current_user.id)
+
     result = await db.execute(
         text("SELECT * FROM nodes WHERE graph_id = :gid ORDER BY label"),
         {"gid": graph_id}
@@ -90,7 +111,7 @@ async def list_nodes(graph_id: str, current_user: User = Depends(get_current_use
     return [dict(row._mapping) for row in result.fetchall()]
 
 @router.post("/nodes")
-async def create_node(request: Request, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def create_node(request: Request, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     body = await request.json()
     graph_id = body.get("graph_id")
     label = body.get("label", "").strip()
@@ -99,10 +120,7 @@ async def create_node(request: Request, current_user: User = Depends(get_current
     if not graph_id or not label:
         raise HTTPException(status_code=400, detail="graph_id and label are required")
 
-    # 确保graph存在
-    graph = await db.execute(text("SELECT id FROM graphs WHERE id = :gid"), {"gid": graph_id})
-    if not graph.first():
-        raise HTTPException(status_code=404, detail="Graph not found")
+    await require_graph(db, graph_id, current_user.id)
 
     node_id = str(uuid4())
     await db.execute(
@@ -118,7 +136,9 @@ async def create_node(request: Request, current_user: User = Depends(get_current
     return {"id": node_id, "status": "ok"}
 
 @router.put("/nodes/{node_id}")
-async def update_node(node_id: str, request: Request, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def update_node(node_id: str, request: Request, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_node(db, node_id, current_user.id)
+
     body = await request.json()
     label = body.get("label", "").strip()
     mastery_score = body.get("mastery_score")
@@ -144,7 +164,9 @@ async def update_node(node_id: str, request: Request, current_user: User = Depen
     return {"status": "ok"}
 
 @router.delete("/nodes/{node_id}")
-async def delete_node(node_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def delete_node(node_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_node(db, node_id, current_user.id)
+
     # 先删除关联的边
     await db.execute(text("DELETE FROM edges WHERE source_node_id = :nid OR target_node_id = :nid"), {"nid": node_id})
     # 删除节点
@@ -153,7 +175,9 @@ async def delete_node(node_id: str, current_user: User = Depends(get_current_use
     return {"message": "Node deleted successfully"}
 
 @router.get("/edges/{graph_id}")
-async def list_edges(graph_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def list_edges(graph_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_graph(db, graph_id, current_user.id)
+
     result = await db.execute(
         text("""SELECT e.*, sn.label as source_label, tn.label as target_label
                FROM edges e
@@ -165,7 +189,7 @@ async def list_edges(graph_id: str, current_user: User = Depends(get_current_use
     return [dict(row._mapping) for row in result.fetchall()]
 
 @router.post("/edges")
-async def create_edge(request: Request, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def create_edge(request: Request, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     body = await request.json()
     graph_id = body.get("graph_id")
     source_node_id = body.get("source_node_id")
@@ -175,6 +199,8 @@ async def create_edge(request: Request, current_user: User = Depends(get_current
 
     if not all([graph_id, source_node_id, target_node_id]):
         raise HTTPException(status_code=400, detail="graph_id, source_node_id, target_node_id are required")
+
+    await require_graph(db, graph_id, current_user.id)
 
     edge_id = str(uuid4())
     await db.execute(
@@ -189,7 +215,9 @@ async def create_edge(request: Request, current_user: User = Depends(get_current
     return {"id": edge_id, "status": "ok"}
 
 @router.delete("/edges/{edge_id}")
-async def delete_edge(edge_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def delete_edge(edge_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_edge(db, edge_id, current_user.id)
+
     await db.execute(text("DELETE FROM edges WHERE id = :eid"), {"eid": edge_id})
     await db.commit()
     return {"message": "Edge deleted successfully"}
@@ -197,8 +225,10 @@ async def delete_edge(edge_id: str, current_user: User = Depends(get_current_use
 # ====== 虚拟图 CRUD API ======
 
 @router.get("/virtual-graphs/{project_id}")
-async def list_virtual_graphs(project_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def list_virtual_graphs(project_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """获取项目的所有虚拟图列表"""
+    await require_project(db, project_id, current_user.id)
+
     result = await db.execute(
         text("""SELECT vg.*, ts.title as session_title, g.name as graph_name
                FROM virtual_graphs vg
@@ -211,7 +241,7 @@ async def list_virtual_graphs(project_id: str, current_user: User = Depends(get_
     return [dict(row._mapping) for row in result.fetchall()]
 
 @router.post("/virtual-graphs")
-async def create_virtual_graph(request: Request, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def create_virtual_graph(request: Request, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """创建新的虚拟图"""
     body = await request.json()
     session_id = body.get("session_id")
@@ -224,6 +254,10 @@ async def create_virtual_graph(request: Request, current_user: User = Depends(ge
 
     if not session_id:
         raise HTTPException(status_code=400, detail="session_id required")
+
+    await require_session(db, session_id, current_user.id)
+    if graph_id:
+        await require_graph(db, graph_id, current_user.id)
 
     # 创建虚拟图
     vg_id = str(uuid4())
@@ -309,8 +343,10 @@ async def create_virtual_graph(request: Request, current_user: User = Depends(ge
     return {"id": vg_id, "name": name, "node_count": len(nodes), "status": "ok"}
 
 @router.get("/virtual-graph/{vg_id}")
-async def get_virtual_graph_detail(vg_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def get_virtual_graph_detail(vg_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """获取单个虚拟图详情，包含节点和边"""
+    await require_virtual_graph(db, vg_id, current_user.id)
+
     result = await db.execute(
         text("""SELECT vg.*, ts.title as session_title, g.name as graph_name
                FROM virtual_graphs vg
@@ -356,8 +392,10 @@ async def get_virtual_graph_detail(vg_id: str, current_user: User = Depends(get_
     return vg
 
 @router.put("/virtual-graph/{vg_id}")
-async def update_virtual_graph(vg_id: str, request: Request, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def update_virtual_graph(vg_id: str, request: Request, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """更新虚拟图信息"""
+    await require_virtual_graph(db, vg_id, current_user.id)
+
     body = await request.json()
     name = body.get("name")
     description = body.get("description")
@@ -383,8 +421,10 @@ async def update_virtual_graph(vg_id: str, request: Request, current_user: User 
     return {"status": "ok"}
 
 @router.delete("/virtual-graph/{vg_id}")
-async def delete_virtual_graph(vg_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def delete_virtual_graph(vg_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """删除虚拟图及其所有节点、边和连接"""
+    await require_virtual_graph(db, vg_id, current_user.id)
+
     # 删除到真实节点的连接
     await db.execute(text("DELETE FROM virtual_graph_to_node_edges WHERE virtual_graph_id = :vgid"), {"vgid": vg_id})
     # 删除虚拟图内部边
@@ -403,7 +443,7 @@ async def delete_virtual_graph(vg_id: str, current_user: User = Depends(get_curr
 @router.post("/virtual-graphs/search")
 async def search_virtual_graphs_rag(
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db = Depends(get_db)
 ):
     """使用本地RAG搜索虚拟图（基于embedding相似度）"""
@@ -414,6 +454,8 @@ async def search_virtual_graphs_rag(
 
     if not query or not project_id:
         raise HTTPException(status_code=400, detail="query and project_id required")
+
+    await require_project(db, project_id, current_user.id)
 
     try:
         # 获取数据库路径

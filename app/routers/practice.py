@@ -6,8 +6,7 @@ from sqlalchemy import text
 
 from jinja2 import Environment, FileSystemLoader
 
-from app.core.deps import get_current_user
-from app.core.database import get_db
+from app.core.deps import get_current_active_user, get_db, require_project
 from app.models.user import User
 from app.services.question_generator import grade_answer
 from app.services.practice_jobs import (
@@ -140,8 +139,10 @@ def _question_with_context(row) -> dict:
 # ====== 题库列表（F-13：所有题目，答案默认折叠，可按题目/考点搜索） ======
 
 @router.get("/bank")
-async def bank_questions(project_id: str, q: str = "", current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def bank_questions(project_id: str, q: str = "", current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """项目题库：按题目内容或考点（概念名）搜索，返回题目列表（含答案）。"""
+    await require_project(db, project_id, current_user.id)
+
     like = f"%{q.strip()}%" if q and q.strip() else None
     if like:
         result = await db.execute(
@@ -193,12 +194,14 @@ def _due_questions_sql() -> str:
 
 
 @router.post("/sessions")
-async def create_session(request: Request, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def create_session(request: Request, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """开始完成习题：从复习范围（今日待复习）选 10 道题；不足则后台出题并返回 job_id。"""
     body = await request.json()
     project_id = body.get("project_id")
     if not project_id:
         raise HTTPException(status_code=400, detail="project_id required")
+
+    await require_project(db, project_id, current_user.id)
 
     # 关闭该用户/项目此前未完成的会话
     await db.execute(
@@ -264,7 +267,7 @@ async def create_session(request: Request, current_user: User = Depends(get_curr
 
 
 @router.post("/sessions/{session_id}/complete")
-async def complete_session(session_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def complete_session(session_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     await db.execute(
         text("UPDATE practice_sessions SET status = 'completed', completed_at = :now WHERE id = :sid AND user_id = :uid"),
         {"now": datetime.utcnow(), "sid": session_id, "uid": current_user.id}
@@ -274,7 +277,7 @@ async def complete_session(session_id: str, current_user: User = Depends(get_cur
 
 
 @router.get("/sessions/{session_id}/questions")
-async def session_questions(session_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def session_questions(session_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """会话内的题目（含作答状态）。供会话页刷新/轮询使用。"""
     session = await db.execute(
         text("SELECT * FROM practice_sessions WHERE id = :sid AND user_id = :uid"),
@@ -315,7 +318,7 @@ async def session_questions(session_id: str, current_user: User = Depends(get_cu
 # ====== F-13 / F-14: 作答 + 立即反馈 ======
 
 @router.post("/answers")
-async def submit_answer(request: Request, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def submit_answer(request: Request, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """提交一道题：AI 对照参考答案赋分（0~100），立即返回评分与反馈。
 
     同时：写 ReviewRecord（含 score）、更新 ReviewSchedule（简单间隔）、
@@ -479,16 +482,16 @@ async def submit_answer(request: Request, current_user: User = Depends(get_curre
 # ====== 后台出题 job（可撤销） ======
 
 @router.get("/generate-job/{job_id}")
-async def generation_job_status(job_id: str, current_user: User = Depends(get_current_user)):
+async def generation_job_status(job_id: str, current_user: User = Depends(get_current_active_user)):
     job = get_generation_job(job_id)
-    if not job:
+    if not job or job["user_id"] != current_user.id:
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
 
 @router.post("/generate-job/{job_id}/cancel")
-async def generation_job_cancel(job_id: str, current_user: User = Depends(get_current_user)):
+async def generation_job_cancel(job_id: str, current_user: User = Depends(get_current_active_user)):
     job = cancel_generation_job(job_id)
-    if not job:
+    if not job or job["user_id"] != current_user.id:
         raise HTTPException(status_code=404, detail="Job not found")
     return job

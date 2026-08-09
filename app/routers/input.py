@@ -4,8 +4,13 @@ from uuid import uuid4
 from sqlalchemy import text
 import json
 
-from app.core.deps import get_current_user
-from app.core.database import get_db
+from app.core.deps import (
+    get_current_active_user,
+    get_db,
+    require_project,
+    require_directory,
+    require_note,
+)
 from app.models.user import User
 from app.models.input import Directory, Note
 from app.models.teaching import TeachingSession, Concept
@@ -13,7 +18,9 @@ from app.models.teaching import TeachingSession, Concept
 router = APIRouter()
 
 @router.get("/directories/{project_id}")
-async def list_directories(project_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def list_directories(project_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_project(db, project_id, current_user.id)
+
     dirs = await db.execute(text("SELECT * FROM directories WHERE project_id = :project_id ORDER BY order_index"), {"project_id": project_id})
     dirs = dirs.fetchall()
     
@@ -35,7 +42,9 @@ async def list_directories(project_id: str, current_user: User = Depends(get_cur
     return HTMLResponse(html)
 
 @router.delete("/directories/{directory_id}")
-async def delete_directory(directory_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def delete_directory(directory_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_directory(db, directory_id, current_user.id)
+
     result = await db.execute(text("SELECT project_id FROM directories WHERE id = :directory_id"), {"directory_id": directory_id})
     dir_info = result.first()
 
@@ -81,7 +90,9 @@ async def delete_directory(directory_id: str, current_user: User = Depends(get_c
     return HTMLResponse(html)
 
 @router.post("/directories")
-async def create_directory(project_id: str = Form(...), parent_id: str = Form(None), name: str = Form(...), description: str = Form(""), current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def create_directory(project_id: str = Form(...), parent_id: str = Form(None), name: str = Form(...), description: str = Form(""), current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_project(db, project_id, current_user.id)
+
     dir_id = str(uuid4())
     new_dir = Directory(
         id=dir_id,
@@ -120,7 +131,9 @@ async def create_directory(project_id: str = Form(...), parent_id: str = Form(No
     return HTMLResponse(html)
 
 @router.get("/notes/{directory_id}")
-async def list_notes(directory_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def list_notes(directory_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_directory(db, directory_id, current_user.id)
+
     notes = await db.execute(text("SELECT * FROM notes WHERE directory_id = :directory_id ORDER BY created_at"), {"directory_id": directory_id})
     notes = notes.fetchall()
     
@@ -157,7 +170,9 @@ async def list_notes(directory_id: str, current_user: User = Depends(get_current
     return HTMLResponse(html)
 
 @router.delete("/notes/{note_id}")
-async def delete_note(note_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def delete_note(note_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_note(db, note_id, current_user.id)
+
     result = await db.execute(text("SELECT directory_id FROM notes WHERE id = :note_id"), {"note_id": note_id})
     note_info = result.first()
     
@@ -199,7 +214,9 @@ async def delete_note(note_id: str, current_user: User = Depends(get_current_use
     return HTMLResponse(html)
 
 @router.put("/notes/{note_id}")
-async def update_note(note_id: str, title: str = Form(...), content: str = Form(""), current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def update_note(note_id: str, title: str = Form(...), content: str = Form(""), current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_note(db, note_id, current_user.id)
+
     result = await db.execute(text("SELECT directory_id FROM notes WHERE id = :note_id"), {"note_id": note_id})
     note_info = result.first()
     
@@ -244,7 +261,10 @@ async def update_note(note_id: str, title: str = Form(...), content: str = Form(
     return HTMLResponse(html)
 
 @router.post("/notes")
-async def create_note(directory_id: str = Form(None), title: str = Form(...), content: str = Form(""), current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def create_note(directory_id: str = Form(None), title: str = Form(...), content: str = Form(""), current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    if directory_id:
+        await require_directory(db, directory_id, current_user.id)
+
     new_note = Note(
         id=str(uuid4()),
         directory_id=directory_id,
@@ -294,7 +314,9 @@ async def create_note(directory_id: str = Form(None), title: str = Form(...), co
     return HTMLResponse(html)
 
 @router.post("/notes/{note_id}/extract-concepts")
-async def extract_note_concepts(note_id: str, re_extract: bool = Form(False), current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def extract_note_concepts(note_id: str, re_extract: bool = Form(False), current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_note(db, note_id, current_user.id)
+
     # 获取笔记信息
     result = await db.execute(text("SELECT title, content, directory_id FROM notes WHERE id = :note_id"), {"note_id": note_id})
     note = result.first()

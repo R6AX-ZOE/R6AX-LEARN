@@ -19,6 +19,7 @@ _lock = threading.Lock()
 def _snapshot(job: dict) -> dict:
     return {
         "id": job["id"],
+        "user_id": job["user_id"],
         "status": job["status"],
         "generated": job["generated"],
         "total": job["total"],

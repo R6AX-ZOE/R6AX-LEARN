@@ -356,6 +356,14 @@ async def practice_bank_page(request: Request, project_id: str, q: str = "", cur
 @router.get("/practice/{project_id}/bank-search")
 async def practice_bank_search(request: Request, project_id: str, q: str = "", current_user: User = Depends(get_current_user), db = Depends(get_db)):
     """题库搜索 partial：按题目内容或考点（概念名）搜索。"""
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    project_result = await db.execute(text("SELECT 1 FROM projects WHERE id = :project_id AND user_id = :user_id"),
+                              {"project_id": project_id, "user_id": current_user.id})
+    if not project_result.first():
+        raise HTTPException(status_code=404, detail="项目不存在")
+
     like = f"%{q.strip()}%" if q and q.strip() else None
     if like:
         result = await db.execute(

@@ -8,7 +8,7 @@ import asyncio
 import json
 
 from sqlalchemy import text
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_active_user, get_db, require_project, require_session
 from app.models.user import User
 from app.models.teaching import TeachingSession, Message, Concept, Misconception
 from app.schemas.teaching import TeachingSessionCreate, TeachingSessionResponse, MessageCreate, MessageResponse, ConceptResponse
@@ -391,7 +391,9 @@ async def _execute_virtual_graph_tool(db, session_id: str, tool_name: str, argum
     return json.dumps({"status": "error", "message": f"Unknown tool: {tool_name}"}, ensure_ascii=False)
 
 @router.post("/sessions", response_model=TeachingSessionResponse)
-async def create_session(session: TeachingSessionCreate, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def create_session(session: TeachingSessionCreate, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_project(db, session.project_id, current_user.id)
+
     new_session = TeachingSession(
         id=str(uuid4()),
         project_id=session.project_id,
@@ -414,7 +416,9 @@ async def create_session(session: TeachingSessionCreate, current_user: User = De
     return new_session
 
 @router.get("/sessions/{session_id}")
-async def get_session_detail(request: Request, session_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def get_session_detail(request: Request, session_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_session(db, session_id, current_user.id)
+
     session_result = await db.execute(text("SELECT * FROM teaching_sessions WHERE id = :session_id"), {"session_id": session_id})
     session_row = session_result.fetchone()
     
@@ -520,7 +524,9 @@ async def get_session_detail(request: Request, session_id: str, current_user: Us
     }))
 
 @router.post("/sessions/{session_id}/messages")
-async def create_message(session_id: str, message: MessageCreate, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def create_message(session_id: str, message: MessageCreate, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_session(db, session_id, current_user.id)
+
     session_result = await db.execute(text("SELECT * FROM teaching_sessions WHERE id = :session_id"), {"session_id": session_id})
     session = session_result.fetchone()
     
@@ -551,7 +557,9 @@ async def create_message(session_id: str, message: MessageCreate, current_user: 
     return {"status": "ok", "message_id": new_message.id}
 
 @router.get("/sessions/{session_id}/messages", response_model=list[MessageResponse])
-async def list_messages(session_id: str, branch_id: str = None, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def list_messages(session_id: str, branch_id: str = None, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_session(db, session_id, current_user.id)
+
     if branch_id:
         result = await db.execute(text("SELECT * FROM messages WHERE session_id = :session_id AND branch_id = :branch_id AND is_active = 1 ORDER BY created_at"), {"session_id": session_id, "branch_id": branch_id})
     else:
@@ -562,7 +570,9 @@ async def list_messages(session_id: str, branch_id: str = None, current_user: Us
 
 
 @router.put("/sessions/{session_id}/messages/{message_id}")
-async def update_message_and_create_branch(session_id: str, message_id: str, message: MessageCreate, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def update_message_and_create_branch(session_id: str, message_id: str, message: MessageCreate, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_session(db, session_id, current_user.id)
+
     message_result = await db.execute(text("SELECT * FROM messages WHERE id = :message_id AND session_id = :session_id"), {"message_id": message_id, "session_id": session_id})
     original_message = message_result.first()
     
@@ -2584,7 +2594,10 @@ async def generate_streaming_response(session_id: str, project_id: str, db):
     yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
 @router.get("/stream/{session_id}")
-async def stream_teaching(session_id: str, project_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def stream_teaching(session_id: str, project_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_session(db, session_id, current_user.id)
+    await require_project(db, project_id, current_user.id)
+
     async def stream_generator():
         async for chunk in generate_streaming_response(session_id, project_id, db):
             yield chunk
@@ -2592,7 +2605,9 @@ async def stream_teaching(session_id: str, project_id: str, current_user: User =
     return StreamingResponse(stream_generator(), media_type="text/event-stream")
 
 @router.get("/sessions/{session_id}/progress")
-async def get_session_progress(session_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def get_session_progress(session_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_session(db, session_id, current_user.id)
+
     concepts_result = await db.execute(text("SELECT * FROM concepts WHERE session_id = :session_id"), {"session_id": session_id})
     concepts = [dict(row._mapping) for row in concepts_result.fetchall()]
 
@@ -2616,7 +2631,9 @@ async def get_session_progress(session_id: str, current_user: User = Depends(get
     return {"completed": completed_concepts, "total": max(total_concepts, 1), "percent": progress_percent}
 
 @router.post("/sessions/{session_id}/promote")
-async def promote_concepts(session_id: str, request: Request, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def promote_concepts(session_id: str, request: Request, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_session(db, session_id, current_user.id)
+
     body = await request.json()
     concept_ids = body.get('concept_ids', [])
 
@@ -2755,7 +2772,7 @@ async def promote_concepts(session_id: str, request: Request, current_user: User
     }
 
 @router.post("/sessions/promote-by-ids")
-async def promote_by_ids(request: Request, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def promote_by_ids(request: Request, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """从图谱页面调用：根据concept_ids沉淀概念到图谱"""
     body = await request.json()
     project_id = body.get("project_id")
@@ -2763,6 +2780,8 @@ async def promote_by_ids(request: Request, current_user: User = Depends(get_curr
 
     if not project_id:
         raise HTTPException(status_code=400, detail="project_id required")
+
+    await require_project(db, project_id, current_user.id)
 
     # 查找或创建Graph
     graph_result = await db.execute(
@@ -2830,7 +2849,9 @@ async def promote_by_ids(request: Request, current_user: User = Depends(get_curr
             "synced_nodes": synced_nodes, "projected_edges": projected_edges}
 
 @router.delete("/sessions/{session_id}")
-async def delete_session(session_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+async def delete_session(session_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    await require_session(db, session_id, current_user.id)
+
     await db.execute(text("DELETE FROM misconceptions WHERE session_id = :session_id"), {"session_id": session_id})
     await db.execute(text("DELETE FROM concepts WHERE session_id = :session_id"), {"session_id": session_id})
     await db.execute(text("DELETE FROM messages WHERE session_id = :session_id"), {"session_id": session_id})

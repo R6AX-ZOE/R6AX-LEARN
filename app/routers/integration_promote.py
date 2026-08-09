@@ -3,7 +3,7 @@ from fastapi.requests import Request
 import json
 
 from sqlalchemy import text
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_active_user, get_db, require_virtual_node
 from app.models.user import User
 from app.services.graph_mount import merge_or_create_node, ensure_edge, mount_node, project_virtual_graph_edges
 
@@ -13,12 +13,14 @@ router = APIRouter()
 async def promote_virtual_node(
     vnode_id: str,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db = Depends(get_db)
 ):
     """推送虚拟图节点到Integration Level（挂载式合并）：
     同名节点复用合并，新节点自动挂载到图谱最近邻节点，边去重，
     并把虚拟图内部的 vnode→vnode 边投影为真实图谱边。"""
+    await require_virtual_node(db, vnode_id, current_user.id)
+
     body = await request.json() if request else {}
     graph_id = body.get("graph_id")
 
