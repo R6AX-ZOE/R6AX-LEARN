@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "R6AX-Learn"
     DEBUG: bool = False
     PORT: int = 8000
+    CORS_ORIGINS: str = ""
 
     model_config = SettingsConfigDict(env_file=".env")
 

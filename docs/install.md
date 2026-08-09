@@ -37,8 +37,9 @@ DEEPSEEK_API_KEY=sk-your-deepseek-api-key-here
 JWT_SECRET=some-long-random-secret
 ```
 
-> `JWT_SECRET` 用于签发登录令牌，请务必改成一个「足够长的随机字符串」。
-> 生产环境请设置 `DEBUG=false`。
+> `JWT_SECRET` 用于签发登录令牌，**必填、无默认值**，须为 ≥32 字符的随机串，否则服务拒绝启动。
+> 生成命令：`python -c "import secrets; print(secrets.token_urlsafe(48))"`。
+> 生产环境请设置 `DEBUG=false`（此时登录 cookie 自动启用 `Secure`）。
 
 ---
 
@@ -66,7 +67,11 @@ docker compose ps          # 状态应为 running
 docker compose logs -f     # 查看日志
 ```
 
-打开 <http://localhost:8000>，使用默认账号 **admin / admin** 登录。
+打开 <http://localhost:8000>，首次使用请先创建账号：
+
+```bash
+python scripts/admin.py create_user <username> <password>
+```
 
 ### 4. 常用命令
 
@@ -163,7 +168,7 @@ uvicorn app.main:app --reload --port 8000
 
 ### 4. 启动
 
-打开 <http://localhost:8000>，默认账号 **admin / admin**。
+打开 <http://localhost:8000>，首次使用请先创建账号（见上文「验证」一节）。
 
 ---
 

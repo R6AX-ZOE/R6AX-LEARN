@@ -69,6 +69,7 @@ docker compose up -d
 | `DEEPSEEK_API_KEY` | DeepSeek API 密钥（必填，AI 功能依赖） |
 | `DEEPSEEK_BASE_URL` | DeepSeek API 地址，默认 `https://api.deepseek.com` |
 | `JWT_SECRET` | JWT 签发密钥（必填，无默认值；须为 ≥32 字符随机串，否则服务拒绝启动） |
+| `CORS_ORIGINS` | 允许跨域的前端 Origin 列表（逗号分隔，携带 cookie）。默认留空 = 仅同源，不开启跨域凭据 |
 | `PORT` | 服务端口，默认 8000 |
 | `DEBUG` | 是否开启调试模式 |
 
