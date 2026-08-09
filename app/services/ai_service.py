@@ -1,4 +1,4 @@
-from typing import AsyncGenerator, List, Dict, Any, Optional
+from typing import AsyncGenerator, List, Dict, Any
 from openai import AsyncOpenAI
 from app.config import settings
 
@@ -69,14 +69,6 @@ async def stream_chat_completion_with_tools(
     # 用于累积reasoning_content（必须传回给API）
     reasoning_content_accumulated = ""
 
-    # 用于累积输出内容（简化日志用）
-    output_content_accumulated = ""
-
-    # 写入Tools信息到日志文件
-    with open("ai_response.log", "a", encoding="utf-8") as log_file:
-        log_file.write(f"\n=== New AI Response ===\n")
-        log_file.write(f"Tools: {tools}\n")
-
     async for chunk in stream:
         delta = chunk.choices[0].delta
 
@@ -86,7 +78,6 @@ async def stream_chat_completion_with_tools(
 
         # 返回文本内容
         if delta.content:
-            output_content_accumulated += delta.content
             yield {"type": "text", "content": delta.content}
 
         # 处理工具调用
@@ -94,7 +85,7 @@ async def stream_chat_completion_with_tools(
             has_tool_calls = True
             for tool_call in delta.tool_calls:
                 index = tool_call.index
-                
+
                 # 初始化工具调用累积器
                 if index not in tool_calls_accumulator:
                     tool_calls_accumulator[index] = {
@@ -102,32 +93,20 @@ async def stream_chat_completion_with_tools(
                         "name": "",
                         "arguments": ""
                     }
-                
+
                 # 累积工具名称和参数
                 if tool_call.function.name:
                     tool_calls_accumulator[index]["name"] = tool_call.function.name
                 if tool_call.function.arguments:
                     tool_calls_accumulator[index]["arguments"] += tool_call.function.arguments
 
-    # 写入简化的日志文件
-    with open("ai_response.log", "a", encoding="utf-8") as log_file:
-        log_file.write("\n【模型思考内容】\n")
-        if reasoning_content_accumulated:
-            log_file.write(reasoning_content_accumulated)
-        log_file.write("\n\n【模型输出内容】\n")
-        if output_content_accumulated:
-            log_file.write(output_content_accumulated)
-        log_file.write("\n")
-
     # 在流结束后，输出完整的工具调用
     if has_tool_calls:
-        for index, tool_call_data in tool_calls_accumulator.items():
+        for tool_call_data in tool_calls_accumulator.values():
             if tool_call_data["name"]:
-                print(f"Complete tool call: {tool_call_data['name']}, args: {tool_call_data['arguments']}")
-
                 yield {
                     "type": "tool_call",
-                    "id": tool_call_data["id"],  # 添加 tool_call_id
+                    "id": tool_call_data["id"],
                     "name": tool_call_data["name"],
                     "arguments": tool_call_data["arguments"]
                 }
