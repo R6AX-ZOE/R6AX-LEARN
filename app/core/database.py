@@ -200,25 +200,6 @@ async def init_db():
             await session.commit()
             print("Created virtual_graph_embeddings table")
 
-    from sqlalchemy import select
-    from app.models.user import User
-    from app.core.security import get_password_hash
-
-    async with AsyncSessionLocal() as session:
-        result = await session.execute(select(User).where(User.username == "admin"))
-        admin = result.first()
-
-        if not admin:
-            hashed_password = get_password_hash("admin")
-            admin_user = User(
-                id="admin",
-                username="admin",
-                password_hash=hashed_password
-            )
-            session.add(admin_user)
-            await session.commit()
-            print("Default admin user created: username=admin, password=admin")
-
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session

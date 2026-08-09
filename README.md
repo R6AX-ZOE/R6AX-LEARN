@@ -68,11 +68,19 @@ docker compose up -d
 |------|------|
 | `DEEPSEEK_API_KEY` | DeepSeek API 密钥（必填，AI 功能依赖） |
 | `DEEPSEEK_BASE_URL` | DeepSeek API 地址，默认 `https://api.deepseek.com` |
-| `JWT_SECRET` | JWT 签发密钥，生产环境务必改为随机长字符串 |
+| `JWT_SECRET` | JWT 签发密钥（必填，无默认值；须为 ≥32 字符随机串，否则服务拒绝启动） |
 | `PORT` | 服务端口，默认 8000 |
 | `DEBUG` | 是否开启调试模式 |
 
-默认管理员账号：`admin` / `admin`（首次启动自动创建，请尽快修改）。
+首次启动不会再自动创建默认管理员。请用管理员工具手动创建：
+
+```bash
+python admin.py create_user <username> <password>
+python admin.py list_users
+python admin.py delete_user <username>
+```
+
+> 安全说明：登录 cookie 启用 `HttpOnly` + `SameSite=Lax`；`DEBUG=false`（生产）时自动启用 `Secure`。所有需要登录的状态变更请求（POST/PUT/PATCH/DELETE）由双提交 CSRF cookie 防护。
 
 ## 功能预览
 

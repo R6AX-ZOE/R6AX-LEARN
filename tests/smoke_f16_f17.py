@@ -10,25 +10,46 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./data/test_f16_f17.db"
 os.environ["DEEPSEEK_API_KEY"] = ""  # 强制走规则判分 / 降级路径
+os.environ["JWT_SECRET"] = "5a1f7d3e9b2c4f6a8d0e1b3c5d7f9a2b4c6e8d0f1a3b5c7d9e0f2a4b6c8d"
 
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.core.database import init_db
+from app.core.database import init_db, AsyncSessionLocal
+from app.core.security import get_password_hash
+from app.models.user import User
+from sqlalchemy import select
 
 import sqlite3
 
 
 async def _init():
     await init_db()
+    async with AsyncSessionLocal() as session:
+        r = await session.execute(select(User).where(User.username == "admin"))
+        if not r.first():
+            session.add(User(id="admin", username="admin", password_hash=get_password_hash("admin")))
+            await session.commit()
 
 
 asyncio.get_event_loop().run_until_complete(_init())
 
 client = TestClient(app)
 
+# ---- CSRF 防护：先取 cookie，后续不安全请求带 X-CSRF-Token ----
+client.get("/login")
+_csrf = client.cookies.get("csrf_token")
+
+
+def post(url, **kw):
+    headers = dict(kw.get("headers") or {})
+    headers.setdefault("X-CSRF-Token", _csrf)
+    kw["headers"] = headers
+    return client.post(url, **kw)
+
+
 # ---- 登录 ----
-r = client.post("/login", data={"username": "admin", "password": "admin"}, follow_redirects=False)
+r = post("/login", data={"username": "admin", "password": "admin"}, follow_redirects=False)
 assert r.status_code in (200, 302), r.status_code
 assert client.cookies.get("access_token"), "no token"
 
@@ -52,7 +73,7 @@ def reset_question():
 
 
 def answer(text):
-    return client.post("/api/practice/answers", json={"session_question_id": "sq1", "user_answer": text}).json()
+    return post("/api/practice/answers", json={"session_question_id": "sq1", "user_answer": text}).json()
 
 
 # ---- F-16: 连续答错 3 次触发 ----
@@ -137,7 +158,7 @@ conn.execute("INSERT OR IGNORE INTO questions (id, concept_id, question_type, pr
 conn.execute("INSERT OR IGNORE INTO review_schedules (id, user_id, question_id, next_review_at, interval_days, ease_factor) VALUES ('rs2','admin','q2',datetime('now'),1.0,2.5)")
 conn.execute("INSERT OR IGNORE INTO practice_session_questions (id, session_id, question_id, order_index) VALUES ('sq2','ps1','q2',1)")
 conn.commit()
-res = client.post("/api/practice/answers", json={"session_question_id": "sq2", "user_answer": "x"}).json()
+res = post("/api/practice/answers", json={"session_question_id": "sq2", "user_answer": "x"}).json()
 assert res["status"] == "ok" and res["mastery_delta"] is None and res["trigger"] is None, res
 print("[ok] F-16/F-17: question without concept -> safe skip (no crash, no delta)")
 

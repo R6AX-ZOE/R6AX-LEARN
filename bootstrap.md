@@ -17,12 +17,16 @@
 
 脚本自动完成：
 
-1. 检查 `.env`，缺失时从 `.env.example` 生成并提示补填 `DEEPSEEK_API_KEY` / `JWT_SECRET`；
+1. 检查 `.env`，缺失时从 `.env.example` 生成并提示补填 `DEEPSEEK_API_KEY` / `JWT_SECRET`（`JWT_SECRET` 必填，无默认值）；
 2. 检查虚拟环境 `.venv`，缺失时自动执行 `install.sh` 完成安装；
 3. 尽力编译 i18n 翻译文件（失败不阻塞启动）；
 4. 读取 `.env` 中的 `PORT`（默认 8000），启动服务器。
 
-启动后访问 <http://localhost:8000>，默认账号 **admin / admin**。
+启动后访问 <http://localhost:8000>，首次使用请先创建账号：
+
+```bash
+python admin.py create_user <username> <password>
+```
 
 ### 自定义端口 / 监听地址
 
@@ -55,10 +59,10 @@ docker compose up -d --build
 | 检查项 | 方法 |
 |--------|------|
 | 服务已启动 | 浏览器打开 <http://localhost:8000> 应跳转到登录页 |
-| 默认账号可用 | `admin` / `admin` 登录 |
+| 用户账号 | `python admin.py create_user <用户名> <密码>` 创建 |
 | API 文档 | <http://localhost:8000/docs> |
 | AI 功能正常 | 登录后任意页面试用一次"教 AI"会话 |
-| 数据库初始化 | 首次启动自动建库并生成默认管理员（见 `app/core/database.py`） |
+| 数据库初始化 | 首次启动自动建库并执行迁移（不再自动创建默认管理员） |
 
 ## 5. 常见问题
 

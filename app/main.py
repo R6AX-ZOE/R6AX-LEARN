@@ -1,9 +1,14 @@
+import hmac
+import secrets
+from urllib.parse import parse_qs
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader
-from starlette.responses import HTMLResponse
+from starlette.responses import HTMLResponse, JSONResponse
 
+from app.config import settings
 from app.core.database import init_db
 
 from app.i18n.middleware import LocaleMiddleware
@@ -16,6 +21,39 @@ from app.models.user import User
 from app.routers import auth, projects, input, teaching, practice, integration, pages, integration_promote
 
 app = FastAPI(title="R6AX:/Learn", version="1.1.0")
+
+CSRF_COOKIE = "csrf_token"
+UNSAFE_METHODS = ("POST", "PUT", "PATCH", "DELETE")
+
+@app.middleware("http")
+async def csrf_protection(request: Request, call_next):
+    if request.method in UNSAFE_METHODS and not request.headers.get("Authorization"):
+        cookie_token = request.cookies.get(CSRF_COOKIE)
+        if cookie_token:
+            supplied = request.headers.get("X-CSRF-Token")
+            if not supplied:
+                content_type = request.headers.get("content-type", "")
+                if content_type.startswith("application/x-www-form-urlencoded"):
+                    body = await request.body()
+                    params = parse_qs(body.decode("utf-8", errors="replace"))
+                    supplied = (params.get("csrf_token") or [None])[0]
+            if not supplied or not hmac.compare_digest(cookie_token, supplied):
+                return JSONResponse({"detail": "CSRF validation failed"}, status_code=403)
+
+    response = await call_next(request)
+
+    if CSRF_COOKIE not in request.cookies:
+        existing = response.headers.get("set-cookie", "")
+        if f"{CSRF_COOKIE}=" not in existing:
+            response.set_cookie(
+                key=CSRF_COOKIE,
+                value=secrets.token_urlsafe(32),
+                httponly=False,
+                samesite="lax",
+                secure=not settings.DEBUG,
+                path="/",
+            )
+    return response
 
 app.add_middleware(
     CORSMiddleware,

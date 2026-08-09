@@ -4,10 +4,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from datetime import date as _date, datetime, timedelta
 import json
+import secrets
 from uuid import uuid4
 
 from sqlalchemy import text
 
+from app.config import settings
 from app.core.database import get_db
 from app.core.security import verify_password, create_access_token
 from app.core.deps import get_current_user
@@ -20,6 +22,16 @@ from app.i18n.i18n import t, set_locale, get_current_locale
 from jinja2 import Environment, FileSystemLoader
 
 router = APIRouter()
+
+CSRF_COOKIE = "csrf_token"
+
+def _csrf_cookie_kwargs() -> dict:
+    return {
+        "httponly": False,
+        "samesite": "lax",
+        "secure": not settings.DEBUG,
+        "path": "/",
+    }
 
 jinja_env = Environment(
     loader=FileSystemLoader("app/templates"),
@@ -44,8 +56,11 @@ async def home(request: Request, current_user: User = Depends(get_current_user),
 async def login_page(request: Request, locale: str = None):
     if locale:
         set_locale(locale)
-    
-    response = HTMLResponse(content=jinja_env.get_template("auth/login.html").render(request=request, error=None))
+
+    csrf_token = secrets.token_urlsafe(32)
+    response = HTMLResponse(content=jinja_env.get_template("auth/login.html").render(
+        request=request, error=None, csrf_token=csrf_token))
+    response.set_cookie(key=CSRF_COOKIE, value=csrf_token, **_csrf_cookie_kwargs())
     if locale:
         response.set_cookie(key="locale", value=locale)
     return response
@@ -56,13 +71,19 @@ async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends
     user = user.first()
     
     if not user or not verify_password(form_data.password, user.password_hash):
-        html_content = jinja_env.get_template("auth/login.html").render(request=request, error=t("error.login.failed"))
-        return HTMLResponse(content=html_content, status_code=401)
+        csrf_token = request.cookies.get(CSRF_COOKIE) or secrets.token_urlsafe(32)
+        html_content = jinja_env.get_template("auth/login.html").render(
+            request=request, error=t("error.login.failed"), csrf_token=csrf_token)
+        response = HTMLResponse(content=html_content, status_code=401)
+        if CSRF_COOKIE not in request.cookies:
+            response.set_cookie(key=CSRF_COOKIE, value=csrf_token, **_csrf_cookie_kwargs())
+        return response
     
     access_token = create_access_token(data={"sub": user.username})
     
     response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    response.set_cookie(key="access_token", value=access_token, httponly=True)
+    response.set_cookie(key="access_token", value=access_token, httponly=True,
+                        samesite="lax", secure=not settings.DEBUG, path="/")
     return response
 
 @router.get("/logout")
@@ -79,9 +100,13 @@ async def project_list(request: Request, current_user: User = Depends(get_curren
     projects = await db.execute(text("SELECT * FROM projects WHERE user_id = :user_id ORDER BY created_at DESC"), {"user_id": current_user.id})
     projects = projects.fetchall()
     
+    csrf_token = request.cookies.get(CSRF_COOKIE) or secrets.token_urlsafe(32)
     template = jinja_env.get_template("pages/project_list.html")
-    html_content = template.render(request=request, user=current_user, projects=projects)
-    return HTMLResponse(content=html_content)
+    html_content = template.render(request=request, user=current_user, projects=projects, csrf_token=csrf_token)
+    response = HTMLResponse(content=html_content)
+    if CSRF_COOKIE not in request.cookies:
+        response.set_cookie(key=CSRF_COOKIE, value=csrf_token, **_csrf_cookie_kwargs())
+    return response
 
 @router.post("/projects")
 async def create_project(request: Request, name: str = Form(...), description: str = Form(""), current_user: User = Depends(get_current_user), db = Depends(get_db)):

@@ -192,6 +192,7 @@
                     </button>
                 </div>
                 <form action="/projects" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <div class="mb-4">
                         <label class="block text-white/80 text-sm font-medium mb-2">{{ t('project.name') }}</label>
                         <input type="text" name="name" class="input-field w-full" required>
@@ -225,6 +226,7 @@
                     {{ t('project.delete-confirm') }} <span id="delete-project-name" class="font-medium text-white"></span>？
                 </p>
                 <form id="delete-form" action="/projects/delete" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <input type="hidden" name="_method" value="DELETE">
                     <input type="hidden" name="project_id" id="delete-project-id">
                     <div class="flex space-x-4">
