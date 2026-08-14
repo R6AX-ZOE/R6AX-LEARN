@@ -20,7 +20,7 @@ from app.models.user import User
 
 from app.routers import auth, projects, input, teaching, practice, integration, pages, integration_promote
 
-app = FastAPI(title="R6AX:/Learn", version="1.1.0")
+app = FastAPI(title="R6AX:/Learn", version="0.1.0-beta.2")
 
 CSRF_COOKIE = "csrf_token"
 UNSAFE_METHODS = ("POST", "PUT", "PATCH", "DELETE")

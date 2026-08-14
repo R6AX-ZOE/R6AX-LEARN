@@ -431,7 +431,7 @@ GET /integration/{project_id}（服务端渲染）
 ```toml
 [project]
 name = "r6ax-learn"
-version = "1.1.0"
+version = "0.1.0-beta.2"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",
