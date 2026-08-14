@@ -2,35 +2,33 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
-    make \
-    libsqlite3-dev \
-    && rm -rf /var/lib/apt/lists/*
+# 注意：原 PRD 在此安装 gcc/g++/make/libsqlite3-dev 用于编译扩展；
+# 受限网络下 deb.debian.org 无法访问（http/https 均被拒），且本项目所有依赖
+# 均提供 CPython 3.11 的预编译 wheel（torch 已单独装 CPU 版），故跳过 apt。
 
-# Python dependencies
+# Python 依赖
 COPY pyproject.toml .
-RUN pip install --no-cache-dir hatchling \
+# 预装 CPU 版 torch：PyPI 默认 x86_64 Linux 为 CUDA 构建（~2.5GB），受限网络不可行
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir hatchling \
     && pip install --no-cache-dir .
 
-# 预下载embedding模型（避免运行时下载）
+# 预下载 embedding 模型（避免运行时下载）
 COPY scripts/download_embedding_model.py ./scripts/
 RUN python scripts/download_embedding_model.py && rm -rf ~/.cache/huggingface
 
-# Application code
+# 应用代码
 COPY app/ ./app/
 COPY scripts/ ./scripts/
 
-# i18n: extract/update done during dev; compile at build time
+# i18n 编译（构建时跑一次；失败不阻塞构建）
 RUN pybabel compile -d app/i18n/locales 2>/dev/null || true
 
-# Data directory
+# 数据目录
 RUN mkdir -p /app/data
 VOLUME /app/data
 
-# Environment
+# 环境变量
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
 

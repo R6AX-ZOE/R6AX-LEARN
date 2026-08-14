@@ -13,6 +13,9 @@ data/
 !data/.gitkeep
 *.log
 
+# Local wheelhouse (offline install cache)
+wheelhouse/
+
 # Test & lint caches
 .pytest_cache/
 .ruff_cache/
