@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
 #
-# R6AX:/Learn 安装脚本（Linux / macOS）
+# R6AX:/Learn install script (Linux / macOS)
 #
-# 功能：
-#   1. 检查 Python 3.11+
-#   2. 创建虚拟环境 .venv
-#   3. 安装依赖（含 dev 依赖）
-#   4. 从 .env.example 生成 .env（若不存在）
-#   5. 编译 i18n 翻译文件
+# What it does:
+#   1. Check Python 3.11+
+#   2. Create virtual environment .venv
+#   3. Install dependencies (including dev extras)
+#   4. Generate .env from .env.example (if missing)
+#   5. Compile i18n translation files
 #
-# 用法：
-#   bash install.sh        # 或直接执行 ./install.sh
+# Usage:
+#   bash install.sh        # or run ./install.sh directly
 #
-# 之后再手动：
+# After install, start the dev server manually:
 #   source .venv/bin/activate
 #   uvicorn app.main:app --reload --port 8000
 
 set -euo pipefail
 
-# 颜色输出
+# Colors
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
@@ -28,7 +28,7 @@ info()  { echo -e "${GREEN}[install]${NC} $*"; }
 warn()  { echo -e "${YELLOW}[warn]${NC} $*"; }
 error() { echo -e "${RED}[error]${NC} $*"; exit 1; }
 
-# 脚本所在目录（项目根）
+# Directory of this script (project root)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
@@ -37,72 +37,73 @@ REQUIRED_PY=3.11
 VENV_DIR=".venv"
 ACTIVATE="$VENV_DIR/bin/activate"
 
-# ---------- 1. 检查 Python 版本 ----------
-info "检查 Python 版本（需要 >= $REQUIRED_PY）..."
+# ---------- 1. Check Python version ----------
+info "Checking Python version (>= $REQUIRED_PY required) ..."
 if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
-    error "未找到 $PYTHON_BIN。请先安装 Python $REQUIRED_PY+，然后重试。"
+    error "Python '$PYTHON_BIN' not found. Install Python $REQUIRED_PY+ first, then retry."
 fi
 
 PY_MAJOR=$("$PYTHON_BIN" -c 'import sys; print(sys.version_info[0])')
 PY_MINOR=$("$PYTHON_BIN" -c 'import sys; print(sys.version_info[1])')
 if [ "$PY_MAJOR" -lt 3 ] || { [ "$PY_MAJOR" -eq 3 ] && [ "$PY_MINOR" -lt 11 ]; }; then
-    error "Python 版本过低：当前 $PY_MAJOR.$PY_MINOR，需要 $REQUIRED_PY+"
+    error "Python too old: $PY_MAJOR.$PY_MINOR, $REQUIRED_PY+ required"
 fi
-info "Python 版本 OK：$PY_MAJOR.$PY_MINOR"
+info "Python version OK: $PY_MAJOR.$PY_MINOR"
 
-# ---------- 2. 创建虚拟环境 ----------
+# ---------- 2. Create virtual environment ----------
 if [ ! -d "$VENV_DIR" ]; then
-    info "创建虚拟环境 $VENV_DIR ..."
-    "$PYTHON_BIN" -m venv "$VENV_DIR"
+    info "Creating virtual environment $VENV_DIR ..."
+    "$PYTHON_BIN" -m venv "$VENV_DIR" || error "Failed to create the virtual environment"
 else
-    info "虚拟环境已存在，跳过创建。"
+    info "Virtual environment already exists, skipping creation."
 fi
 
 # shellcheck disable=SC1091
-source "$SCRIPT_DIR/$ACTIVATE"
+source "$SCRIPT_DIR/$ACTIVATE" || error "Failed to activate the virtual environment"
 
-info "升级 pip / setuptools / wheel ..."
-pip install --upgrade pip setuptools wheel
-[ $? -ne 0 ] && error "pip 升级失败"
+info "Upgrading pip / setuptools / wheel ..."
+python -m pip install --upgrade pip setuptools wheel || error "Failed to upgrade pip"
 
-# ---------- 3. 安装依赖 ----------
-info "安装项目依赖（含 dev 依赖）..."
-pip install -e ".[dev]"
-[ $? -ne 0 ] && error "依赖安装失败"
+# ---------- 3. Install dependencies ----------
+info "Installing project dependencies (including dev extras) ..."
+python -m pip install -e ".[dev]" || error "Failed to install dependencies"
 
-# ---------- 4. 生成 .env ----------
+# ---------- 4. Generate .env ----------
 if [ ! -f ".env" ]; then
     if [ -f ".env.example" ]; then
         cp .env.example .env
-        warn "已从 .env.example 生成 .env"
-        warn "请编辑 .env，填入 DEEPSEEK_API_KEY 与 JWT_SECRET"
+        warn "Generated .env from .env.example"
+        warn "Please edit .env and set DEEPSEEK_API_KEY and JWT_SECRET"
     else
-        warn "未找到 .env.example，跳过 .env 生成"
+        warn ".env.example not found, skipping .env generation"
     fi
 else
-    info ".env 已存在，跳过生成"
+    info ".env already exists, skipping generation"
 fi
 
-# ---------- 5. 编译 i18n 翻译文件 ----------
+# ---------- 5. Compile i18n translation files ----------
 if python -c "import babel" >/dev/null 2>&1; then
-    info "编译 i18n 翻译文件 ..."
+    info "Compiling i18n translation files ..."
     pybabel compile -d app/i18n/locales 2>/dev/null \
         || python -m babel.messages.frontend compile -d app/i18n/locales 2>/dev/null \
         || python scripts/compile_i18n.py 2>/dev/null \
-        || warn "i18n 编译跳过（可稍后运行 python scripts/compile_i18n.py）"
+        || warn "i18n compilation skipped (run python scripts/compile_i18n.py later)"
 else
-    warn "未安装 babel，跳过 i18n 编译（可稍后运行 python scripts/compile_i18n.py）"
+    warn "babel not installed, skipping i18n compilation (run python scripts/compile_i18n.py later)"
 fi
 
-# ---------- 完成 ----------
+# ---------- Done ----------
 info "=============================="
-info " 安装完成！"
+info "  Installation complete!"
 info ""
-info " 启动开发服务器："
+info "  Create a user account (required before first login):"
+info "   python scripts/admin.py create_user <username> <password>"
+info ""
+info "  Start the dev server:"
 info "   source $ACTIVATE"
 info "   uvicorn app.main:app --reload --port 8000"
 info ""
-info " 访问 http://localhost:8000 （默认账号 admin / admin）"
+info "  Open http://localhost:8000"
 info "=============================="
 
 exit 0
