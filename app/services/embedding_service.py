@@ -1,17 +1,27 @@
 """
 本地Embedding服务 - 使用sentence-transformers生成向量
 容器友好：模型预下载，无需运行时下载
+
+网络不可达 huggingface.co 时：
+- 运行时下载自动改用镜像 hf-mirror.com（可通过 HF_ENDPOINT 覆盖）；
+- 镜像也不可用时降级为确定性词法向量（哈希 n-gram），检索仍可用。
 """
 
+import hashlib
 import json
-import numpy as np
-from pathlib import Path
-from typing import List, Dict, Any
+import os
+import re
 import sqlite3
+from pathlib import Path
+from typing import Any, Dict, List
+
+import numpy as np
 
 # 使用轻量级模型（容器构建时预下载）
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 MODEL_DIR = Path("models/embedding")
+MIRROR_ENDPOINT = "https://hf-mirror.com"
+EMBED_DIM = 384  # all-MiniLM-L6-v2 的维度
 
 class EmbeddingService:
     """本地embedding生成和检索服务"""
@@ -29,6 +39,11 @@ class EmbeddingService:
             return
 
         try:
+            # 本地无模型且未指定端点时，默认走镜像下载（网络不可达官方源时也能装）
+            if not MODEL_DIR.exists() and not os.environ.get("HF_ENDPOINT"):
+                os.environ["HF_ENDPOINT"] = MIRROR_ENDPOINT
+                print(f"Embedding model not found locally; downloading via {MIRROR_ENDPOINT} ...")
+
             from sentence_transformers import SentenceTransformer
 
             # 优先使用预下载的模型目录
@@ -45,7 +60,7 @@ class EmbeddingService:
 
         except Exception as e:
             print(f"Error loading embedding model: {e}")
-            # Fallback: 使用简单的TF-IDF或者返回空向量
+            # Fallback: 使用确定性词法向量（哈希 n-gram），检索仍可用
             self._model = None
             self._model_loaded = True
 
@@ -59,11 +74,11 @@ class EmbeddingService:
                 return embedding.tolist()
             except Exception as e:
                 print(f"Error generating embedding: {e}")
-                # Fallback: 返回随机向量（后续可改进）
-                return list(np.random.randn(384))  # all-MiniLM-L6-v2维度是384
+                # Fallback: 确定性词法向量
+                return _fallback_embedding(text)
 
-        # Fallback: 随机向量
-        return list(np.random.randn(384))
+        # Fallback: 确定性词法向量
+        return _fallback_embedding(text)
 
     def generate_embeddings_batch(self, texts: List[str]) -> List[List[float]]:
         """批量生成embedding（更高效）"""
@@ -75,9 +90,9 @@ class EmbeddingService:
                 return [emb.tolist() for emb in embeddings]
             except Exception as e:
                 print(f"Error in batch embedding: {e}")
-                return [list(np.random.randn(384)) for _ in texts]
+                return [_fallback_embedding(t) for t in texts]
 
-        return [list(np.random.randn(384)) for _ in texts]
+        return [_fallback_embedding(t) for t in texts]
 
     def search_similar(
         self,
@@ -175,6 +190,31 @@ class EmbeddingService:
 
         finally:
             conn.close()
+
+def _fallback_embedding(text: str) -> List[float]:
+    """无本地模型时的确定性降级向量：英文词 + 中文单字/双字 n-gram 哈希。
+
+    相同文本永远得到相同向量（随机向量会导致每次检索结果都不同），
+    词法相似度检索仍可正常工作，仅语义效果弱于正式模型。
+    """
+    tokens = re.findall(r"[a-zA-Z0-9_]+|[\u4e00-\u9fff]", (text or "").lower())
+    grams = []
+    for t in tokens:
+        if t.isascii():
+            grams.append(t)
+        else:
+            for n in (1, 2):
+                if len(t) >= n:
+                    grams.extend(t[i:i + n] for i in range(len(t) - n + 1))
+    vec = np.zeros(EMBED_DIM)
+    for g in grams:
+        h = int(hashlib.md5(g.encode("utf-8")).hexdigest(), 16)
+        vec[h % EMBED_DIM] += 1 if (h >> 8) & 1 else -1
+    norm = np.linalg.norm(vec)
+    if norm:
+        vec /= norm
+    return vec.tolist()
+
 
 # 全局实例（避免重复加载模型）
 embedding_service = EmbeddingService()

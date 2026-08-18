@@ -191,6 +191,7 @@ uvicorn app.main:app --reload --port 8000
 | 登录后 AI 无回复 | 检查 `.env` 中的 `DEEPSEEK_API_KEY` 是否正确；查看启动时的日志输出 |
 | 页面显示乱码 | 应用已强制 UTF-8；确认终端编码为 UTF-8 |
 | 默认端口被占用 | 修改 `.env` 中的 `PORT`，并以 `uvicorn app.main:app --port <端口>` 启动 |
+| 下载 embedding 模型失败（无法连接 huggingface.co） | 官方源不可达时自动回退镜像 `hf-mirror.com`；仍失败可手动指定：`set HF_ENDPOINT=https://hf-mirror.com`（Windows）或 `export HF_ENDPOINT=https://hf-mirror.com`（Linux/macOS）后重跑 `python scripts/download_embedding_model.py`。完全离线也可运行：应用自动降级为确定性词法向量（语义检索效果略弱） |
 
 ---
 
