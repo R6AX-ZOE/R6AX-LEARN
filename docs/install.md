@@ -107,6 +107,7 @@ python3 --version   # 需要 3.11+
 - 创建虚拟环境 `.venv`；
 - 安装依赖（含 dev / 测试依赖）；
 - 生成 `.env`（若不存在，从 `.env.example` 复制）；
+- 初始化数据库（创建 `data/r6ax.db` 及全部表；若 `.env` 中 `JWT_SECRET` 仍为占位值会自动生成随机值）；
 - 编译 i18n 翻译文件。
 
 ### 3. 手动安装（不选一键脚本时）
@@ -124,13 +125,20 @@ cp .env.example .env        # 若尚未创建
 # 编译翻译文件（若 .po 有更新）
 python scripts/compile_i18n.py
 
+# 初始化数据库（创建 data/r6ax.db 及全部表）
+python scripts/init_db.py
+
 # 启动开发服务器
 uvicorn app.main:app --reload --port 8000
 ```
 
 ### 4. 访问
 
-打开 <http://localhost:8000>，默认账号 **admin / admin**。
+打开 <http://localhost:8000>，首次使用请先创建账号（见上文「验证」一节）：
+
+```bash
+python scripts/admin.py create_user <username> <password>
+```
 
 ---
 
@@ -150,6 +158,8 @@ python --version   # 需要 3.11+
 .\install.bat
 ```
 
+脚本会自动创建虚拟环境、安装依赖、生成 `.env`、初始化数据库（创建 `data\r6ax.db`）并编译 i18n 翻译文件。
+
 ### 3. 手动安装（不选一键脚本时）
 
 ```powershell
@@ -162,6 +172,8 @@ copy .env.example .env
 # 编辑 .env 填入 DEEPSEEK_API_KEY / JWT_SECRET
 
 python scripts/compile_i18n.py
+
+python scripts\init_db.py
 
 uvicorn app.main:app --reload --port 8000
 ```

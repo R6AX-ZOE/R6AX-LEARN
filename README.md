@@ -42,10 +42,11 @@ docker compose up -d
 
 ### 本地开发
 
-最快的启动方式（Linux/macOS）：
+最快的启动方式：
 
 ```bash
 ./bootstrap.sh          # 未安装时自动走 install.sh，然后直接启动
+# Windows: .\bootstrap.bat（未安装时自动走 install.bat）
 ```
 
 亦可分步进行（Windows 用户见 [install.md](docs/install.md)）：
@@ -54,7 +55,7 @@ docker compose up -d
 # 安装（Windows 运行 install.bat，Linux/macOS 运行 install.sh）
 ./install.sh          # 或 install.bat
 
-# 启动
+# 启动（Windows 运行 bootstrap.bat）
 ./bootstrap.sh        # 或 uvicorn app.main:app --reload --port 8000
 ```
 

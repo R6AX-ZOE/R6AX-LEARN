@@ -7,7 +7,8 @@
 #   2. Create virtual environment .venv
 #   3. Install dependencies (including dev extras)
 #   4. Generate .env from .env.example (if missing)
-#   5. Compile i18n translation files
+#   5. Initialize the database (creates data/r6ax.db)
+#   6. Compile i18n translation files
 #
 # Usage:
 #   bash install.sh        # or run ./install.sh directly
@@ -73,7 +74,7 @@ if [ ! -f ".env" ]; then
     if [ -f ".env.example" ]; then
         cp .env.example .env
         warn "Generated .env from .env.example"
-        warn "Please edit .env and set DEEPSEEK_API_KEY and JWT_SECRET"
+        warn "Please edit .env and set DEEPSEEK_API_KEY (JWT_SECRET is handled by DB init below)"
     else
         warn ".env.example not found, skipping .env generation"
     fi
@@ -81,7 +82,16 @@ else
     info ".env already exists, skipping generation"
 fi
 
-# ---------- 5. Compile i18n translation files ----------
+# ---------- 5. Initialize database ----------
+info "Initializing database (data/r6ax.db) ..."
+if python scripts/init_db.py; then
+    info "Database initialized: data/r6ax.db"
+else
+    warn "Database initialization failed"
+    warn "Ensure .env has a valid JWT_SECRET (>=32 random chars), then run: python scripts/init_db.py"
+fi
+
+# ---------- 6. Compile i18n translation files ----------
 if python -c "import babel" >/dev/null 2>&1; then
     info "Compiling i18n translation files ..."
     pybabel compile -d app/i18n/locales 2>/dev/null \

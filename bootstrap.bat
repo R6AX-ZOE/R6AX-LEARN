@@ -71,7 +71,13 @@ if not errorlevel 1 (
     if errorlevel 1 echo [warn] i18n compilation skipped (run python scripts\compile_i18n.py later)
 )
 
-REM ---------- 4. Resolve port (env var first, then .env, default 8000) ----------
+REM ---------- 4. Initialize database (best effort) ----------
+python scripts\init_db.py
+if errorlevel 1 (
+    echo [warn] Database init failed; server will retry at startup
+)
+
+REM ---------- 5. Resolve port (env var first, then .env, default 8000) ----------
 if not defined PORT (
     if exist ".env" (
         for /f "usebackq tokens=1,* delims==" %%a in (".env") do (

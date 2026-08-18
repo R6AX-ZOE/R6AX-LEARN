@@ -7,7 +7,8 @@ REM    1. Check Python 3.11+
 REM    2. Create virtual environment .venv
 REM    3. Install dependencies (including dev extras)
 REM    4. Generate .env from .env.example (if missing)
-REM    5. Compile i18n translation files
+REM    5. Initialize the database (creates data\r6ax.db)
+REM    6. Compile i18n translation files
 REM
 REM  Usage:
 REM    install.bat
@@ -86,7 +87,7 @@ if not exist ".env" (
     if exist ".env.example" (
         copy ".env.example" ".env" >nul
         echo [warn] Generated .env from .env.example
-        echo [warn] Please edit .env and set DEEPSEEK_API_KEY and JWT_SECRET
+        echo [warn] Please edit .env and set DEEPSEEK_API_KEY ^(JWT_SECRET is handled by DB init below^)
     ) else (
         echo [warn] .env.example not found, skipping .env generation
     )
@@ -94,7 +95,17 @@ if not exist ".env" (
     echo [install] .env already exists, skipping generation
 )
 
-REM ---------- 5. Compile i18n translation files ----------
+REM ---------- 5. Initialize database ----------
+echo [install] Initializing database (data\r6ax.db) ...
+python scripts\init_db.py
+if errorlevel 1 (
+    echo [warn] Database initialization failed
+    echo [warn] Ensure .env has a valid JWT_SECRET ^(^>=32 random chars^), then run: python scripts\init_db.py
+) else (
+    echo [install] Database initialized: data\r6ax.db
+)
+
+REM ---------- 6. Compile i18n translation files ----------
 python -c "import babel" >nul 2>nul
 if not errorlevel 1 (
     echo [install] Compiling i18n translation files ...

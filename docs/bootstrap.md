@@ -4,7 +4,7 @@
 
 > 与 [install.md](install.md) 的关系：
 > - `install.sh` / `install.bat` — 一次性安装环境（虚拟环境、依赖、.env、i18n）
-> - `bootstrap.sh` — 每次启动前检查环境、缺失时自动补齐，然后直接拉起服务器
+> - `bootstrap.sh` / `bootstrap.bat` — 每次启动前检查环境、缺失时自动补齐，然后直接拉起服务器
 > - `bootstrap.md` — 本文档，聚焦"从零到启动"
 
 ---
@@ -37,7 +37,13 @@ HOST=127.0.0.1 ./bootstrap.sh     # 仅本机访问
 
 ## 2. Windows 用户
 
-bootstrap 脚本暂未提供 `.bat` 版本，请手动执行等价步骤：
+直接运行：
+
+```powershell
+.\bootstrap.bat          # 未安装时自动执行 install.bat，然后直接启动
+```
+
+或手动执行等价步骤：
 
 ```powershell
 .\.venv\Scripts\activate          # 若未安装，先运行 .\install.bat

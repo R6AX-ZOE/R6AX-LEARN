@@ -64,7 +64,12 @@ if python -c "import babel" >/dev/null 2>&1; then
         || true
 fi
 
-# ---------- 4. Resolve port ----------
+# ---------- 4. Initialize database (best effort) ----------
+if ! python scripts/init_db.py; then
+    warn "Database init failed; server will retry at startup"
+fi
+
+# ---------- 5. Resolve port ----------
 PORT="${PORT:-}"
 if [ -z "$PORT" ]; then
     PORT="$(grep -E '^PORT=' .env 2>/dev/null | head -n1 | cut -d= -f2 | tr -d ' \r"' || true)"
