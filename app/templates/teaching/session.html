@@ -1072,6 +1072,16 @@ function connectStream(sessionId, projectId) {
                 eventSource.close();
                 pendingMessageContainer = null;
                 pendingMarkdownContent = '';  // Reset markdown content
+            } else if (data.type === 'error') {
+                // 生成失败：给出明确提示而不是一直停留在"加载中"
+                thinkingIndicator.classList.add('hidden');
+                eventSource.close();
+                if (pendingMessageContainer) {
+                    const bubble = pendingMessageContainer.querySelector('.message-bubble');
+                    if (bubble) bubble.textContent = data.error || '{{ t("common.operation-failed") }}';
+                }
+                pendingMessageContainer = null;
+                pendingMarkdownContent = '';  // Reset markdown content
             }
         } catch (e) {
             console.error('Error parsing SSE message:', e);
@@ -1609,6 +1619,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 检查学习进度并更新UI（包括完成状态）
     updateProgress();
+
+    // 刷新后恢复流式输出：若最后一条 user 消息还没有 assistant 回复，
+    // 服务器会附加到正在运行的后台生成任务（先回放已生成内容，再实时输出），
+    // 或重新启动生成；没有待回复消息时立即返回 done。
+    connectStream('{{ session_id }}', '{{ project_id }}');
 });
     </script>
 </body>

@@ -1,19 +1,37 @@
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse, HTMLResponse
-from starlette.requests import Request
-from jinja2 import Environment, FileSystemLoader
-from uuid import uuid4
-from datetime import datetime
+import asyncio
 import json
+from datetime import datetime
+from uuid import uuid4
 
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import HTMLResponse, StreamingResponse
+from jinja2 import Environment, FileSystemLoader
 from sqlalchemy import text
-from app.core.deps import get_current_active_user, get_db, require_project, require_session
-from app.models.user import User
-from app.models.teaching import TeachingSession, Message, Misconception
-from app.schemas.teaching import TeachingSessionCreate, TeachingSessionResponse, MessageCreate, MessageResponse
-from app.services.teaching_agent import TeachingAgent
-from app.services.graph_mount import merge_or_create_node, mount_node, sync_virtual_graph_to_real
+from starlette.requests import Request
+
+from app.core.database import AsyncSessionLocal
+from app.core.deps import (
+    get_current_active_user,
+    get_db,
+    require_project,
+    require_session,
+)
 from app.i18n.i18n import t
+from app.models.teaching import Message, Misconception, TeachingSession
+from app.models.user import User
+from app.schemas.teaching import (
+    MessageCreate,
+    MessageResponse,
+    TeachingSessionCreate,
+    TeachingSessionResponse,
+)
+from app.services import teaching_streams
+from app.services.graph_mount import (
+    merge_or_create_node,
+    mount_node,
+    sync_virtual_graph_to_real,
+)
+from app.services.teaching_agent import TeachingAgent
 
 router = APIRouter()
 
@@ -1034,97 +1052,161 @@ async def update_message_and_create_branch(session_id: str, message_id: str, mes
         "message": "消息已更新，AI响应已重新生成"
     }
 
-async def generate_streaming_response(session_id: str, project_id: str, db):
-    agent = TeachingAgent(db, session_id)
+async def _pending_user_message_id(db, session_id: str) -> str | None:
+    """最后一条还没有 assistant 回复的 user 消息 id；没有则返回 None。
 
-    messages_result = await db.execute(text("SELECT * FROM messages WHERE session_id = :session_id AND is_active = 1 ORDER BY created_at"), {"session_id": session_id})
-    messages = [dict(row._mapping) for row in messages_result.fetchall()]
-
-    user_messages = [m for m in messages if m['role'] == 'user']
-    last_user_message = user_messages[-1]['content'] if user_messages else ""
-    last_user_message_id = user_messages[-1]['id'] if user_messages else None
-
-    # 幂等保护：最后一条user消息若已有assistant回复（SSE重连/重复触发时），直接结束，
-    # 避免同一输入生成多条AI消息
-    if last_user_message_id:
-        existing_reply = await db.execute(
-            text("""SELECT id FROM messages WHERE session_id = :sid AND role = 'assistant'
-                    AND parent_id = :pid AND is_active = 1"""),
-            {"sid": session_id, "pid": last_user_message_id}
-        )
-        if existing_reply.first():
-            yield f"data: {json.dumps({'type': 'done'})}\n\n"
-            return
-
-    yield f"data: {json.dumps({'type': 'thinking'})}\n\n"
-
-    # 收集完整的响应文本和工具调用
-    full_response = ''
-    tool_calls_buffer = {}
-    tool_call_ids = {}
-    tool_results = {}
-    reasoning_content = ""
-    tool_calls_text_parts = []
-
-    async for chunk in agent.process_user_input(last_user_message):
-        if chunk['type'] == 'text':
-            full_response += chunk['content']
-            yield f"data: {json.dumps({'type': 'text', 'content': chunk['content']})}\n\n"
-        elif chunk['type'] == 'reasoning':
-            reasoning_content += chunk['content']
-        elif chunk['type'] == 'tool_call':
-            tool_name = chunk['name']
-            if tool_name not in tool_calls_buffer:
-                tool_calls_buffer[tool_name] = ''
-                tool_call_ids[tool_name] = chunk.get('id', '')
-            tool_calls_buffer[tool_name] += chunk['arguments']
-
-    assistant_message = Message(
-        id=str(uuid4()),
-        session_id=session_id,
-        parent_id=last_user_message_id,
-        role="assistant",
-        content=full_response,
-        is_active=True
+    用于刷新/重连时判断是否需要（继续）流式生成。
+    """
+    rows = await db.execute(
+        text("""SELECT id FROM messages
+                WHERE session_id = :sid AND role = 'user' AND is_active = 1
+                ORDER BY created_at DESC LIMIT 1"""),
+        {"sid": session_id}
     )
-    db.add(assistant_message)
-
-    # 执行首轮工具调用
-    task_completed, pending_events = await _run_tool_batch(
-        db, session_id, tool_calls_buffer, last_user_message, 0, tool_calls_text_parts, tool_results
+    row = rows.first()
+    if not row:
+        return None
+    uid = row[0]
+    reply = await db.execute(
+        text("""SELECT id FROM messages WHERE session_id = :sid AND role = 'assistant'
+                AND parent_id = :pid AND is_active = 1"""),
+        {"sid": session_id, "pid": uid}
     )
-    for event in pending_events:
-        yield f"data: {json.dumps(event)}\n\n"
-    await db.commit()
+    if reply.first():
+        return None
+    return uid
 
-    # 多轮工具调用循环（依赖task_complete结束）
-    if not task_completed:
-        async for event in _run_tool_continuations(
-            agent, db, session_id, last_user_message, assistant_message.id,
-            tool_calls_buffer, tool_call_ids, tool_results, reasoning_content, tool_calls_text_parts
-        ):
-            yield f"data: {json.dumps(event)}\n\n"
 
-    # 将工具调用XML追加到消息内容中，刷新页面后仍能以artifact形式显示
-    if tool_calls_text_parts:
-        extra_content = "\n\n" + "".join(tool_calls_text_parts)
-        await db.execute(
-            text("UPDATE messages SET content = content || :extra WHERE id = :mid"),
-            {"extra": extra_content, "mid": assistant_message.id}
-        )
-        await db.commit()
+async def _run_teaching_stream(state):
+    """Teaching 生成后台任务：与 HTTP 连接解耦，结束后必然落库。
 
-    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+    刷新/断开连接不影响生成；新连接通过 teaching_streams.ensure_stream
+    附加订阅并先收到 partial_text 回放。
+    """
+    session_id = state.session_id
+    try:
+        async with AsyncSessionLocal() as db:
+            agent = TeachingAgent(db, session_id)
+
+            msg_result = await db.execute(
+                text("SELECT * FROM messages WHERE id = :mid AND role = 'user' AND is_active = 1"),
+                {"mid": state.user_message_id}
+            )
+            user_row = msg_result.first()
+            if not user_row:
+                state.status = "done"
+                teaching_streams.broadcast(state, {"type": "done"})
+                return
+            last_user_message = dict(user_row._mapping)["content"]
+
+            # 幂等保护：生成前再查一次是否已有回复（并发/编辑时避免双写）
+            existing_reply = await db.execute(
+                text("""SELECT id FROM messages WHERE session_id = :sid AND role = 'assistant'
+                        AND parent_id = :pid AND is_active = 1"""),
+                {"sid": session_id, "pid": state.user_message_id}
+            )
+            if existing_reply.first():
+                state.status = "done"
+                teaching_streams.broadcast(state, {"type": "done"})
+                return
+
+            teaching_streams.broadcast(state, {"type": "thinking"})
+
+            # 收集完整的响应文本和工具调用
+            full_response = ''
+            tool_calls_buffer = {}
+            tool_call_ids = {}
+            tool_results = {}
+            reasoning_content = ""
+            tool_calls_text_parts = []
+
+            async for chunk in agent.process_user_input(last_user_message):
+                if chunk['type'] == 'text':
+                    full_response += chunk['content']
+                    state.partial_text += chunk['content']
+                    teaching_streams.broadcast(state, {"type": "text", "content": chunk['content']})
+                elif chunk['type'] == 'reasoning':
+                    reasoning_content += chunk['content']
+                elif chunk['type'] == 'tool_call':
+                    tool_name = chunk['name']
+                    if tool_name not in tool_calls_buffer:
+                        tool_calls_buffer[tool_name] = ''
+                        tool_call_ids[tool_name] = chunk.get('id', '')
+                    tool_calls_buffer[tool_name] += chunk['arguments']
+
+            assistant_message = Message(
+                id=str(uuid4()),
+                session_id=session_id,
+                parent_id=state.user_message_id,
+                role="assistant",
+                content=full_response,
+                is_active=True
+            )
+            db.add(assistant_message)
+
+            # 执行首轮工具调用
+            task_completed, pending_events = await _run_tool_batch(
+                db, session_id, tool_calls_buffer, last_user_message, 0, tool_calls_text_parts, tool_results
+            )
+            for event in pending_events:
+                teaching_streams.broadcast(state, event)
+            await db.commit()
+
+            # 多轮工具调用循环（依赖task_complete结束）
+            if not task_completed:
+                async for event in _run_tool_continuations(
+                    agent, db, session_id, last_user_message, assistant_message.id,
+                    tool_calls_buffer, tool_call_ids, tool_results, reasoning_content, tool_calls_text_parts
+                ):
+                    teaching_streams.broadcast(state, event)
+
+            # 将工具调用XML追加到消息内容中，刷新页面后仍能以artifact形式显示
+            if tool_calls_text_parts:
+                extra_content = "\n\n" + "".join(tool_calls_text_parts)
+                await db.execute(
+                    text("UPDATE messages SET content = content || :extra WHERE id = :mid"),
+                    {"extra": extra_content, "mid": assistant_message.id}
+                )
+                await db.commit()
+
+            state.status = "done"
+            teaching_streams.broadcast(state, {"type": "done"})
+    except asyncio.CancelledError:
+        raise
+    except Exception as e:
+        print(f"[teaching] session {session_id} generation failed: {e}")
+        state.status = "error"
+        state.error = str(e)
+        teaching_streams.broadcast(state, {"type": "error", "error": str(e)})
+    finally:
+        teaching_streams.finish(state)
+
 
 @router.get("/stream/{session_id}")
 async def stream_teaching(session_id: str, project_id: str, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     await require_session(db, session_id, current_user.id)
     await require_project(db, project_id, current_user.id)
 
+    # 无待回复的 user 消息（已有回复/无消息）时直接结束
+    pending_id = await _pending_user_message_id(db, session_id)
+    if not pending_id:
+        async def done_stream():
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        return StreamingResponse(done_stream(), media_type="text/event-stream")
+
+    # 后台任务已在运行则附加订阅（刷新后的页面），否则启动生成
+    state, queue = teaching_streams.ensure_stream(session_id, pending_id, _run_teaching_stream)
+
     async def stream_generator():
-        async for chunk in generate_streaming_response(session_id, project_id, db):
-            yield chunk
-    
+        try:
+            while True:
+                event = await queue.get()
+                if event is None:
+                    break
+                yield f"data: {json.dumps(event)}\n\n"
+        finally:
+            teaching_streams.unsubscribe(state, queue)
+
     return StreamingResponse(stream_generator(), media_type="text/event-stream")
 
 @router.get("/sessions/{session_id}/progress")
