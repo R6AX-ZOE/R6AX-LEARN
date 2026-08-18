@@ -113,7 +113,7 @@
             <div>
                 <h1 style="font-size: 24px; font-weight: 600; line-height: 1.17;" class="text-white">{{ t('practice.session-title') }}</h1>
                 <p class="text-white/60 text-sm mt-1">
-                    {{ t('practice.question-n') }} <span id="current-index">1</span>/{{ total }} ·
+                    {{ t('practice.question-n') }} <span id="current-index">{{ 1 if total > 0 else 0 }}</span>/{{ total }} ·
                     {{ t('practice.session-progress') }}: <span id="answered-count">{{ answered }}</span>/{{ total }}
                 </p>
             </div>
@@ -124,11 +124,19 @@
         </div>
 
         <!-- 完成横幅（全部作答后显示） -->
-        <div id="session-done-banner" class="card mb-6 text-center py-6 {% if answered >= total %}block{% else %}hidden{% endif %}">
+        <div id="session-done-banner" class="card mb-6 text-center py-6 {% if total > 0 and answered >= total %}block{% else %}hidden{% endif %}">
             <h2 class="text-xl font-semibold text-white mb-2">{{ t('practice.session-done') }}</h2>
             <p class="text-white/50 text-sm mb-4">{{ t('practice.session-done-hint') }}</p>
             <button class="btn-primary" onclick="completeSession()">{{ t('practice.end-session') }}</button>
         </div>
+
+        <!-- 空状态兜底：无题目时不显示"已全部完成"，给出返回入口 -->
+        {% if total == 0 %}
+        <div class="card mb-6 text-center py-6">
+            <p class="text-white/50 text-sm">{{ t('practice.session-empty-hint') }}</p>
+            <a href="/practice/{{ project.id }}" class="btn-secondary no-underline inline-block mt-4">{{ t('practice.back-to-practice') }}</a>
+        </div>
+        {% endif %}
 
         <!-- 题目卡片：一次只显示一道，通过上一题/下一题切换 -->
         {% for q in questions %}

@@ -736,6 +736,18 @@ msgstr "撤销出题"
 msgid "practice.generation-cancelled"
 msgstr "已撤销出题，已生成的题目保留在题库中"
 
+msgid "practice.generation-failed"
+msgstr "出题失败，请稍后重试或返回练习页"
+
+msgid "practice.generating-auto-enter"
+msgstr "题目不足，正在生成新题…完成后将自动进入本题列表"
+
+msgid "practice.session-empty-title"
+msgstr "暂无题目"
+
+msgid "practice.session-empty-hint"
+msgstr "本套习题暂无题目，请返回练习页重新开始"
+
 msgid "practice.score"
 msgstr "得分"
 

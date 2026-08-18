@@ -193,6 +193,27 @@ def _due_questions_sql() -> str:
     """
 
 
+async def _available_question_count(db, user_id: str, project_id: str, cutoff: datetime) -> int:
+    """项目内当前可用的题目数（排除 24h 内已作答、已在活跃会话中的题目）。"""
+    result = await db.execute(
+        text("""SELECT COUNT(DISTINCT q.id)
+                FROM questions q
+                LEFT JOIN concepts c ON q.concept_id = c.id
+                LEFT JOIN teaching_sessions ts ON c.session_id = ts.id
+                WHERE ts.project_id = :pid
+                  AND NOT EXISTS (SELECT 1 FROM review_records rr2
+                                  JOIN review_schedules rs2 ON rr2.schedule_id = rs2.id
+                                  WHERE rs2.user_id = :uid AND rs2.question_id = q.id
+                                    AND rr2.reviewed_at > :cutoff)
+                  AND NOT EXISTS (SELECT 1 FROM practice_session_questions psq2
+                                  JOIN practice_sessions ps2 ON psq2.session_id = ps2.id
+                                  WHERE psq2.question_id = q.id AND ps2.user_id = :uid
+                                    AND ps2.status = 'active')"""),
+        {"uid": user_id, "pid": project_id, "cutoff": cutoff}
+    )
+    return result.scalar() or 0
+
+
 @router.post("/sessions")
 async def create_session(request: Request, current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
     """开始完成习题：从复习范围（今日待复习）选 10 道题；不足则后台出题并返回 job_id。"""
@@ -237,23 +258,8 @@ async def create_session(request: Request, current_user: User = Depends(get_curr
     # 仅当整个题库的可用题目都不足 10 道时才出题（避免浪费）：
     # 会话页会从题库（含未到期题目）补足剩余名额
     if question_count < SESSION_SIZE:
-        avail = await db.execute(
-            text("""SELECT COUNT(DISTINCT q.id)
-                    FROM questions q
-                    LEFT JOIN concepts c ON q.concept_id = c.id
-                    LEFT JOIN teaching_sessions ts ON c.session_id = ts.id
-                    WHERE ts.project_id = :pid
-                      AND NOT EXISTS (SELECT 1 FROM review_records rr2
-                                      JOIN review_schedules rs2 ON rr2.schedule_id = rs2.id
-                                      WHERE rs2.user_id = :uid AND rs2.question_id = q.id
-                                        AND rr2.reviewed_at > :cutoff)
-                      AND NOT EXISTS (SELECT 1 FROM practice_session_questions psq2
-                                      JOIN practice_sessions ps2 ON psq2.session_id = ps2.id
-                                      WHERE psq2.question_id = q.id AND ps2.user_id = :uid
-                                        AND ps2.status = 'active')"""),
-            {"uid": current_user.id, "pid": project_id, "cutoff": cutoff}
-        )
-        if (avail.scalar() or 0) < SESSION_SIZE:
+        avail = await _available_question_count(db, current_user.id, project_id, cutoff)
+        if avail < SESSION_SIZE:
             job_id = create_generation_job(project_id, current_user.id)
             generating = True
 

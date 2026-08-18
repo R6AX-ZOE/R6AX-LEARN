@@ -696,6 +696,18 @@ msgstr "Cancel generation"
 msgid "practice.generation-cancelled"
 msgstr "Generation cancelled. Questions already generated remain in the bank"
 
+msgid "practice.generation-failed"
+msgstr "Question generation failed; please retry later or go back to the practice page"
+
+msgid "practice.generating-auto-enter"
+msgstr "Not enough questions. Generating new ones... you will enter the session automatically"
+
+msgid "practice.session-empty-title"
+msgstr "No questions"
+
+msgid "practice.session-empty-hint"
+msgstr "This session has no questions. Go back and start a new session"
+
 msgid "practice.score"
 msgstr "Score"
 

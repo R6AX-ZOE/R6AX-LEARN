@@ -151,7 +151,10 @@ async def generate_question_set(
     )
     concepts = [dict(row._mapping) for row in concepts_result.fetchall()]
     if not concepts:
-        return []
+        raise ValueError(
+            "项目内没有已掌握的概念，无法出题。"
+            "请先完成一次教学并标记至少一个概念为已掌握，再开始习题。"
+        )
 
     # 主概念 = 已有题目最少的概念；其余作为上下文
     counts = {}

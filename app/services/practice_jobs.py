@@ -46,6 +46,19 @@ def create_generation_job(project_id: str, user_id: str) -> str:
     return job_id
 
 
+def get_or_create_generation_job(project_id: str, user_id: str) -> str:
+    """返回该项目正在运行的出题 job；没有则创建一个。用于会话页兜底自动出题。"""
+    with _lock:
+        for job in _jobs.values():
+            if (
+                job["project_id"] == project_id
+                and job["user_id"] == user_id
+                and job["status"] in ("running", "cancelling")
+            ):
+                return job["id"]
+    return create_generation_job(project_id, user_id)
+
+
 def _run_job_thread(job: dict):
     asyncio.run(_run_job(job))
 

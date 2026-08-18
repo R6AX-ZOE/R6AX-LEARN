@@ -275,7 +275,14 @@
                 const done = job.generated || 0;
                 document.getElementById('gen-progress').textContent = done + ' / ' + total;
                 document.getElementById('gen-bar').style.width = Math.round(done / total * 100) + '%';
-                if (job.status === 'done' || job.status === 'cancelled' || job.status === 'error' || done >= total) {
+                if (job.status === 'error') {
+                    clearInterval(pollTimer);
+                    document.getElementById('gen-status').textContent = job.error || '{{ t("practice.generation-failed") }}';
+                    document.getElementById('cancel-gen-btn').disabled = true;
+                    document.getElementById('start-session-btn').disabled = false;
+                    return;
+                }
+                if (job.status === 'cancelled' || job.status === 'done' || done >= total) {
                     clearInterval(pollTimer);
                     const sid = sessionStorage.getItem('practice_session_id') || '';
                     if (sid) setTimeout(() => window.location.href = '/practice/session/' + sid, 400);

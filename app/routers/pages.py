@@ -16,6 +16,8 @@ from app.core.deps import get_current_user
 from app.models.user import User
 from app.models.input import Project
 from app.schemas.project import ProjectCreate
+from app.routers.practice import SESSION_SIZE, _available_question_count
+from app.services.practice_jobs import get_or_create_generation_job
 
 from app.i18n.i18n import t, set_locale, get_current_locale
 
@@ -505,6 +507,24 @@ async def practice_session_page(request: Request, session_id: str, current_user:
         if fill_rows:
             await db.commit()
             return RedirectResponse(url=f"/practice/session/{session_id}", status_code=302)
+
+    # 会话没有任何题目：触发后台出题（题库整体不足时），并渲染"正在出题"页。
+    # 避免渲染出"题目 1/0 已全部完成"的错误页面。
+    if not questions:
+        cutoff = datetime.utcnow() - timedelta(hours=24)
+        avail = await _available_question_count(db, current_user.id, project["id"], cutoff)
+        job_id = None
+        if avail < SESSION_SIZE:
+            job_id = get_or_create_generation_job(project["id"], current_user.id)
+        template = jinja_env.get_template("practice/generating.html")
+        html_content = template.render(
+            request=request,
+            user=current_user,
+            project=project,
+            session=session,
+            job_id=job_id,
+        )
+        return HTMLResponse(content=html_content)
 
     answered = sum(1 for q in questions if q.get("answered_at"))
     template = jinja_env.get_template("practice/session.html")
