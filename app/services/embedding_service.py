@@ -2,14 +2,12 @@
 本地Embedding服务 - 使用sentence-transformers生成向量
 容器友好：模型预下载，无需运行时下载
 
-网络不可达 huggingface.co 时：
-- 运行时下载自动改用镜像 hf-mirror.com（可通过 HF_ENDPOINT 覆盖）；
-- 镜像也不可用时降级为确定性词法向量（哈希 n-gram），检索仍可用。
+本地模型缺失时**不下载**：直接降级为确定性词法向量（哈希 n-gram），检索仍可用。
+模型需要显式通过 scripts/download_embedding_model.py 预下载。
 """
 
 import hashlib
 import json
-import os
 import re
 import sqlite3
 from pathlib import Path
@@ -20,7 +18,6 @@ import numpy as np
 # 使用轻量级模型（容器构建时预下载）
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 MODEL_DIR = Path("models/embedding")
-MIRROR_ENDPOINT = "https://hf-mirror.com"
 EMBED_DIM = 384  # all-MiniLM-L6-v2 的维度
 
 class EmbeddingService:
@@ -34,27 +31,21 @@ class EmbeddingService:
         pass
 
     def _load_model(self):
-        """加载本地模型（容器友好）"""
+        """加载本地模型；本地缺失时不下载，直接走词法向量降级。"""
         if self._model_loaded:
             return
 
-        try:
-            # 本地无模型且未指定端点时，默认走镜像下载（网络不可达官方源时也能装）
-            if not MODEL_DIR.exists() and not os.environ.get("HF_ENDPOINT"):
-                os.environ["HF_ENDPOINT"] = MIRROR_ENDPOINT
-                print(f"Embedding model not found locally; downloading via {MIRROR_ENDPOINT} ...")
+        if not MODEL_DIR.exists():
+            print(f"Embedding model not found at {MODEL_DIR}; using offline hash-based fallback "
+                  f"(run scripts/download_embedding_model.py to enable semantic search)")
+            self._model = None
+            self._model_loaded = True
+            return
 
+        try:
             from sentence_transformers import SentenceTransformer
 
-            # 优先使用预下载的模型目录
-            if MODEL_DIR.exists():
-                self._model = SentenceTransformer(str(MODEL_DIR))
-            else:
-                # 容器构建时会预下载，这里只是fallback
-                self._model = SentenceTransformer(MODEL_NAME)
-                # 保存到本地避免下次下载
-                self._model.save(str(MODEL_DIR))
-
+            self._model = SentenceTransformer(str(MODEL_DIR))
             self._model_loaded = True
             print(f"Embedding model loaded: {MODEL_NAME}")
 
