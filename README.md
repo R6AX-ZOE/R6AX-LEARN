@@ -24,7 +24,7 @@
 |------|------|
 | 后端 | FastAPI + Uvicorn（Python 3.11+） |
 | 前端 | Jinja2 + Tailwind CSS + HTMX + Alpine.js + KaTeX |
-| 数据库 | SQLite + SQLAlchemy 2.0 (async)，向量相似度检索（NumPy 余弦相似度） |
+| 数据库 | SQLite + SQLAlchemy 2.0 (async)，向量相似度检索（纯 Python 词法向量，无重依赖；语义模型可选） |
 | AI | DeepSeek API（OpenAI 兼容 SDK） |
 | i18n | Babel（zh-CN / en-US） |
 

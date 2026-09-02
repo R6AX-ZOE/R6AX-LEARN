@@ -397,8 +397,8 @@ GET /integration/{project_id}（服务端渲染）
 │  ┌──────────────────────────────────────┐    │
 │  │  Database                            │    │
 │  │  - SQLite (./data/r6ax.db)          │    │
-│  │  - 向量：sentence-transformers +    │    │
-│  │    NumPy 余弦相似度（无 sqlite-vec） │    │
+│  │  - 向量：哈希词法向量（内置，    │    │
+│  │    可选 sentence-transformers 语义增强） │    │
 │  └──────────────────────────────────────┘    │
 └──────────────────────────────────────────────┘
 ```
@@ -413,7 +413,7 @@ GET /integration/{project_id}（服务端渲染）
 | **i18n** | babel | 2.16+ | 标准方案，工具链齐全（pybabel extract / init / update / compile） |
 | **数据库** | SQLite | 3.45+ | 零运维 |
 | **ORM** | SQLAlchemy 2.0 | 2.0+ | 异步友好 |
-| **向量检索** | sentence-transformers + NumPy | 2.2+ | 本地模型（all-MiniLM-L6-v2），向量存 JSON + 余弦相似度；无 sqlite-vec |
+| **向量检索** | 纯 Python 词法向量 + 余弦相似度 | 内置 | 确定性哈希 n-gram 向量（无 torch/numpy 依赖，默认零额外存储）；可选语义增强需自装 sentence-transformers + all-MiniLM-L6-v2，向量存 JSON + 余弦相似度；无 sqlite-vec |
 | **认证** | python-jose + passlib | 3.3+ / 1.7+ | JWT 签发；密码 PBKDF2-SHA256 哈希 |
 | **AI SDK** | openai (兼容 DeepSeek) | 1.50+ | DeepSeek 兼容 OpenAI SDK（含工具调用） |
 | **AI 编排** | 自定义 TeachingAgent（普通 async 函数） | — | OpenAI 工具调用 + SSE 流式；未引入 LangGraph |
@@ -449,8 +449,9 @@ dependencies = [
     "markdown-it-py>=3.0",
     "mdit-py-plugins>=0.4",
     "httpx>=0.27",
-    "sentence-transformers>=2.2",        # 本地 embedding（容器友好）
-    "numpy>=1.24",                       # 向量计算
+    # 可选语义增强（默认词法降级，无需重依赖）
+    # "sentence-transformers>=2.2",        # 本地 embedding（需自行安装启用）
+    # "numpy>=1.24",                       # 向量计算
 ]
 
 [project.optional-dependencies]
@@ -677,7 +678,7 @@ R6AX-Learn/                          # 项目根
 │   │   ├── question_generator.py    # 出题（6+4）+ AI 阅卷 grade_answer
 │   │   ├── practice_jobs.py         # 后台出题 job（线程 + 可撤销）
 │   │   ├── graph_mount.py           # 挂载式合并 / 挂载 / 边投影 / 去重
-│   │   └── embedding_service.py     # sentence-transformers + NumPy 余弦
+│   │   └── embedding_service.py     # 词法向量；语义增强可选
 │   │
 │   ├── templates/                   # Jinja2 模板
 │   │   ├── base.html / index.html
@@ -695,7 +696,7 @@ R6AX-Learn/                          # 项目根
 ├── scripts/                         # 运维 / 迁移脚本
 │   ├── admin.py                     # create_user / list_users / delete_user
 │   ├── compile_i18n.py              # 编译翻译
-│   ├── download_embedding_model.py  # 预下载 embedding 模型（Docker 构建用）
+│   ├── download_embedding_model.py  # 可选语义增强：手动预下载模型
 │   ├── cleanup_graphs.py / cleanup_teaching.py
 │   └── migrate_multi_graph.py / migrate_graphs_for_dirs.py
 │
@@ -866,9 +867,6 @@ COPY pyproject.toml .
 RUN pip install --no-cache-dir hatchling \
     && pip install --no-cache-dir .
 
-# 预下载 embedding 模型（避免运行时下载）
-COPY scripts/download_embedding_model.py ./scripts/
-RUN python scripts/download_embedding_model.py && rm -rf ~/.cache/huggingface
 
 # 应用代码
 COPY app/ ./app/
@@ -933,7 +931,7 @@ open http://localhost:8000
 |------|------|------|------|
 | 工具调用循环不收敛（AI 不调 task_complete） | 中 | 中 | 强约束 prompt + 多轮续跑上限；首轮工具调用批量执行 |
 | SSE 在反向代理下断连 | 中 | 中 | 配置 proxy 的 `proxy_buffering off` + 合理 timeout；SSE 幂等防重复回复 |
-| embedding 模型体积 / 首次加载慢 | 中 | 中 | 容器构建时预下载（download_embedding_model.py）；懒加载 + 内存缓存 |
+| embedding 模型体积 / 首次加载慢 | 低 | 低 | 语义模型已改为可选：默认纯 Python 词法向量，零额外下载；启用后懒加载 + 内存缓存 |
 | DeepSeek 限流 | 中 | 中 | 客户端重试 + 队列；后期考虑本地小模型兜底 |
 | Jinja2 模板复杂度膨胀 | 低 | 中 | 严格分 partials / components；定期重构 |
 | HTMX 调试困难 | 中 | 低 | 用 htmx:configRequest / htmx:beforeSwap 日志 |

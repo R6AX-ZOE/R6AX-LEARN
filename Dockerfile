@@ -4,18 +4,12 @@ WORKDIR /app
 
 # 注意：原 PRD 在此安装 gcc/g++/make/libsqlite3-dev 用于编译扩展；
 # 受限网络下 deb.debian.org 无法访问（http/https 均被拒），且本项目所有依赖
-# 均提供 CPython 3.11 的预编译 wheel（torch 已单独装 CPU 版），故跳过 apt。
+# 均提供 CPython 3.11 的预编译 wheel，故跳过 apt。
 
-# Python 依赖
+# Python 依赖（向量检索为纯 Python 词法降级，无需 torch）
 COPY pyproject.toml .
-# 预装 CPU 版 torch：PyPI 默认 x86_64 Linux 为 CUDA 构建（~2.5GB），受限网络不可行
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu \
-    && pip install --no-cache-dir hatchling \
+RUN pip install --no-cache-dir hatchling \
     && pip install --no-cache-dir .
-
-# 预下载 embedding 模型（避免运行时下载）
-COPY scripts/download_embedding_model.py ./scripts/
-RUN python scripts/download_embedding_model.py && rm -rf ~/.cache/huggingface
 
 # 应用代码
 COPY app/ ./app/

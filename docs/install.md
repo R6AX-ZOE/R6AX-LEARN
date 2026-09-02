@@ -56,8 +56,7 @@ docker compose up -d --build
 ```
 
 首次构建会：
-- 安装 Python 依赖；
-- **预下载 embedding 模型**（`all-MiniLM-L6-v2`，约 90 MB，仅首次）；
+- 安装 Python 依赖（向量检索为纯 Python 词法降级，无需 torch/模型下载）；
 - 编译 i18n 翻译文件。
 
 ### 3. 验证
@@ -191,7 +190,7 @@ uvicorn app.main:app --reload --port 8000
 | 登录后 AI 无回复 | 检查 `.env` 中的 `DEEPSEEK_API_KEY` 是否正确；查看启动时的日志输出 |
 | 页面显示乱码 | 应用已强制 UTF-8；确认终端编码为 UTF-8 |
 | 默认端口被占用 | 修改 `.env` 中的 `PORT`，并以 `uvicorn app.main:app --port <端口>` 启动 |
-| 下载 embedding 模型失败（无法连接 huggingface.co） | 官方源不可达时自动回退镜像 `hf-mirror.com`；仍失败可手动指定：`set HF_ENDPOINT=https://hf-mirror.com`（Windows）或 `export HF_ENDPOINT=https://hf-mirror.com`（Linux/macOS）后重跑 `python scripts/download_embedding_model.py`。完全离线也可运行：应用自动降级为确定性词法向量（语义检索效果略弱） |
+| 想要语义检索（可选增强） | 默认向量为纯 Python 词法降级（无需安装任何重依赖）。若要语义检索：先 `pip install sentence-transformers`，再运行 `python scripts/download_embedding_model.py`（约 90 MB；官方源不可达时自动回退镜像 `hf-mirror.com`，或手动设置 `HF_ENDPOINT`）；模型目录就绪后重启即自动启用 |
 
 ---
 

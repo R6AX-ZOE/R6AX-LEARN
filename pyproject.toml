@@ -19,9 +19,8 @@ dependencies = [
     "markdown-it-py>=3.0",
     "mdit-py-plugins>=0.4",
     "httpx>=0.27",
-    # 本地RAG依赖（容器友好）
-    "sentence-transformers>=2.2",  # 轻量级embedding模型
-    "numpy>=1.24",  # 向量计算
+    # 向量检索为纯 Python 词法降级（无重依赖）；可选语义增强需自行安装
+    # sentence-transformers + numpy 并预下载 embedding 模型（见 scripts/download_embedding_model.py）
 ]
 
 [project.optional-dependencies]
