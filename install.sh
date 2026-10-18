@@ -5,7 +5,7 @@
 # What it does:
 #   1. Check Python 3.11+
 #   2. Create virtual environment .venv
-#   3. Install dependencies (including dev extras)
+#   3. Install dependencies (precompiled wheels only; dev extras included)
 #   4. Generate .env from .env.example (if missing)
 #   5. Initialize the database (creates data/r6ax.db)
 #   6. Compile i18n translation files
@@ -62,12 +62,9 @@ fi
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/$ACTIVATE" || error "Failed to activate the virtual environment"
 
-info "Upgrading pip / setuptools / wheel ..."
-python -m pip install --upgrade pip setuptools wheel || error "Failed to upgrade pip"
-
 # ---------- 3. Install dependencies ----------
-info "Installing project dependencies (including dev extras) ..."
-python -m pip install -e ".[dev]" || error "Failed to install dependencies"
+info "Installing project dependencies (precompiled wheels only) ..."
+python scripts/install_deps.py || error "Failed to install dependencies (see message above)"
 
 # ---------- 4. Generate .env ----------
 if [ ! -f ".env" ]; then

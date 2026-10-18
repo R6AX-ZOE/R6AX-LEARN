@@ -104,7 +104,7 @@ python3 --version   # 需要 3.11+
 
 脚本会自动：
 - 创建虚拟环境 `.venv`；
-- 安装依赖（含 dev / 测试依赖）；
+- 仅使用预编译 wheel 安装依赖（含 dev / 测试依赖），避免内存受限设备源码编译 Ruff 等大型依赖；Ruff 无 wheel 时自动下载官方预编译二进制；
 - 生成 `.env`（若不存在，从 `.env.example` 复制）；
 - 初始化数据库（创建 `data/r6ax.db` 及全部表；若 `.env` 中 `JWT_SECRET` 仍为占位值会自动生成随机值）；
 - 编译 i18n 翻译文件。
@@ -115,7 +115,7 @@ python3 --version   # 需要 3.11+
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install -e ".[dev]"
+python scripts/install_deps.py
 
 # 准备环境变量
 cp .env.example .env        # 若尚未创建
@@ -157,7 +157,7 @@ python --version   # 需要 3.11+
 .\install.bat
 ```
 
-脚本会自动创建虚拟环境、安装依赖、生成 `.env`、初始化数据库（创建 `data\r6ax.db`）并编译 i18n 翻译文件。
+脚本会自动创建虚拟环境、仅使用预编译 wheel 安装依赖（Ruff 无 wheel 时自动下载官方预编译二进制）、生成 `.env`、初始化数据库（创建 `data\r6ax.db`）并编译 i18n 翻译文件。
 
 ### 3. 手动安装（不选一键脚本时）
 
@@ -165,7 +165,7 @@ python --version   # 需要 3.11+
 python -m venv .venv
 .\.venv\Scripts\activate
 python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+python scripts\install_deps.py
 
 copy .env.example .env
 # 编辑 .env 填入 DEEPSEEK_API_KEY / JWT_SECRET
@@ -190,6 +190,7 @@ uvicorn app.main:app --reload --port 8000
 | 登录后 AI 无回复 | 检查 `.env` 中的 `DEEPSEEK_API_KEY` 是否正确；查看启动时的日志输出 |
 | 页面显示乱码 | 应用已强制 UTF-8；确认终端编码为 UTF-8 |
 | 默认端口被占用 | 修改 `.env` 中的 `PORT`，并以 `uvicorn app.main:app --port <端口>` 启动 |
+| 内存不足 / 安装卡在编译 Ruff | 安装脚本默认只下载预编译 wheel，Ruff 无 wheel 时自动下载官方预编译二进制；资源极少时可运行 `python scripts/install_deps.py --runtime-only` 跳过开发工具；仅在内存充足且有编译工具链时才使用 `--allow-sdist` |
 | 想要语义检索（可选增强） | 默认向量为纯 Python 词法降级（无需安装任何重依赖）。若要语义检索：先 `pip install sentence-transformers`，再运行 `python scripts/download_embedding_model.py`（约 90 MB；官方源不可达时自动回退镜像 `hf-mirror.com`，或手动设置 `HF_ENDPOINT`）；模型目录就绪后重启即自动启用 |
 
 ---

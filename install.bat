@@ -5,7 +5,7 @@ REM
 REM  What it does:
 REM    1. Check Python 3.11+
 REM    2. Create virtual environment .venv
-REM    3. Install dependencies (including dev extras)
+REM    3. Install dependencies (precompiled wheels only; dev extras included)
 REM    4. Generate .env from .env.example (if missing)
 REM    5. Initialize the database (creates data\r6ax.db)
 REM    6. Compile i18n translation files
@@ -67,18 +67,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [install] Upgrading pip / setuptools / wheel ...
-python -m pip install --upgrade pip setuptools wheel
-if errorlevel 1 (
-    echo [error] Failed to upgrade pip
-    exit /b 1
-)
-
 REM ---------- 3. Install dependencies ----------
-echo [install] Installing project dependencies (including dev extras) ...
-python -m pip install -e ".[dev]"
+echo [install] Installing project dependencies (precompiled wheels only) ...
+python scripts\install_deps.py
 if errorlevel 1 (
-    echo [error] Failed to install dependencies
+    echo [error] Failed to install dependencies ^(see message above^)
     exit /b 1
 )
 
