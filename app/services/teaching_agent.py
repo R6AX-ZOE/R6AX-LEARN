@@ -2,6 +2,8 @@ from typing import List, AsyncGenerator, Dict, Any
 import json
 import textwrap
 from sqlalchemy import text
+
+from app.i18n.i18n import t
 from app.services.ai_service import stream_chat_completion_with_tools
 
 # 定义工具
@@ -321,7 +323,7 @@ class TeachingAgent:
     async def process_user_input(self, user_input: str) -> AsyncGenerator[Dict[str, Any], None]:
         """处理用户输入，流式返回响应和工具调用"""
         if not user_input.strip():
-            yield {"type": "text", "content": "请输入内容开始讲解。"}
+            yield {"type": "text", "content": t('teaching.empty-input')}
             return
 
         history = await self._get_conversation_history()
@@ -535,6 +537,7 @@ class TeachingAgent:
         
         请根据以上信息进行回应，并在适当的时候调用工具。最后一定要调用task_complete工具结束！
         """).strip()
+        system_prompt += "\n\n" + t('teaching.language-instruction')
 
         # 组合消息列表：固定系统提示 + 对话历史 + 动态内容
         # 这样可以提高缓存命中率，因为固定系统提示的前缀每次都相同
@@ -597,4 +600,4 @@ class TeachingAgent:
         print(f"Finished processing tool results")
 
     async def start_session(self, concept_name: str) -> str:
-        return f"好的，让我们开始学习【{concept_name}】。请先试着用自己的话讲解这个概念。"
+        return t('teaching.start-session', name=concept_name)

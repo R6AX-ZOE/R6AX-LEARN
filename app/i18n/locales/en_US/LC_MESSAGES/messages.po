@@ -806,3 +806,321 @@ msgstr "Go to Input Level"
 
 msgid "integration.panel-toggle"
 msgstr "Toggle panel"
+
+msgid "common.optional"
+msgstr "Optional"
+
+msgid "common.created-at"
+msgstr "Created At"
+
+msgid "common.actions"
+msgstr "Actions"
+
+msgid "project.not-found"
+msgstr "Project not found"
+
+msgid "home.feature-teaching"
+msgstr "Reinforce understanding by explaining concepts to AI"
+
+msgid "home.feature-practice"
+msgstr "Science-based review scheduling to fight forgetting"
+
+msgid "home.feature-integration"
+msgstr "Visualize knowledge connections and build a knowledge system"
+
+msgid "input.delete-confirm-title"
+msgstr "Confirm Delete"
+
+msgid "input.delete-confirm-message"
+msgstr "Are you sure you want to delete?"
+
+msgid "input.preview-placeholder"
+msgstr "Preview will appear here..."
+
+msgid "input.create-failed"
+msgstr "Creation failed. Please try again."
+
+msgid "input.save-failed"
+msgstr "Failed to save. Please try again."
+
+msgid "input.delete-failed"
+msgstr "Failed to delete. Please try again."
+
+msgid "input.loading"
+msgstr "Loading..."
+
+msgid "input.load-failed"
+msgstr "Failed to load"
+
+msgid "input.extracting"
+msgstr "Extracting..."
+
+msgid "input.extract-failed"
+msgstr "Extraction failed. Please try again."
+
+msgid "input.re-extracting"
+msgstr "Re-extracting..."
+
+msgid "input.re-extract-failed"
+msgstr "Re-extraction failed. Please try again."
+
+msgid "input.select-directory-hint"
+msgstr "Please select a directory"
+
+msgid "input.delete-note-title"
+msgstr "Delete Note"
+
+msgid "input.delete-note-confirm"
+msgstr "Are you sure you want to delete this note?"
+
+msgid "input.delete-dir-title"
+msgstr "Delete Directory"
+
+msgid "input.delete-dir-confirm"
+msgstr "Are you sure you want to delete this directory? All notes inside will also be deleted."
+
+msgid "input.extract-concepts"
+msgstr "Extract Concepts"
+
+msgid "input.note-not-found"
+msgstr "Note not found"
+
+msgid "input.directory-not-found"
+msgstr "Directory not found"
+
+msgid "input.extracted-concepts"
+msgstr "Extracted Concepts"
+
+msgid "input.re-extract"
+msgstr "Re-extract"
+
+msgid "input.collapse"
+msgstr "Collapse"
+
+msgid "input.continue-teaching"
+msgstr "Continue Teaching"
+
+msgid "input.extracted-count"
+msgstr "Concepts already extracted from this note: %(count)s"
+
+msgid "input.no-concepts-extracted"
+msgstr "No concepts could be extracted"
+
+msgid "input.concepts-title"
+msgstr "Extracted Concepts"
+
+msgid "input.start-teaching"
+msgstr "Start Teaching"
+
+msgid "input.saved-to-session"
+msgstr "Saved to the teaching session: %(count)s concepts"
+
+msgid "input.session-title-from-note"
+msgstr "Concepts extracted from \"%(title)s\""
+
+msgid "teaching.start-message"
+msgstr "Please start explaining this concept; I'll ask questions to help deepen your understanding."
+
+msgid "teaching.session-list"
+msgstr "Teaching Sessions"
+
+msgid "teaching.no-sessions"
+msgstr "No teaching sessions yet"
+
+msgid "teaching.end-session"
+msgstr "End Session"
+
+msgid "teaching.current-concept"
+msgstr "Current concept"
+
+msgid "teaching.progress"
+msgstr "Progress"
+
+msgid "teaching.progress-done"
+msgstr "Progress (completed)"
+
+msgid "teaching.input-placeholder"
+msgstr "Type your explanation or answer..."
+
+msgid "teaching.session-title"
+msgstr "Teach AI"
+
+msgid "teaching.confirm-edit"
+msgstr "Confirm Edit"
+
+msgid "teaching.confirm-edit-body"
+msgstr "Editing this message will delete everything below it and regenerate the AI response. This cannot be undone. Continue?"
+
+msgid "teaching.view-in-graph"
+msgstr "View in graph"
+
+msgid "practice.question"
+msgstr "Question"
+
+msgid "teaching.message-updated"
+msgstr "Message updated and the AI response was regenerated"
+
+msgid "teaching.tool.completed"
+msgstr "Completed"
+
+msgid "teaching.tool.mark-concepts-mastered"
+msgstr "Mark Concepts as Mastered"
+
+msgid "teaching.tool.marked"
+msgstr "Marked"
+
+msgid "teaching.tool.mark-misconception"
+msgstr "Record Misconception"
+
+msgid "teaching.tool.recorded"
+msgstr "Recorded"
+
+msgid "teaching.tool.create-virtual-graph"
+msgstr "Create Virtual Graph"
+
+msgid "teaching.tool.created"
+msgstr "Created"
+
+msgid "teaching.tool.get-virtual-graphs"
+msgstr "List Virtual Graphs"
+
+msgid "teaching.tool.get-virtual-graph"
+msgstr "Get Virtual Graph"
+
+msgid "teaching.tool.read"
+msgstr "Read"
+
+msgid "teaching.tool.update-virtual-graph"
+msgstr "Update Virtual Graph"
+
+msgid "teaching.tool.updated"
+msgstr "Updated"
+
+msgid "teaching.tool.delete-virtual-graph"
+msgstr "Delete Virtual Graph"
+
+msgid "teaching.tool.deleted"
+msgstr "Deleted"
+
+msgid "teaching.tool.search-virtual-graphs-rag"
+msgstr "RAG Search Virtual Graphs"
+
+msgid "teaching.tool.search-virtual-graph-nodes"
+msgstr "Search Virtual Graph Nodes"
+
+msgid "teaching.tool.search"
+msgstr "Search"
+
+msgid "teaching.tool.create-graph-node"
+msgstr "Create Graph Node"
+
+msgid "teaching.tool.create-graph-edge"
+msgstr "Create Graph Edge"
+
+msgid "teaching.tool.get-graph-nodes"
+msgstr "List Graph Nodes"
+
+msgid "teaching.tool.get-graph-node"
+msgstr "Get Node Details"
+
+msgid "teaching.tool.update-graph-node"
+msgstr "Update Graph Node"
+
+msgid "teaching.tool.delete-graph-node"
+msgstr "Delete Graph Node"
+
+msgid "teaching.tool.params"
+msgstr "Parameters"
+
+msgid "teaching.tool.result"
+msgstr "Result"
+
+msgid "teaching.tool.iteration"
+msgstr "Iteration"
+
+msgid "teaching.graph-nodes"
+msgstr "Knowledge Graph Nodes"
+
+msgid "teaching.promote-remaining"
+msgstr "%(count)s concepts remain to be promoted."
+
+msgid "teaching.marked-mastered"
+msgstr "Great! Marked %(name)s as mastered."
+
+msgid "teaching.misconception-notice"
+msgstr "Note: there is a misconception about %(name)s; let's correct it."
+
+msgid "teaching.concept-not-found"
+msgstr "Error: concept %(name)s does not exist in this teaching session."
+
+msgid "teaching.unmastered-list"
+msgstr "Unmastered concepts: %(names)s"
+
+msgid "teaching.no-unmastered"
+msgstr "There are no unmastered concepts."
+
+msgid "integration.default-graph-name"
+msgstr "Knowledge Graph"
+
+msgid "integration.default-virtual-graph-name"
+msgstr "Virtual Knowledge Graph"
+
+msgid "teaching.empty-input"
+msgstr "Please enter something to start explaining."
+
+msgid "teaching.start-session"
+msgstr "Great, let's start learning %(name)s. Please first try to explain this concept in your own words."
+
+msgid "teaching.language-instruction"
+msgstr "Always reply to the user in English."
+
+msgid "practice.no-mastered-concepts-error"
+msgstr "No mastered concepts in this project, so questions cannot be generated. Complete a teaching session and mark at least one concept as mastered first."
+
+msgid "practice.fallback-answer"
+msgstr "Be able to clearly define the core meaning of %(name)s and give an example."
+
+msgid "practice.fallback-simple-1"
+msgstr "Explain %(name)s in your own words."
+
+msgid "practice.fallback-simple-2"
+msgstr "Give a real-world example of %(name)s and explain when it applies."
+
+msgid "practice.fallback-simple-3"
+msgstr "Which concepts are similar to or easily confused with %(name)s? How would you distinguish them?"
+
+msgid "practice.fallback-simple-4"
+msgstr "Explain the principle or mechanism behind %(name)s (why is it correct?)."
+
+msgid "practice.fallback-simple-5"
+msgstr "If one of the preconditions for %(name)s changed, how would the conclusion change?"
+
+msgid "practice.fallback-simple-6"
+msgstr "Describe the core idea of %(name)s using a diagram, formula, or pseudocode."
+
+msgid "practice.fallback-extension-1"
+msgstr "Synthesis: connect %(name)s with other concepts you have learned, design a scenario that uses them together, and explain each one's role."
+
+msgid "practice.fallback-extension-2"
+msgstr "Critical thinking: what are common misconceptions or misapplications of %(name)s? How can you identify and avoid them?"
+
+msgid "practice.fallback-extension-3"
+msgstr "Transfer: apply %(name)s to a completely different field (e.g., engineering, daily life, or another subject). How would you do it, and what additional prerequisite knowledge would you need?"
+
+msgid "practice.fallback-extension-4"
+msgstr "Design: based on %(name)s, design a more complex problem or solution and describe your approach and steps."
+
+msgid "practice.fallback-explanation"
+msgstr "Review this concept using your explanation notes."
+
+msgid "practice.fallback-rationale-simple"
+msgstr "Fallback question (basic retrieval practice)"
+
+msgid "practice.fallback-rationale-extension"
+msgstr "Fallback question (extension: multi-concept transfer/design)"
+
+msgid "practice.reference-answer-feedback"
+msgstr "Reference answer: %(reference)s"
+
+msgid "practice.grading-unavailable"
+msgstr "AI grading is temporarily unavailable. Please compare with the reference answer yourself."

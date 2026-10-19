@@ -152,8 +152,8 @@
                     <tr>
                         <th class="px-6 py-4 text-left text-sm font-medium text-white/80">{{ t('project.name') }}</th>
                         <th class="px-6 py-4 text-left text-sm font-medium text-white/80">{{ t('project.description') }}</th>
-                        <th class="px-6 py-4 text-left text-sm font-medium text-white/80">创建时间</th>
-                        <th class="px-6 py-4 text-left text-sm font-medium text-white/80">操作</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-white/80">{{ t('common.created-at') }}</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-white/80">{{ t('common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[#2a2a2a]">
@@ -198,7 +198,7 @@
                         <input type="text" name="name" class="input-field w-full" required>
                     </div>
                     <div class="mb-6">
-                        <label class="block text-white/80 text-sm font-medium mb-2">{{ t('project.description') }}（可选）</label>
+                        <label class="block text-white/80 text-sm font-medium mb-2">{{ t('project.description') }}（{{ t('common.optional') }}）</label>
                         <textarea name="description" class="input-field w-full" rows="3"></textarea>
                     </div>
                     <div class="flex space-x-4">

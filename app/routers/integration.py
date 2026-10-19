@@ -14,6 +14,7 @@ from app.core.deps import (
     require_edge,
     require_virtual_graph,
 )
+from app.i18n.i18n import t
 from app.models.user import User
 from app.services.embedding_service import get_embedding_service
 
@@ -36,7 +37,7 @@ async def create_graph(project_id: str, request: Request, current_user: User = D
     await require_project(db, project_id, current_user.id)
 
     body = await request.json() if request else {}
-    name = body.get("name", "知识图谱")
+    name = body.get("name", t('integration.default-graph-name'))
     directory_id = body.get("directory_id")
 
     new_id = str(uuid4())
@@ -246,7 +247,7 @@ async def create_virtual_graph(request: Request, current_user: User = Depends(ge
     body = await request.json()
     session_id = body.get("session_id")
     graph_id = body.get("graph_id")
-    name = body.get("name", "虚拟知识图")
+    name = body.get("name", t('integration.default-virtual-graph-name'))
     description = body.get("description", "")
     nodes = body.get("nodes", [])  # 节点列表
     edges = body.get("edges", [])  # 内部边列表

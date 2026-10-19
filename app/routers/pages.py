@@ -148,7 +148,7 @@ async def project_detail(request: Request, project_id: str, current_user: User =
     project = project.first()
     
     if not project:
-        raise HTTPException(status_code=404, detail="项目不存在")
+        raise HTTPException(status_code=404, detail=t('project.not-found'))
     
     # 目录（用于笔记组件绑定选项，按最近笔记活动排序）
     dirs_result = await db.execute(
@@ -248,7 +248,7 @@ async def input_page(request: Request, project_id: str, current_user: User = Dep
     project = project.first()
     
     if not project:
-        raise HTTPException(status_code=404, detail="项目不存在")
+        raise HTTPException(status_code=404, detail=t('project.not-found'))
     
     template = jinja_env.get_template("input_level/note_editor.html")
     html_content = template.render(request=request, user=current_user, project=project, current_dir=None)
@@ -264,7 +264,7 @@ async def teaching_page(request: Request, project_id: str, current_user: User = 
     project_row = project_result.first()
 
     if not project_row:
-        raise HTTPException(status_code=404, detail="项目不存在")
+        raise HTTPException(status_code=404, detail=t('project.not-found'))
 
     project = dict(project_row._mapping)
 
@@ -286,7 +286,7 @@ async def practice_page(request: Request, project_id: str, current_user: User = 
     project_row = project_result.first()
 
     if not project_row:
-        raise HTTPException(status_code=404, detail="项目不存在")
+        raise HTTPException(status_code=404, detail=t('project.not-found'))
 
     project = dict(project_row._mapping)
 
@@ -337,7 +337,7 @@ async def practice_bank_page(request: Request, project_id: str, q: str = "", cur
     project_row = project_result.first()
 
     if not project_row:
-        raise HTTPException(status_code=404, detail="项目不存在")
+        raise HTTPException(status_code=404, detail=t('project.not-found'))
 
     project = dict(project_row._mapping)
 
@@ -389,7 +389,7 @@ async def practice_bank_search(request: Request, project_id: str, q: str = "", c
     project_result = await db.execute(text("SELECT 1 FROM projects WHERE id = :project_id AND user_id = :user_id"),
                               {"project_id": project_id, "user_id": current_user.id})
     if not project_result.first():
-        raise HTTPException(status_code=404, detail="项目不存在")
+        raise HTTPException(status_code=404, detail=t('project.not-found'))
 
     like = f"%{q.strip()}%" if q and q.strip() else None
     if like:
@@ -445,7 +445,7 @@ async def practice_session_page(request: Request, session_id: str, current_user:
     )
     project_row = project_result.first()
     if not project_row:
-        raise HTTPException(status_code=404, detail="项目不存在")
+        raise HTTPException(status_code=404, detail=t('project.not-found'))
     project = dict(project_row._mapping)
 
     # 会话题目（含作答状态）
@@ -549,7 +549,7 @@ async def integration_page(request: Request, project_id: str, graph_id: str = No
     project_row = project_result.first()
 
     if not project_row:
-        raise HTTPException(status_code=404, detail="项目不存在")
+        raise HTTPException(status_code=404, detail=t('project.not-found'))
 
     project = dict(project_row._mapping)
 

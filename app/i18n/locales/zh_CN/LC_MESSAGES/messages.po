@@ -847,3 +847,291 @@ msgstr "查看"
 
 msgid "practice.avg-score"
 msgstr "平均得分"
+
+msgid "common.optional"
+msgstr "可选"
+
+msgid "common.created-at"
+msgstr "创建时间"
+
+msgid "common.actions"
+msgstr "操作"
+
+msgid "project.not-found"
+msgstr "项目不存在"
+
+msgid "home.feature-teaching"
+msgstr "通过向 AI 讲解知识来巩固理解"
+
+msgid "home.feature-practice"
+msgstr "科学的复习计划，对抗遗忘"
+
+msgid "home.feature-integration"
+msgstr "可视化知识关联，构建知识体系"
+
+msgid "input.delete-confirm-title"
+msgstr "确认删除"
+
+msgid "input.delete-confirm-message"
+msgstr "确定要删除吗？"
+
+msgid "input.preview-placeholder"
+msgstr "预览将显示在这里..."
+
+msgid "input.create-failed"
+msgstr "创建失败，请重试"
+
+msgid "input.save-failed"
+msgstr "保存失败，请重试"
+
+msgid "input.delete-failed"
+msgstr "删除失败，请重试"
+
+msgid "input.loading"
+msgstr "加载中..."
+
+msgid "input.load-failed"
+msgstr "加载失败"
+
+msgid "input.extracting"
+msgstr "提取中..."
+
+msgid "input.extract-failed"
+msgstr "提取失败，请重试"
+
+msgid "input.re-extracting"
+msgstr "重新提取中..."
+
+msgid "input.re-extract-failed"
+msgstr "重新提取失败，请重试"
+
+msgid "input.select-directory-hint"
+msgstr "请选择一个目录"
+
+msgid "input.delete-note-title"
+msgstr "删除笔记"
+
+msgid "input.delete-note-confirm"
+msgstr "确定要删除这条笔记吗？"
+
+msgid "input.delete-dir-title"
+msgstr "删除目录"
+
+msgid "input.delete-dir-confirm"
+msgstr "确定要删除这个目录吗？目录下的所有笔记也会被删除。"
+
+msgid "input.extract-concepts"
+msgstr "提取概念"
+
+msgid "input.note-not-found"
+msgstr "笔记不存在"
+
+msgid "input.directory-not-found"
+msgstr "目录不存在"
+
+msgid "input.extracted-concepts"
+msgstr "已提取的概念"
+
+msgid "input.re-extract"
+msgstr "重新提取"
+
+msgid "input.collapse"
+msgstr "收起"
+
+msgid "input.continue-teaching"
+msgstr "继续教学"
+
+msgid "input.extracted-count"
+msgstr "此笔记已提取过概念，共 %(count)s 个"
+
+msgid "input.no-concepts-extracted"
+msgstr "未能提取出概念"
+
+msgid "input.concepts-title"
+msgstr "提取的概念"
+
+msgid "input.start-teaching"
+msgstr "开始教学"
+
+msgid "input.saved-to-session"
+msgstr "已保存到教学会话，共 %(count)s 个概念"
+
+msgid "input.session-title-from-note"
+msgstr "从「%(title)s」提取的概念"
+
+msgid "teaching.start-message"
+msgstr "请开始讲解这个概念，我会提出问题来帮助你加深理解。"
+
+msgid "teaching.view-in-graph"
+msgstr "在图谱中查看"
+
+msgid "practice.question"
+msgstr "题目"
+
+msgid "teaching.message-updated"
+msgstr "消息已更新，AI 响应已重新生成"
+
+msgid "teaching.tool.completed"
+msgstr "已完成"
+
+msgid "teaching.tool.mark-concepts-mastered"
+msgstr "标记概念已掌握"
+
+msgid "teaching.tool.marked"
+msgstr "已标记"
+
+msgid "teaching.tool.mark-misconception"
+msgstr "标记误解"
+
+msgid "teaching.tool.recorded"
+msgstr "已记录"
+
+msgid "teaching.tool.create-virtual-graph"
+msgstr "创建虚拟图"
+
+msgid "teaching.tool.created"
+msgstr "已创建"
+
+msgid "teaching.tool.get-virtual-graphs"
+msgstr "获取虚拟图列表"
+
+msgid "teaching.tool.get-virtual-graph"
+msgstr "获取虚拟图详情"
+
+msgid "teaching.tool.read"
+msgstr "读取"
+
+msgid "teaching.tool.update-virtual-graph"
+msgstr "更新虚拟图"
+
+msgid "teaching.tool.updated"
+msgstr "已更新"
+
+msgid "teaching.tool.delete-virtual-graph"
+msgstr "删除虚拟图"
+
+msgid "teaching.tool.deleted"
+msgstr "已删除"
+
+msgid "teaching.tool.search-virtual-graphs-rag"
+msgstr "RAG 搜索虚拟图"
+
+msgid "teaching.tool.search-virtual-graph-nodes"
+msgstr "搜索虚拟图节点"
+
+msgid "teaching.tool.search"
+msgstr "搜索"
+
+msgid "teaching.tool.create-graph-node"
+msgstr "创建图谱节点"
+
+msgid "teaching.tool.create-graph-edge"
+msgstr "创建图谱关联"
+
+msgid "teaching.tool.get-graph-nodes"
+msgstr "获取图谱节点"
+
+msgid "teaching.tool.get-graph-node"
+msgstr "获取节点详情"
+
+msgid "teaching.tool.update-graph-node"
+msgstr "更新图谱节点"
+
+msgid "teaching.tool.delete-graph-node"
+msgstr "删除图谱节点"
+
+msgid "teaching.tool.params"
+msgstr "参数"
+
+msgid "teaching.tool.result"
+msgstr "结果"
+
+msgid "teaching.tool.iteration"
+msgstr "迭代"
+
+msgid "teaching.graph-nodes"
+msgstr "知识图谱节点"
+
+msgid "teaching.promote-remaining"
+msgstr "剩余 %(count)s 个概念待沉淀。"
+
+msgid "teaching.marked-mastered"
+msgstr "很好！已标记【%(name)s】为已掌握概念。"
+
+msgid "teaching.misconception-notice"
+msgstr "注意：【%(name)s】存在误解，我来帮你纠正。"
+
+msgid "teaching.concept-not-found"
+msgstr "错误：概念【%(name)s】不存在于当前教学会话中。"
+
+msgid "teaching.unmastered-list"
+msgstr "当前未掌握的概念列表：%(names)s"
+
+msgid "teaching.no-unmastered"
+msgstr "当前没有未掌握的概念。"
+
+msgid "integration.default-graph-name"
+msgstr "知识图谱"
+
+msgid "integration.default-virtual-graph-name"
+msgstr "虚拟知识图"
+
+msgid "teaching.empty-input"
+msgstr "请输入内容开始讲解。"
+
+msgid "teaching.start-session"
+msgstr "好的，让我们开始学习【%(name)s】。请先试着用自己的话讲解这个概念。"
+
+msgid "teaching.language-instruction"
+msgstr "请始终使用简体中文回复用户。"
+
+msgid "practice.no-mastered-concepts-error"
+msgstr "项目内没有已掌握的概念，无法出题。请先完成一次教学并标记至少一个概念为已掌握，再开始习题。"
+
+msgid "practice.fallback-answer"
+msgstr "能清晰定义 %(name)s 的核心含义并举例说明。"
+
+msgid "practice.fallback-simple-1"
+msgstr "请用自己的话解释：%(name)s。"
+
+msgid "practice.fallback-simple-2"
+msgstr "请举一个 %(name)s 的实际应用例子，并说明其适用条件。"
+
+msgid "practice.fallback-simple-3"
+msgstr "与 %(name)s 相似或容易混淆的概念有哪些？如何区分它们？"
+
+msgid "practice.fallback-simple-4"
+msgstr "请说明 %(name)s 成立的原理或机制（为什么它是对的？）。"
+
+msgid "practice.fallback-simple-5"
+msgstr "若 %(name)s 的某个前提条件被改变，结论会如何变化？"
+
+msgid "practice.fallback-simple-6"
+msgstr "请用图示、公式或伪代码表述 %(name)s 的核心思想。"
+
+msgid "practice.fallback-extension-1"
+msgstr "综合题：将 %(name)s 与你已学的其他知识点联系起来，设计一个能同时用到它们的场景，并说明各自的角色。"
+
+msgid "practice.fallback-extension-2"
+msgstr "批判性思考：%(name)s 的常见误解或错误应用有哪些？如何识别并避免？"
+
+msgid "practice.fallback-extension-3"
+msgstr "迁移题：把 %(name)s 应用到与课本完全不同的新领域（如工程/生活/其他学科），你会怎么做？需要哪些额外的前置知识？"
+
+msgid "practice.fallback-extension-4"
+msgstr "设计题：基于 %(name)s 设计一个更复杂的问题或方案，给出你的解决思路与步骤。"
+
+msgid "practice.fallback-explanation"
+msgstr "请对照你的讲解记录复习该概念。"
+
+msgid "practice.fallback-rationale-simple"
+msgstr "降级兜底题（检索练习基础题）"
+
+msgid "practice.fallback-rationale-extension"
+msgstr "降级兜底题（拓展：多知识点迁移/设计）"
+
+msgid "practice.reference-answer-feedback"
+msgstr "参考答案：%(reference)s"
+
+msgid "practice.grading-unavailable"
+msgstr "AI 判题暂时不可用，请自行对照参考答案。"

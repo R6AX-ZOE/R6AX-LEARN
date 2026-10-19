@@ -11,6 +11,7 @@ from app.core.deps import (
     require_directory,
     require_note,
 )
+from app.i18n.i18n import t
 from app.models.user import User
 from app.models.input import Directory, Note
 from app.models.teaching import TeachingSession, Concept
@@ -25,7 +26,7 @@ async def list_directories(project_id: str, current_user: User = Depends(get_cur
     dirs = dirs.fetchall()
     
     if not dirs:
-        return HTMLResponse("<div class='text-white/40 text-sm italic'>暂无目录</div>")
+        return HTMLResponse(f"<div class='text-white/40 text-sm italic'>{t('input.no-directories')}</div>")
     
     html = ""
     for directory in dirs:
@@ -34,7 +35,7 @@ async def list_directories(project_id: str, current_user: User = Depends(get_cur
             <span class="text-white/80 text-sm">{directory.name}</span>
             <div class="flex items-center space-x-2">
                 <span class="text-white/40 text-xs">→</span>
-                <button class="delete-dir-btn text-red-400 text-xs hover:text-red-300 px-2 py-1" data-directory-id="{directory.id}">删除</button>
+                <button class="delete-dir-btn text-red-400 text-xs hover:text-red-300 px-2 py-1" data-directory-id="{directory.id}">{t('common.delete')}</button>
             </div>
         </div>
         """
@@ -49,7 +50,7 @@ async def delete_directory(directory_id: str, current_user: User = Depends(get_c
     dir_info = result.first()
 
     if not dir_info:
-        raise HTTPException(status_code=404, detail="目录不存在")
+        raise HTTPException(status_code=404, detail=t('input.directory-not-found'))
 
     project_id = dir_info.project_id
 
@@ -73,7 +74,7 @@ async def delete_directory(directory_id: str, current_user: User = Depends(get_c
     dirs = dirs.fetchall()
     
     if not dirs:
-        return HTMLResponse("<div class='text-white/40 text-sm italic'>暂无目录</div>")
+        return HTMLResponse(f"<div class='text-white/40 text-sm italic'>{t('input.no-directories')}</div>")
     
     html = ""
     for directory in dirs:
@@ -82,7 +83,7 @@ async def delete_directory(directory_id: str, current_user: User = Depends(get_c
             <span class="text-white/80 text-sm">{directory.name}</span>
             <div class="flex items-center space-x-2">
                 <span class="text-white/40 text-xs">→</span>
-                <button class="delete-dir-btn text-red-400 text-xs hover:text-red-300 px-2 py-1" data-directory-id="{directory.id}" data-project-id="{project_id}">删除</button>
+                <button class="delete-dir-btn text-red-400 text-xs hover:text-red-300 px-2 py-1" data-directory-id="{directory.id}" data-project-id="{project_id}">{t('common.delete')}</button>
             </div>
         </div>
         """
@@ -123,7 +124,7 @@ async def create_directory(project_id: str = Form(...), parent_id: str = Form(No
             <span class="text-white/80 text-sm">{directory.name}</span>
             <div class="flex items-center space-x-2">
                 <span class="text-white/40 text-xs">→</span>
-                <button class="delete-dir-btn text-red-400 text-xs hover:text-red-300 px-2 py-1" data-directory-id="{directory.id}">删除</button>
+                <button class="delete-dir-btn text-red-400 text-xs hover:text-red-300 px-2 py-1" data-directory-id="{directory.id}">{t('common.delete')}</button>
             </div>
         </div>
         """
@@ -138,7 +139,7 @@ async def list_notes(directory_id: str, current_user: User = Depends(get_current
     notes = notes.fetchall()
     
     if not notes:
-        return HTMLResponse("<div class='text-center text-white/40 py-12'>暂无笔记</div>")
+        return HTMLResponse(f"<div class='text-center text-white/40 py-12'>{t('input.no-notes')}</div>")
     
     html = ""
     for note in notes:
@@ -157,9 +158,9 @@ async def list_notes(directory_id: str, current_user: User = Depends(get_current
                 <div class="flex justify-between items-center mt-3">
                     <span class="text-white/40 text-xs">{note.created_at[:16]}</span>
                     <div class="flex space-x-2">
-                        <button class="extract-concepts-btn text-green-400 text-xs hover:text-green-300">提取概念</button>
-                        <button class="edit-note-btn text-blue-400 text-xs hover:text-blue-300">编辑</button>
-                        <button class="delete-note-btn text-red-400 text-xs hover:text-red-300">删除</button>
+                        <button class="extract-concepts-btn text-green-400 text-xs hover:text-green-300">{t('input.extract-concepts')}</button>
+                        <button class="edit-note-btn text-blue-400 text-xs hover:text-blue-300">{t('common.edit')}</button>
+                        <button class="delete-note-btn text-red-400 text-xs hover:text-red-300">{t('common.delete')}</button>
                     </div>
                 </div>
             </div>
@@ -177,7 +178,7 @@ async def delete_note(note_id: str, current_user: User = Depends(get_current_act
     note_info = result.first()
     
     if not note_info:
-        return HTMLResponse("<div class='text-center text-red-400 py-12'>笔记不存在</div>")
+        return HTMLResponse(f"<div class='text-center text-red-400 py-12'>{t('input.note-not-found')}</div>")
     
     directory_id = note_info.directory_id
     
@@ -191,7 +192,7 @@ async def delete_note(note_id: str, current_user: User = Depends(get_current_act
     notes = notes.fetchall()
     
     if not notes:
-        return HTMLResponse("<div class='text-center text-white/40 py-12'>暂无笔记</div>")
+        return HTMLResponse(f"<div class='text-center text-white/40 py-12'>{t('input.no-notes')}</div>")
     
     html = ""
     for note in notes:
@@ -203,9 +204,9 @@ async def delete_note(note_id: str, current_user: User = Depends(get_current_act
             <div class="flex justify-between items-center mt-3">
                 <span class="text-white/40 text-xs">{note.created_at[:16]}</span>
                 <div class="flex space-x-2">
-                    <button class="extract-concepts-btn text-green-400 text-xs hover:text-green-300">提取概念</button>
-                    <button class="edit-note-btn text-blue-400 text-xs hover:text-blue-300">编辑</button>
-                    <button class="delete-note-btn text-red-400 text-xs hover:text-red-300">删除</button>
+                    <button class="extract-concepts-btn text-green-400 text-xs hover:text-green-300">{t('input.extract-concepts')}</button>
+                    <button class="edit-note-btn text-blue-400 text-xs hover:text-blue-300">{t('common.edit')}</button>
+                    <button class="delete-note-btn text-red-400 text-xs hover:text-red-300">{t('common.delete')}</button>
                 </div>
             </div>
         </div>
@@ -221,7 +222,7 @@ async def update_note(note_id: str, title: str = Form(...), content: str = Form(
     note_info = result.first()
     
     if not note_info:
-        return HTMLResponse("<div class='text-center text-red-400 py-12'>笔记不存在</div>")
+        return HTMLResponse(f"<div class='text-center text-red-400 py-12'>{t('input.note-not-found')}</div>")
     
     directory_id = note_info.directory_id
     
@@ -238,7 +239,7 @@ async def update_note(note_id: str, title: str = Form(...), content: str = Form(
     notes = notes.fetchall()
     
     if not notes:
-        return HTMLResponse("<div class='text-center text-white/40 py-12'>暂无笔记</div>")
+        return HTMLResponse(f"<div class='text-center text-white/40 py-12'>{t('input.no-notes')}</div>")
     
     html = ""
     for note in notes:
@@ -250,9 +251,9 @@ async def update_note(note_id: str, title: str = Form(...), content: str = Form(
             <div class="flex justify-between items-center mt-3">
                 <span class="text-white/40 text-xs">{note.created_at[:16]}</span>
                 <div class="flex space-x-2">
-                    <button class="extract-concepts-btn text-green-400 text-xs hover:text-green-300">提取概念</button>
-                    <button class="edit-note-btn text-blue-400 text-xs hover:text-blue-300">编辑</button>
-                    <button class="delete-note-btn text-red-400 text-xs hover:text-red-300">删除</button>
+                    <button class="extract-concepts-btn text-green-400 text-xs hover:text-green-300">{t('input.extract-concepts')}</button>
+                    <button class="edit-note-btn text-blue-400 text-xs hover:text-blue-300">{t('common.edit')}</button>
+                    <button class="delete-note-btn text-red-400 text-xs hover:text-red-300">{t('common.delete')}</button>
                 </div>
             </div>
         </div>
@@ -262,6 +263,7 @@ async def update_note(note_id: str, title: str = Form(...), content: str = Form(
 
 @router.post("/notes")
 async def create_note(directory_id: str = Form(None), title: str = Form(...), content: str = Form(""), current_user: User = Depends(get_current_active_user), db = Depends(get_db)):
+    directory_id = directory_id or None
     if directory_id:
         await require_directory(db, directory_id, current_user.id)
 
@@ -282,7 +284,7 @@ async def create_note(directory_id: str = Form(None), title: str = Form(...), co
     notes = notes.fetchall()
     
     if not notes:
-        return HTMLResponse("<div class='text-center text-white/40 py-12'>暂无笔记</div>")
+        return HTMLResponse(f"<div class='text-center text-white/40 py-12'>{t('input.no-notes')}</div>")
     
     html = ""
     for note in notes:
@@ -301,9 +303,9 @@ async def create_note(directory_id: str = Form(None), title: str = Form(...), co
                 <div class="flex justify-between items-center mt-3">
                     <span class="text-white/40 text-xs">{note.created_at[:16]}</span>
                     <div class="flex space-x-2">
-                        <button class="extract-concepts-btn text-green-400 text-xs hover:text-green-300">提取概念</button>
-                        <button class="edit-note-btn text-blue-400 text-xs hover:text-blue-300">编辑</button>
-                        <button class="delete-note-btn text-red-400 text-xs hover:text-red-300">删除</button>
+                        <button class="extract-concepts-btn text-green-400 text-xs hover:text-green-300">{t('input.extract-concepts')}</button>
+                        <button class="edit-note-btn text-blue-400 text-xs hover:text-blue-300">{t('common.edit')}</button>
+                        <button class="delete-note-btn text-red-400 text-xs hover:text-red-300">{t('common.delete')}</button>
                     </div>
                 </div>
             </div>
@@ -322,7 +324,7 @@ async def extract_note_concepts(note_id: str, re_extract: bool = Form(False), cu
     note = result.first()
     
     if not note:
-        return HTMLResponse("<div class='text-red-400'>笔记不存在</div>")
+        return HTMLResponse(f"<div class='text-red-400'>{t('input.note-not-found')}</div>")
     
     # 检查是否已提取过概念
     existing_session = await db.execute(
@@ -359,14 +361,14 @@ async def extract_note_concepts(note_id: str, re_extract: bool = Form(False), cu
         html = f"""
         <div class="space-y-3">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-white font-medium">已提取的概念</h3>
+                <h3 class="text-white font-medium">{t('input.extracted-concepts')}</h3>
                 <div class="flex space-x-2">
-                    <button onclick="reExtractConcepts('{note_id}')" class="btn-secondary text-sm">重新提取</button>
-                    <button onclick="collapseConcepts('{note_id}')" class="btn-secondary text-sm">收起</button>
-                    <button onclick="startTeaching('{existing_session.id}')" class="btn-primary text-sm">继续教学</button>
+                    <button onclick="reExtractConcepts('{note_id}')" class="btn-secondary text-sm">{t('input.re-extract')}</button>
+                    <button onclick="collapseConcepts('{note_id}')" class="btn-secondary text-sm">{t('input.collapse')}</button>
+                    <button onclick="startTeaching('{existing_session.id}')" class="btn-primary text-sm">{t('input.continue-teaching')}</button>
                 </div>
             </div>
-            <p class="text-white/40 text-xs mb-4">此笔记已提取过概念，共 {len(saved_concepts)} 个</p>
+            <p class="text-white/40 text-xs mb-4">{t('input.extracted-count', count=len(saved_concepts))}</p>
             <div id="concepts-list-{note_id}">
                 {concepts_html}
             </div>
@@ -412,7 +414,7 @@ async def extract_note_concepts(note_id: str, re_extract: bool = Form(False), cu
     concepts_data = await extract_concepts(note.content, note.title, existing_concepts)
     
     if not concepts_data:
-        return HTMLResponse("<div class='text-white/40'>未能提取出概念</div>")
+        return HTMLResponse(f"<div class='text-white/40'>{t('input.no-concepts-extracted')}</div>")
     
     # 创建教学会话
     session_id = str(uuid4())
@@ -420,7 +422,7 @@ async def extract_note_concepts(note_id: str, re_extract: bool = Form(False), cu
         id=session_id,
         project_id=project_id,
         source_note_id=note_id,
-        title=f"从「{note.title}」提取的概念",
+        title=t('input.session-title-from-note', title=note.title),
         status="active"
     )
     db.add(session)
@@ -471,14 +473,14 @@ async def extract_note_concepts(note_id: str, re_extract: bool = Form(False), cu
     html = f"""
     <div class="space-y-3">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-white font-medium">提取的概念</h3>
+            <h3 class="text-white font-medium">{t('input.concepts-title')}</h3>
             <div class="flex space-x-2">
-                <button onclick="reExtractConcepts('{note_id}')" class="btn-secondary text-sm">重新提取</button>
-                <button onclick="collapseConcepts('{note_id}')" class="btn-secondary text-sm">收起</button>
-                <button onclick="startTeaching('{session_id}')" class="btn-primary text-sm">开始教学</button>
+                <button onclick="reExtractConcepts('{note_id}')" class="btn-secondary text-sm">{t('input.re-extract')}</button>
+                <button onclick="collapseConcepts('{note_id}')" class="btn-secondary text-sm">{t('input.collapse')}</button>
+                <button onclick="startTeaching('{session_id}')" class="btn-primary text-sm">{t('input.start-teaching')}</button>
             </div>
         </div>
-        <p class="text-white/40 text-xs mb-4">已保存到教学会话，共 {len(saved_concepts)} 个概念</p>
+        <p class="text-white/40 text-xs mb-4">{t('input.saved-to-session', count=len(saved_concepts))}</p>
         <div id="concepts-list-{note_id}">
             {concepts_html}
         </div>

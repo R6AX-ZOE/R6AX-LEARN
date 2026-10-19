@@ -33,7 +33,7 @@ from uuid import uuid4
 
 from sqlalchemy import text
 
-from app.i18n.i18n import get_current_locale
+from app.i18n.i18n import get_current_locale, t
 from app.services.ai_service import chat_completion
 
 SIMPLE_COUNT = 6
@@ -151,10 +151,7 @@ async def generate_question_set(
     )
     concepts = [dict(row._mapping) for row in concepts_result.fetchall()]
     if not concepts:
-        raise ValueError(
-            "项目内没有已掌握的概念，无法出题。"
-            "请先完成一次教学并标记至少一个概念为已掌握，再开始习题。"
-        )
+        raise ValueError(t('practice.no-mastered-concepts-error'))
 
     # 主概念 = 已有题目最少的概念；其余作为上下文
     counts = {}
@@ -228,20 +225,20 @@ async def generate_question_set(
 
     # 兜底：AI 失败/缺题时补齐 6 简单 + 4 拓展（保证一套 10 道可跑通）
     base_answer = (primary.get("description") or
-                   f"能清晰定义 {primary['name']} 的核心含义并举例说明。")
+                   t('practice.fallback-answer', name=primary['name']))
     fallback_simple = [
-        (f"请用自己的话解释：{primary['name']}。", 2),
-        (f"请举一个 {primary['name']} 的实际应用例子，并说明其适用条件。", 2),
-        (f"与 {primary['name']} 相似或容易混淆的概念有哪些？如何区分它们？", 3),
-        (f"请说明 {primary['name']} 成立的原理或机制（为什么它是对的？）。", 3),
-        (f"若 {primary['name']} 的某个前提条件被改变，结论会如何变化？", 3),
-        (f"请用图示、公式或伪代码表述 {primary['name']} 的核心思想。", 2),
+        (t('practice.fallback-simple-1', name=primary['name']), 2),
+        (t('practice.fallback-simple-2', name=primary['name']), 2),
+        (t('practice.fallback-simple-3', name=primary['name']), 3),
+        (t('practice.fallback-simple-4', name=primary['name']), 3),
+        (t('practice.fallback-simple-5', name=primary['name']), 3),
+        (t('practice.fallback-simple-6', name=primary['name']), 2),
     ]
     fallback_extension = [
-        (f"综合题：将 {primary['name']} 与你已学的其他知识点联系起来，设计一个能同时用到它们的场景，并说明各自的角色。", 4),
-        (f"批判性思考：{primary['name']} 的常见误解或错误应用有哪些？如何识别并避免？", 4),
-        (f"迁移题：把 {primary['name']} 应用到与课本完全不同的新领域（如工程/生活/其他学科），你会怎么做？需要哪些额外的前置知识？", 5),
-        (f"设计题：基于 {primary['name']} 设计一个更复杂的问题或方案，给出你的解决思路与步骤。", 5),
+        (t('practice.fallback-extension-1', name=primary['name']), 4),
+        (t('practice.fallback-extension-2', name=primary['name']), 4),
+        (t('practice.fallback-extension-3', name=primary['name']), 5),
+        (t('practice.fallback-extension-4', name=primary['name']), 5),
     ]
 
     simple = [q for q in questions if not q["is_extension"]]
@@ -252,11 +249,11 @@ async def generate_question_set(
             "question_type": "short",
             "prompt": prompt_text,
             "answer": base_answer,
-            "explanation": "请对照你的讲解记录复习该概念。",
+            "explanation": t('practice.fallback-explanation'),
             "difficulty": difficulty,
             "is_extension": is_ext,
             "knowledge_points": [primary["name"]],
-            "rationale": "降级兜底题" + ("（拓展：多知识点迁移/设计）" if is_ext else "（检索练习基础题）"),
+            "rationale": t('practice.fallback-rationale-extension' if is_ext else 'practice.fallback-rationale-simple'),
         }
 
     for i in range(SIMPLE_COUNT - len(simple)):
@@ -347,7 +344,7 @@ async def grade_answer(db, question: dict, user_answer: str) -> tuple[bool, floa
         accepted = [a.strip() for a in reference.split("||")]
         is_correct = any(_normalize(a) == user_norm for a in accepted if a)
         score = 100.0 if is_correct else 0.0
-        feedback = "" if is_correct else f"参考答案：{reference}"
+        feedback = "" if is_correct else t('practice.reference-answer-feedback', reference=reference)
         return is_correct, score, feedback
 
     if not user_answer.strip():
@@ -400,7 +397,7 @@ async def grade_answer(db, question: dict, user_answer: str) -> tuple[bool, floa
         return is_correct, score, feedback
     except Exception as e:
         print(f"[practice] AI 判题失败: {e}")
-        return False, 0.0, "AI 判题暂时不可用，请自行对照参考答案。"
+        return False, 0.0, t('practice.grading-unavailable')
 
 
 def _normalize(s: str) -> str:

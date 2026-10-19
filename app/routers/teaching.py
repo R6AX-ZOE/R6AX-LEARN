@@ -92,7 +92,7 @@ async def _get_project_graph_id(db, session_id: str):
             text("""INSERT INTO graphs (id, project_id, directory_id, name, created_at, updated_at)
                    VALUES (:id, :pid, :did, :name, datetime('now'), datetime('now'))"""),
             {"id": new_graph_id, "pid": project_id, "did": directory_id,
-             "name": directory_name or "知识图谱"}
+             "name": directory_name or t('integration.default-graph-name')}
         )
         await db.commit()
         return new_graph_id
@@ -442,11 +442,11 @@ async def _execute_tool(db, session_id: str, tool_name: str, arguments: dict, us
             summary = concept_data.get('summary')
 
             if concept_name not in all_concepts:
-                error_msg = f"错误：概念【{concept_name}】不存在于当前教学session中。"
+                error_msg = t('teaching.concept-not-found', name=concept_name)
                 if unmastered_concepts:
-                    error_msg += f"\n当前未掌握的概念列表：{', '.join(unmastered_concepts)}"
+                    error_msg += "\n" + t('teaching.unmastered-list', names=', '.join(unmastered_concepts))
                 else:
-                    error_msg += "\n当前没有未掌握的概念。"
+                    error_msg += "\n" + t('teaching.no-unmastered')
                 continue
 
             existing = (await db.execute(
@@ -471,7 +471,7 @@ async def _execute_tool(db, session_id: str, tool_name: str, arguments: dict, us
                 events.append({
                     "type": "concept",
                     "concept_name": concept_name,
-                    "content": f'很好！已标记【{concept_name}】为已掌握概念。'
+                    "content": t('teaching.marked-mastered', name=concept_name)
                 })
 
         if error_msg:
@@ -498,7 +498,7 @@ async def _execute_tool(db, session_id: str, tool_name: str, arguments: dict, us
         events.append({
             "type": "misconception",
             "concept_name": concept_name,
-            "content": f'注意：【{concept_name}】存在误解，我来帮你纠正。'
+            "content": t('teaching.misconception-notice', name=concept_name)
         })
         return json.dumps({"status": "success", "concept_name": concept_name}, ensure_ascii=False), events
 
@@ -514,8 +514,8 @@ async def _execute_tool(db, session_id: str, tool_name: str, arguments: dict, us
                 return json.dumps({"status": "error", "message": "Session not found"}, ensure_ascii=False), events
             graph_id = str(uuid4())
             await db.execute(
-                text("INSERT INTO graphs (id, project_id, name, created_at, updated_at) VALUES (:id, :pid, '知识图谱', datetime('now'), datetime('now'))"),
-                {"id": graph_id, "pid": project_id}
+                text("INSERT INTO graphs (id, project_id, name, created_at, updated_at) VALUES (:id, :pid, :name, datetime('now'), datetime('now'))"),
+                {"id": graph_id, "pid": project_id, "name": t('integration.default-graph-name')}
             )
 
         node_id = str(uuid4())
@@ -813,7 +813,7 @@ async def create_session(session: TeachingSessionCreate, current_user: User = De
         id=str(uuid4()),
         session_id=new_session.id,
         role="assistant",
-        content="请开始讲解这个概念，我会提出问题来帮助你加深理解。"
+        content=t('teaching.start-message')
     )
     db.add(first_message)
     await db.commit()
@@ -1049,7 +1049,7 @@ async def update_message_and_create_branch(session_id: str, message_id: str, mes
 
     return {
         "status": "ok",
-        "message": "消息已更新，AI响应已重新生成"
+        "message": t('teaching.message-updated')
     }
 
 async def _pending_user_message_id(db, session_id: str) -> str | None:
@@ -1288,7 +1288,7 @@ async def promote_concepts(session_id: str, request: Request, current_user: User
             text("""INSERT INTO graphs (id, project_id, directory_id, name, created_at, updated_at)
                    VALUES (:id, :pid, :did, :name, datetime('now'), datetime('now'))"""),
             {"id": new_graph_id, "pid": project_id, "did": directory_id,
-             "name": directory_name or "知识图谱"}
+             "name": directory_name or t('integration.default-graph-name')}
         )
         graph_id = new_graph_id
 

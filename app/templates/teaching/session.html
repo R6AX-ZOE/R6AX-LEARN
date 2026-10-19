@@ -947,28 +947,28 @@ function createToolArtifact(toolName, arguments, result, iteration, timestamp) {
     // Determine icon and status based on tool type
     let iconClass = 'tool-icon-write';
     let toolDisplayName = toolName;
-    let toolStatus = '已完成';
+    let toolStatus = '{{ t("teaching.tool.completed") }}';
     
     // Map tool names to display names and icons
     const toolMap = {
-        'mark_concepts_mastered': { icon: 'tool-icon-concept', name: '标记概念已掌握', status: '已标记' },
-        'mark_misconception': { icon: 'tool-icon-concept', name: '标记误解', status: '已记录' },
-        'create_virtual_graph': { icon: 'tool-icon-graph', name: '创建虚拟图', status: '已创建' },
-        'get_virtual_graphs': { icon: 'tool-icon-read', name: '获取虚拟图列表', status: '读取' },
-        'get_virtual_graph': { icon: 'tool-icon-read', name: '获取虚拟图详情', status: '读取' },
-        'update_virtual_graph': { icon: 'tool-icon-write', name: '更新虚拟图', status: '已更新' },
-        'delete_virtual_graph': { icon: 'tool-icon-write', name: '删除虚拟图', status: '已删除' },
-        'search_virtual_graphs_rag': { icon: 'tool-icon-read', name: 'RAG搜索虚拟图', status: '搜索' },
-        'search_virtual_graph_nodes': { icon: 'tool-icon-read', name: '搜索虚拟图节点', status: '搜索' },
-        'create_graph_node': { icon: 'tool-icon-graph', name: '创建图谱节点', status: '已创建' },
-        'create_graph_edge': { icon: 'tool-icon-graph', name: '创建图谱关联', status: '已创建' },
-        'get_graph_nodes': { icon: 'tool-icon-read', name: '获取图谱节点', status: '读取' },
-        'get_graph_node': { icon: 'tool-icon-read', name: '获取节点详情', status: '读取' },
-        'update_graph_node': { icon: 'tool-icon-write', name: '更新图谱节点', status: '已更新' },
-        'delete_graph_node': { icon: 'tool-icon-write', name: '删除图谱节点', status: '已删除' }
+        'mark_concepts_mastered': { icon: 'tool-icon-concept', name: '{{ t("teaching.tool.mark-concepts-mastered") }}', status: '{{ t("teaching.tool.marked") }}' },
+        'mark_misconception': { icon: 'tool-icon-concept', name: '{{ t("teaching.tool.mark-misconception") }}', status: '{{ t("teaching.tool.recorded") }}' },
+        'create_virtual_graph': { icon: 'tool-icon-graph', name: '{{ t("teaching.tool.create-virtual-graph") }}', status: '{{ t("teaching.tool.created") }}' },
+        'get_virtual_graphs': { icon: 'tool-icon-read', name: '{{ t("teaching.tool.get-virtual-graphs") }}', status: '{{ t("teaching.tool.read") }}' },
+        'get_virtual_graph': { icon: 'tool-icon-read', name: '{{ t("teaching.tool.get-virtual-graph") }}', status: '{{ t("teaching.tool.read") }}' },
+        'update_virtual_graph': { icon: 'tool-icon-write', name: '{{ t("teaching.tool.update-virtual-graph") }}', status: '{{ t("teaching.tool.updated") }}' },
+        'delete_virtual_graph': { icon: 'tool-icon-write', name: '{{ t("teaching.tool.delete-virtual-graph") }}', status: '{{ t("teaching.tool.deleted") }}' },
+        'search_virtual_graphs_rag': { icon: 'tool-icon-read', name: '{{ t("teaching.tool.search-virtual-graphs-rag") }}', status: '{{ t("teaching.tool.search") }}' },
+        'search_virtual_graph_nodes': { icon: 'tool-icon-read', name: '{{ t("teaching.tool.search-virtual-graph-nodes") }}', status: '{{ t("teaching.tool.search") }}' },
+        'create_graph_node': { icon: 'tool-icon-graph', name: '{{ t("teaching.tool.create-graph-node") }}', status: '{{ t("teaching.tool.created") }}' },
+        'create_graph_edge': { icon: 'tool-icon-graph', name: '{{ t("teaching.tool.create-graph-edge") }}', status: '{{ t("teaching.tool.created") }}' },
+        'get_graph_nodes': { icon: 'tool-icon-read', name: '{{ t("teaching.tool.get-graph-nodes") }}', status: '{{ t("teaching.tool.read") }}' },
+        'get_graph_node': { icon: 'tool-icon-read', name: '{{ t("teaching.tool.get-graph-node") }}', status: '{{ t("teaching.tool.read") }}' },
+        'update_graph_node': { icon: 'tool-icon-write', name: '{{ t("teaching.tool.update-graph-node") }}', status: '{{ t("teaching.tool.updated") }}' },
+        'delete_graph_node': { icon: 'tool-icon-write', name: '{{ t("teaching.tool.delete-graph-node") }}', status: '{{ t("teaching.tool.deleted") }}' }
     };
     
-    const toolInfo = toolMap[toolName] || { icon: 'tool-icon-write', name: toolName, status: '已完成' };
+    const toolInfo = toolMap[toolName] || { icon: 'tool-icon-write', name: toolName, status: '{{ t("teaching.tool.completed") }}' };
     iconClass = toolInfo.icon;
     toolDisplayName = toolInfo.name;
     toolStatus = toolInfo.status;
@@ -985,21 +985,21 @@ function createToolArtifact(toolName, arguments, result, iteration, timestamp) {
     try {
         // Try to parse and format JSON
         const argsJson = JSON.parse(arguments);
-        content = '参数:\n' + JSON.stringify(argsJson, null, 2);
+        content = '{{ t("teaching.tool.params") }}:\n' + JSON.stringify(argsJson, null, 2);
         
         if (result) {
             const resultJson = JSON.parse(result);
-            content += '\n\n结果:\n' + JSON.stringify(resultJson, null, 2);
+            content += '\n\n{{ t("teaching.tool.result") }}:\n' + JSON.stringify(resultJson, null, 2);
         }
     } catch (e) {
         // If not valid JSON, show raw content
         content = arguments;
-        if (result) content += '\n\n结果:\n' + result;
+        if (result) content += '\n\n{{ t("teaching.tool.result") }}:\n' + result;
     }
     
     // Add iteration and timestamp info
     if (iteration !== '0') {
-        toolStatus += ` (迭代 ${iteration})`;
+        toolStatus += ` ({{ t("teaching.tool.iteration") }} ${iteration})`;
     }
     
     artifact.innerHTML = `
@@ -1108,7 +1108,7 @@ function connectStream(sessionId, projectId) {
                             nodeCreatedArea = document.createElement('div');
                             nodeCreatedArea.id = 'node-created-area';
                             nodeCreatedArea.className = 'mt-4';
-                            nodeCreatedArea.innerHTML = '<div class="sidebar-header">知识图谱节点</div><div id="created-nodes-list" class="space-y-2 mb-2"></div>';
+                            nodeCreatedArea.innerHTML = '<div class="sidebar-header">{{ t("teaching.graph-nodes") }}</div><div id="created-nodes-list" class="space-y-2 mb-2"></div>';
                             promotePanel.parentElement.insertBefore(nodeCreatedArea, promotePanel.nextSibling);
                         }
                     }
@@ -1626,7 +1626,7 @@ function promoteConcepts() {
                 // 还有未沉淀的概念，显示部分成功消息
                 const countText = '{{ t("teaching.promoted-count") }}'.replace('{}', data.promoted_count);
                 // 可以添加一个toast提示，但不改变整个面板
-                alert(countText + '\n剩余 ' + remainingCount + ' 个概念待沉淀。');
+                alert(countText + '\n' + '{{ t("teaching.promote-remaining", count="__COUNT__") }}'.replace('__COUNT__', remainingCount));
             }
 
             // 更新进度（promoted也算已完成）

@@ -313,14 +313,14 @@
                     &times;
                 </button>
             </div>
-            <form hx-post="/api/input/directories" hx-target="#directory-tree" hx-swap="innerHTML" hx-on::after-request="document.getElementById('create-dir-modal').style.display = 'none'">
+            <form id="create-dir-form">
                 <input type="hidden" name="project_id" value="{{ project.id }}">
                 <div class="mb-4">
                     <label class="block text-white/80 text-sm font-medium mb-2">{{ t('project.name') }}</label>
                     <input type="text" name="name" class="input-field w-full" required>
                 </div>
                 <div class="mb-6">
-                    <label class="block text-white/80 text-sm font-medium mb-2">{{ t('project.description') }}（可选）</label>
+                    <label class="block text-white/80 text-sm font-medium mb-2">{{ t('project.description') }}（{{ t('common.optional') }}）</label>
                     <textarea name="description" class="input-field w-full" rows="3"></textarea>
                 </div>
                 <div class="flex space-x-4">
@@ -338,13 +338,13 @@
     <div id="confirm-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50" style="z-index: 70;">
         <div class="modal-content p-6 w-full max-w-md">
             <div class="flex justify-between items-center mb-6">
-                <h2 id="confirm-modal-title" class="text-xl font-semibold text-white">确认删除</h2>
+                <h2 id="confirm-modal-title" class="text-xl font-semibold text-white">{{ t('input.delete-confirm-title') }}</h2>
                 <button onclick="document.getElementById('confirm-modal').style.display = 'none'"
                         class="text-white/40 hover:text-white text-2xl leading-none transition-colors">
                     &times;
                 </button>
             </div>
-            <p id="confirm-modal-message" class="text-white/80 mb-6">确定要删除吗？</p>
+            <p id="confirm-modal-message" class="text-white/80 mb-6">{{ t('input.delete-confirm-message') }}</p>
             <div class="flex space-x-4">
                 <button onclick="document.getElementById('confirm-modal').style.display = 'none'" class="btn-secondary flex-1">
                     {{ t('common.cancel') }}
@@ -365,7 +365,7 @@
                     &times;
                 </button>
             </div>
-            <form id="create-note-form" hx-post="/api/input/notes" hx-target="#note-list" hx-swap="innerHTML" hx-on::after-request="document.getElementById('create-note-modal').style.display = 'none'; document.getElementById('create-note-form').reset(); renderAllNotes();">
+            <form id="create-note-form">
                 <input type="hidden" name="directory_id" value="{{ current_dir.id if current_dir else '' }}">
                 <div class="mb-4">
                     <label class="block text-white/80 text-sm font-medium mb-2">{{ t('input.note-title') }}</label>
@@ -431,6 +431,67 @@
     </div>
 <script>
         let pendingDeleteDirectoryId = null;
+
+        const inputI18n = {
+            createFailed: {{ t('input.create-failed')|tojson }},
+            saveFailed: {{ t('input.save-failed')|tojson }},
+            deleteFailed: {{ t('input.delete-failed')|tojson }},
+            loading: {{ t('input.loading')|tojson }},
+            loadFailed: {{ t('input.load-failed')|tojson }},
+            extracting: {{ t('input.extracting')|tojson }},
+            extractFailed: {{ t('input.extract-failed')|tojson }},
+            reExtracting: {{ t('input.re-extracting')|tojson }},
+            reExtractFailed: {{ t('input.re-extract-failed')|tojson }},
+            selectDirectory: {{ t('input.select-directory-hint')|tojson }},
+            allNotes: {{ t('input.all-notes')|tojson }},
+            deleteNoteTitle: {{ t('input.delete-note-title')|tojson }},
+            deleteNoteConfirm: {{ t('input.delete-note-confirm')|tojson }},
+            deleteDirTitle: {{ t('input.delete-dir-title')|tojson }},
+            deleteDirConfirm: {{ t('input.delete-dir-confirm')|tojson }},
+            previewPlaceholder: {{ t('input.preview-placeholder')|tojson }}
+        };
+
+        function hideInputModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function submitCreateDirectory(event) {
+            event.preventDefault();
+            const form = event.currentTarget;
+            try {
+                const response = await fetch('/api/input/directories', {
+                    method: 'POST',
+                    body: new FormData(form)
+                });
+                if (!response.ok) throw new Error('create directory failed');
+                document.getElementById('directory-tree').innerHTML = await response.text();
+                form.reset();
+                hideInputModal('create-dir-modal');
+            } catch (error) {
+                console.error('Error creating directory:', error);
+                alert(inputI18n.createFailed);
+            }
+        }
+
+        async function submitCreateNote(event) {
+            event.preventDefault();
+            const form = event.currentTarget;
+            try {
+                const response = await fetch('/api/input/notes', {
+                    method: 'POST',
+                    body: new FormData(form)
+                });
+                if (!response.ok) throw new Error('create note failed');
+                document.getElementById('note-list').innerHTML = await response.text();
+                form.reset();
+                hideInputModal('create-note-modal');
+                renderAllNotes();
+            } catch (error) {
+                console.error('Error creating note:', error);
+                alert(inputI18n.createFailed);
+            }
+        }
 
         // Initialize Mermaid
         mermaid.initialize({
@@ -525,7 +586,7 @@
             const preview = document.getElementById('note-preview');
 
             if (!content.trim()) {
-                preview.innerHTML = '<span class="text-white/40">预览将显示在这里...</span>';
+                preview.innerHTML = '<span class="text-white/40">' + inputI18n.previewPlaceholder + '</span>';
                 return;
             }
 
@@ -603,7 +664,7 @@
             const preview = document.getElementById('edit-note-preview');
 
             if (!content.trim()) {
-                preview.innerHTML = '<span class="text-white/40">预览将显示在这里...</span>';
+                preview.innerHTML = '<span class="text-white/40">' + inputI18n.previewPlaceholder + '</span>';
                 return;
             }
 
@@ -708,19 +769,22 @@
             })
             .catch(error => {
                 console.error('Error updating note:', error);
-                alert('保存失败，请重试');
+                alert(inputI18n.saveFailed);
             });
         }
 
         // Show delete note confirmation modal
         function showDeleteNoteModal(noteId) {
             pendingDeleteNoteId = noteId;
-            document.getElementById('confirm-modal-title').textContent = '删除笔记';
-            document.getElementById('confirm-modal-message').textContent = '确定要删除这条笔记吗？';
+            document.getElementById('confirm-modal-title').textContent = inputI18n.deleteNoteTitle;
+            document.getElementById('confirm-modal-message').textContent = inputI18n.deleteNoteConfirm;
             document.getElementById('confirm-modal').style.display = 'flex';
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('create-dir-form').addEventListener('submit', submitCreateDirectory);
+            document.getElementById('create-note-form').addEventListener('submit', submitCreateNote);
+
             document.addEventListener('click', function(e) {
                 // Handle note edit button
                 const editNoteBtn = e.target.closest('.edit-note-btn');
@@ -764,8 +828,8 @@
                 if (deleteBtn) {
                     e.stopPropagation();
                     pendingDeleteDirectoryId = deleteBtn.dataset.directoryId;
-                    document.getElementById('confirm-modal-title').textContent = '删除目录';
-                    document.getElementById('confirm-modal-message').textContent = '确定要删除这个目录吗？目录下的所有笔记也会被删除。';
+                    document.getElementById('confirm-modal-title').textContent = inputI18n.deleteDirTitle;
+                    document.getElementById('confirm-modal-message').textContent = inputI18n.deleteDirConfirm;
                     document.getElementById('confirm-modal').style.display = 'flex';
                     return;
                 }
@@ -809,7 +873,7 @@
         });
 
         function loadNotes(directoryId, directoryName) {
-            document.getElementById('note-list').innerHTML = '<div class="text-center text-white/40 py-12">加载中...</div>';
+            document.getElementById('note-list').innerHTML = '<div class="text-center text-white/40 py-12">' + inputI18n.loading + '</div>';
             
             fetch(`/api/input/notes/${directoryId}`)
                 .then(response => response.text())
@@ -830,7 +894,7 @@
                     }
                 })
                 .catch(error => {
-                    document.getElementById('note-list').innerHTML = '<div class="text-center text-white/40 py-12">加载失败</div>';
+                    document.getElementById('note-list').innerHTML = '<div class="text-center text-white/40 py-12">' + inputI18n.loadFailed + '</div>';
                     console.error('Error loading notes:', error);
                 });
         }
@@ -857,7 +921,7 @@
             if (!conceptsArea) return;
 
             // 在按钮位置显示加载状态
-            conceptsArea.innerHTML = '<div class="text-center text-white/40 py-4">提取中...</div>';
+            conceptsArea.innerHTML = '<div class="text-center text-white/40 py-4">' + inputI18n.extracting + '</div>';
 
             fetch(`/api/input/notes/${noteId}/extract-concepts`, {
                 method: 'POST',
@@ -870,7 +934,7 @@
                 conceptsArea.innerHTML = html;
             })
             .catch(error => {
-                conceptsArea.innerHTML = '<div class="text-center text-red-400 py-4">提取失败，请重试</div>';
+                conceptsArea.innerHTML = '<div class="text-center text-red-400 py-4">' + inputI18n.extractFailed + '</div>';
                 console.error('Error extracting concepts:', error);
             });
         }
@@ -879,7 +943,7 @@
             const conceptsArea = document.getElementById(`note-concepts-${noteId}`);
             if (!conceptsArea) return;
 
-            conceptsArea.innerHTML = '<div class="text-center text-white/40 py-4">重新提取中...</div>';
+            conceptsArea.innerHTML = '<div class="text-center text-white/40 py-4">' + inputI18n.reExtracting + '</div>';
 
             const formData = new FormData();
             formData.append('re_extract', 'true');
@@ -893,7 +957,7 @@
                 conceptsArea.innerHTML = html;
             })
             .catch(error => {
-                conceptsArea.innerHTML = '<div class="text-center text-red-400 py-4">重新提取失败，请重试</div>';
+                conceptsArea.innerHTML = '<div class="text-center text-red-400 py-4">' + inputI18n.reExtractFailed + '</div>';
                 console.error('Error re-extracting concepts:', error);
             });
         }
@@ -920,8 +984,8 @@
             .then(response => response.text())
             .then(html => {
                 document.getElementById('directory-tree').innerHTML = html;
-                document.getElementById('note-list').innerHTML = '<div class="text-center text-white/40 py-12">请选择一个目录</div>';
-                document.querySelector('h2').textContent = '全部笔记';
+                document.getElementById('note-list').innerHTML = '<div class="text-center text-white/40 py-12">' + inputI18n.selectDirectory + '</div>';
+                document.querySelector('h2').textContent = inputI18n.allNotes;
                 
                 const hiddenInput = document.querySelector('input[name="directory_id"]');
                 if (hiddenInput) {
@@ -931,7 +995,7 @@
             .catch(error => {
                 console.error('Error deleting directory:', error);
                 const noteList = document.getElementById('note-list');
-                noteList.innerHTML = '<div class="text-center text-red-400 py-12">删除失败，请重试</div>';
+                noteList.innerHTML = '<div class="text-center text-red-400 py-12">' + inputI18n.deleteFailed + '</div>';
             });
         }
 
@@ -949,7 +1013,7 @@
             })
             .catch(error => {
                 console.error('Error deleting note:', error);
-                alert('删除失败，请重试');
+                alert(inputI18n.deleteFailed);
             });
         }
     </script>

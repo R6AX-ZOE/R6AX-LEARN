@@ -11,6 +11,8 @@ from uuid import uuid4
 
 from sqlalchemy import text
 
+from app.i18n.i18n import t
+
 
 # 虚拟图边关系 → 真实图边关系映射
 VG_EDGE_RELATION_MAP = {
@@ -163,7 +165,7 @@ async def mount_node(db, graph_id: str, node_id: str, label: str, top_k: int = 2
         # 两节点间已有任何边（如虚拟图投影的 parent/prerequisite）时跳过模糊挂载
         if await any_edge_between(db, graph_id, node_id, item["node_id"]):
             continue
-        edge_id = await ensure_edge(db, graph_id, node_id, item["node_id"], "related", label="相关")
+        edge_id = await ensure_edge(db, graph_id, node_id, item["node_id"], "related", label=t('integration.relation-related'))
         mounted.append({**item, "edge_id": edge_id})
     return mounted
 
