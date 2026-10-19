@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
     <script src="/static/js/csrf.js"></script>
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <script src="/static/js/layout.js" defer></script>
     <style>
         :root {
             --apple-blue: #0071e3;
@@ -89,27 +91,29 @@
     </style>
 </head>
 <body>
-    <nav class="nav-glass fixed top-0 left-0 right-0 h-12 z-50">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <a href="/" class="text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
-                <a href="/projects" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('nav.projects') }}</a>
-                <span class="text-white/40">/</span>
-                <a href="/projects/{{ project.id }}" class="text-white/80 hover:text-white text-sm transition-colors">{{ project.name }}</a>
-                <span class="text-white/40">/</span>
-                <a href="/practice/{{ project.id }}" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('practice.practice') }}</a>
-                <span class="text-white/40">/</span>
-                <span class="text-white/80 text-sm">{{ t('practice.session-title') }}</span>
-            </div>
-            <div class="flex items-center space-x-4">
-                <span class="text-white/80 text-sm">{{ user.username }}</span>
-                <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+    <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="top-nav">
+                <a href="/" class="top-nav-brand text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
+                <div class="top-nav-crumbs text-sm">
+                    <a href="/projects" class="text-white/80 hover:text-white transition-colors">{{ t('nav.projects') }}</a>
+                    <span class="text-white/40">/</span>
+                    <a href="/projects/{{ project.id }}" class="text-white/80 hover:text-white transition-colors">{{ project.name }}</a>
+                    <span class="text-white/40">/</span>
+                    <a href="/practice/{{ project.id }}" class="text-white/80 hover:text-white transition-colors">{{ t('practice.practice') }}</a>
+                    <span class="text-white/40">/</span>
+                    <span class="text-white/80">{{ t('practice.session-title') }}</span>
+                </div>
+                <div class="top-nav-actions">
+                    <span class="text-white/80 text-sm hidden sm:inline">{{ user.username }}</span>
+                    <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
-        <div class="flex items-center justify-between mb-6">
+    <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 app-page pb-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
                 <h1 style="font-size: 24px; font-weight: 600; line-height: 1.17;" class="text-white">{{ t('practice.session-title') }}</h1>
                 <p class="text-white/60 text-sm mt-1">

@@ -794,3 +794,15 @@ msgstr "View"
 
 msgid "practice.avg-score"
 msgstr "Avg score"
+
+msgid "teaching.create-in-input-title"
+msgstr "Teaching sessions are created in Input Level"
+
+msgid "teaching.create-in-input-hint"
+msgstr "Organize your notes in Input Level first. After AI extracts the concepts, click Start teaching in the note concepts area to add a teaching session."
+
+msgid "teaching.go-to-input"
+msgstr "Go to Input Level"
+
+msgid "integration.panel-toggle"
+msgstr "Toggle panel"

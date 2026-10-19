@@ -249,6 +249,15 @@ msgstr "教学会话"
 msgid "teaching.create-session"
 msgstr "创建新会话"
 
+msgid "teaching.create-in-input-title"
+msgstr "教学会话请在 Input Level 创建"
+
+msgid "teaching.create-in-input-hint"
+msgstr "请先在 Input Level 整理好笔记；待 AI 梳理好知识点后，在笔记的「提取的概念」区域点击「开始教学」添加教学会话。"
+
+msgid "teaching.go-to-input"
+msgstr "前往 Input Level"
+
 msgid "teaching.no-sessions"
 msgstr "还没有教学会话"
 
@@ -299,7 +308,11 @@ msgid "integration.tab-edges"
 msgstr "关联"
 
 msgid "integration.tab-promote"
-msgstr "待沉淀"
+msgstr "沉淀"
+
+msgid "integration.panel-toggle"
+msgstr "显示/隐藏面板"
+
 
 msgid "integration.nodes"
 msgstr "节点"

@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
     <script src="/static/js/csrf.js"></script>
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <script src="/static/js/layout.js" defer></script>
     <!-- Markdown rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- KaTeX for math formulas -->
@@ -58,7 +60,7 @@
         nav {
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: saturate(180%) blur(20px);
-            height: 48px;
+            height: var(--app-nav-h);
             position: sticky;
             top: 0;
             z-index: 50;
@@ -480,8 +482,8 @@
         /* 新布局：中间聊天 + 右侧侧边栏 */
         .main-container {
             display: flex;
-            height: calc(100vh - 48px);
-            padding-top: 48px;
+            height: calc(100vh - var(--app-nav-h));
+            padding-top: var(--app-nav-h);
             flex: 1;
             justify-content: center;
         }
@@ -503,8 +505,8 @@
             flex-direction: column;
             position: relative;
             transition: width 0.3s ease;
-            height: calc(100vh - 48px);
-            padding-top: 48px;
+            height: calc(100vh - var(--app-nav-h));
+            padding-top: var(--app-nav-h);
         }
 
         .sidebar.collapsed {
@@ -572,23 +574,73 @@
             flex: 1;
             min-height: 200px;
         }
+
+        @media (max-width: 1023.98px) {
+            .main-container {
+                width: 100%;
+            }
+
+            .chat-area {
+                width: 100%;
+                max-width: none;
+                padding: 16px;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: var(--app-nav-h);
+                right: 0;
+                bottom: 0;
+                left: auto;
+                z-index: 56;
+                width: min(86vw, 320px);
+                height: auto;
+                padding-top: 0;
+                border-left: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: -20px 0 60px rgba(0, 0, 0, 0.5);
+                transition: transform 0.25s ease;
+            }
+
+            .sidebar.collapsed {
+                width: min(86vw, 320px);
+            }
+
+            .sidebar.collapsed .sidebar-content,
+            .sidebar.collapsed .sidebar-header {
+                display: block;
+            }
+
+            .sidebar.collapsed .sidebar-icon {
+                display: none;
+            }
+
+            .sidebar .sidebar-toggle {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
-    <nav class="nav-glass fixed top-0 left-0 right-0 h-12 z-50">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <a href="/" class="text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
-                <a href="/projects" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('nav.projects') }}</a>
-                <span class="text-white/40">/</span>
-                <a href="/projects/{{ project_id }}" class="text-white/80 hover:text-white text-sm transition-colors">{{ project_name }}</a>
-                <span class="text-white/40">/</span>
-                <span class="text-white/80 text-sm">{{ t('teaching.session-title') }}</span>
-            </div>
-            <div class="flex items-center space-x-4">
-                <button onclick="endSession()" class="btn-secondary text-sm">{{ t('teaching.end-session') }}</button>
-                <span class="text-white/80 text-sm">{{ user.username }}</span>
-                <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+    <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="top-nav">
+                <a href="/" class="top-nav-brand text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
+                <div class="top-nav-crumbs text-sm">
+                    <a href="/projects" class="text-white/80 hover:text-white transition-colors">{{ t('nav.projects') }}</a>
+                    <span class="text-white/40">/</span>
+                    <a href="/projects/{{ project_id }}" class="text-white/80 hover:text-white transition-colors">{{ project_name }}</a>
+                    <span class="text-white/40">/</span>
+                    <span class="text-white/80">{{ t('teaching.session-title') }}</span>
+                </div>
+                <div class="top-nav-actions">
+                    <button onclick="endSession()" class="btn-secondary text-sm">{{ t('teaching.end-session') }}</button>
+                    <span class="text-white/80 text-sm hidden sm:inline">{{ user.username }}</span>
+                    <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+                </div>
             </div>
         </div>
     </nav>
@@ -596,11 +648,14 @@
     <div class="main-container">
         <!-- 左侧聊天区域 -->
         <div class="chat-area">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between gap-3 mb-4">
                 <div>
                     <h1 style="font-size: 22px; font-weight: 600; line-height: 1.14;" class="text-white mb-1">{{ t('teaching.session') }}</h1>
                     <p class="text-white/60 text-sm">{% if concept_name %}{{ t('teaching.current-concept') }}: {{ concept_name }}{% endif %}</p>
                 </div>
+                <button type="button" class="btn-secondary level-drawer-toggle" onclick="openLevelDrawer('sidebar')">
+                    {{ t('teaching.concepts') }}
+                </button>
             </div>
 
             <div class="mb-3">
@@ -677,7 +732,7 @@
     <!-- main-container 结束 -->
 
     <!-- 右侧侧边栏 -->
-    <div class="sidebar" id="sidebar">
+    <div class="sidebar level-drawer from-right" id="sidebar">
             <button class="sidebar-toggle" onclick="toggleSidebar()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 18l6-6-6-6"/>
@@ -692,6 +747,9 @@
             </div>
 
             <div class="sidebar-content">
+                <div class="lg:hidden flex justify-end mb-2">
+                    <button type="button" class="drawer-close" onclick="closeLevelDrawer('sidebar')" aria-label="Close">&times;</button>
+                </div>
                 {% set mastered = concepts | selectattr('status', 'equalto', 'mastered') | list %}
                 {% if mastered %}
                 <div class="sidebar-header">{{ t('teaching.promote-title') }}</div>

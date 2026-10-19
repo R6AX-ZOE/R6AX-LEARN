@@ -6,6 +6,8 @@
     <title>{{ t('integration.graph') }} - {{ project.name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/static/js/csrf.js"></script>
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <script src="/static/js/layout.js" defer></script>
     <!-- Cytoscape.js -->
     <script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
     <!-- Dagre layout dependencies -->
@@ -90,7 +92,7 @@
         /* 图谱画布 */
         #cy-container {
             position: fixed;
-            top: 48px; left: 0; right: 280px; bottom: 0;
+            top: var(--app-nav-h); left: 0; right: 280px; bottom: 0;
             background: linear-gradient(135deg, #0a0a0c 0%, #111114 50%, #0d0d10 100%);
         }
 
@@ -102,7 +104,7 @@
         /* 右侧面板 */
         #side-panel {
             position: fixed;
-            top: 48px; right: 0; bottom: 0; width: 280px;
+            top: var(--app-nav-h); right: 0; bottom: 0; width: 280px;
             background: rgba(28, 28, 30, 0.95);
             backdrop-filter: blur(40px) saturate(180%);
             border-left: 1px solid rgba(255, 255, 255, 0.06);
@@ -396,40 +398,65 @@
         }
         .tool-btn:hover { background: rgba(45, 45, 48, 0.95); color: white; }
 
+        @media (max-width: 1023.98px) {
+            #cy-container {
+                right: 0;
+            }
+
+            #side-panel {
+                width: min(86vw, 320px);
+                z-index: 56;
+                transform: translateX(100%);
+                transition: transform 0.25s ease;
+                box-shadow: -20px 0 60px rgba(0, 0, 0, 0.5);
+            }
+
+            #side-panel.open {
+                transform: translateX(0);
+            }
+
+            #toolbar {
+                top: calc(var(--app-nav-h) + 12px);
+            }
+
+            .tab-bar {
+                position: relative;
+            }
+        }
+
         /* Cytoscape 节点样式覆盖 */
         cytoscape-node { cursor: pointer; }
     </style>
 </head>
 <body>
 
-<nav class="nav-glass fixed top-0 left-0 right-0 h-12 z-50">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-        <div class="flex items-center gap-6">
-            <div class="flex items-center space-x-4">
-                <a href="/" class="text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
-                <a href="/projects" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('nav.projects') }}</a>
+<nav class="nav-glass fixed top-0 left-0 right-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="top-nav">
+            <a href="/" class="top-nav-brand text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
+            <div class="top-nav-crumbs text-sm">
+                <a href="/projects" class="text-white/80 hover:text-white transition-colors">{{ t('nav.projects') }}</a>
                 <span class="text-white/40">/</span>
-                <a href="/projects/{{ project.id }}" class="text-white/80 hover:text-white text-sm transition-colors">{{ project.name }}</a>
+                <a href="/projects/{{ project.id }}" class="text-white/80 hover:text-white transition-colors">{{ project.name }}</a>
                 <span class="text-white/40">/</span>
-                <span class="text-white/80 text-sm">{{ t('integration.graph') }}</span>
+                <span class="text-white/80">{{ t('integration.graph') }}</span>
+                <div class="flex items-center gap-2 shrink-0 sm:border-l sm:border-white/20 sm:pl-4">
+                    <select id="graph-select" onchange="switchGraph(this.value)" class="bg-[#2a2a2d] text-white text-sm px-2 py-1 rounded border border-white/10 focus:outline-none focus:border-[#0071e3]">
+                        {% for g in graphs %}
+                        <option value="{{ g.id }}" {% if current_graph and g.id == current_graph.id %}selected{% endif %}>
+                            {{ g.directory_name or g.name }}
+                        </option>
+                        {% endfor %}
+                        {% if not graphs %}
+                        <option value="" disabled>{{ t('integration.no-graphs') }}</option>
+                        {% endif %}
+                    </select>
+                </div>
             </div>
-            <!-- 图谱选择器（自动跟随目录） -->
-            <div class="flex items-center gap-2 border-l border-white/20 pl-4">
-                <select id="graph-select" onchange="switchGraph(this.value)" class="bg-[#2a2a2d] text-white text-sm px-2 py-1 rounded border border-white/10 focus:outline-none focus:border-[#0071e3]">
-                    {% for g in graphs %}
-                    <option value="{{ g.id }}" {% if current_graph and g.id == current_graph.id %}selected{% endif %}>
-                        {{ g.directory_name or g.name }}
-                    </option>
-                    {% endfor %}
-                    {% if not graphs %}
-                    <option value="" disabled>{{ t('integration.no-graphs') }}</option>
-                    {% endif %}
-                </select>
+            <div class="top-nav-actions">
+                <span class="text-white/80 text-sm hidden sm:inline">{{ user.username }}</span>
+                <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
             </div>
-        </div>
-        <div class="flex items-center space-x-4">
-            <span class="text-white/80 text-sm">{{ user.username }}</span>
-            <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
         </div>
     </div>
 </nav>
@@ -439,6 +466,7 @@
     <button onclick="openCreateNodeModal()" class="tool-btn" title="{{ t('integration.add-node') }}">+</button>
     <button onclick="openCreateEdgeModal()" class="tool-btn" title="{{ t('integration.add-edge') }}" id="add-edge-btn"{% if not nodes %} disabled style="opacity:0.3"{% endif %}>⤢</button>
     <button onclick="fitGraph()" class="tool-btn" title="{{ t('integration.fit-view') }}">⊡</button>
+    <button onclick="toggleLevelDrawer('side-panel')" class="tool-btn level-drawer-toggle" title="{{ t('integration.panel-toggle') }}">☰</button>
 </div>
 
 <!-- 图谱画布 -->
@@ -447,7 +475,7 @@
 </div>
 
 <!-- 右侧面板 -->
-<div id="side-panel">
+<div id="side-panel" class="level-drawer from-right">
     <!-- Tab 栏 -->
     <div class="tab-bar">
         <div class="tab-item active" onclick="switchPanel('detail')" id="tab-detail">{{ t('integration.tab-detail') }}</div>
@@ -455,6 +483,7 @@
         {% if promotable_concepts %}
         <div class="tab-item" onclick="switchPanel('promote')" id="tab-promote">{{ t('integration.tab-promote') }} {{ promotable_concepts|length }}</div>
         {% endif %}
+        <button type="button" class="drawer-close" onclick="closeLevelDrawer('side-panel')" aria-label="Close">&times;</button>
     </div>
 
     <!-- 详情面板 -->

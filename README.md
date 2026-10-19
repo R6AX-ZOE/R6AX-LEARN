@@ -133,6 +133,9 @@ python scripts/migrate_graphs_for_dirs.py                   # 为目录创建图
 
 - [安装指南 install.md](docs/install.md)
 - [快速启动 bootstrap.md](docs/bootstrap.md)
+- [Input → Teaching 概念提取：理论支撑与探究性学习报告素材](docs/input_to_teaching.md)
+- [Teaching Level 开发记录与探究性学习报告素材](docs/teaching.md)
+- [Practice Level 开发记录与探究性学习报告素材](docs/practice.md)
 
 ## License
 

@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
     <script src="/static/js/csrf.js"></script>
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <script src="/static/js/layout.js" defer></script>
     <!-- Markdown rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- KaTeX for math formulas -->
@@ -230,28 +232,39 @@
     </style>
 </head>
 <body class="min-h-screen bg-black">
-    <nav class="nav-glass fixed top-0 left-0 right-0 h-12 z-50">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-            <div class="flex items-center space-x-6">
-                <a href="/" class="text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
-                <a href="/projects" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('nav.projects') }}</a>
-                <span class="text-white/40">/</span>
-                <a href="/projects/{{ project.id }}" class="text-white/80 hover:text-white text-sm transition-colors">{{ project.name }}</a>
-                <span class="text-white/40">/</span>
-                <span class="text-white/80 text-sm">{{ t('input.notes') }}</span>
-            </div>
-            <div class="flex items-center space-x-4">
-                <span class="text-white/80 text-sm">{{ user.username }}</span>
-                <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+    <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="top-nav">
+                <a href="/" class="top-nav-brand text-xl font-bold text-white tracking-tight">R6AX:/Learn</a>
+                <div class="top-nav-crumbs text-sm">
+                    <a href="/projects" class="text-white/80 hover:text-white transition-colors">{{ t('nav.projects') }}</a>
+                    <span class="text-white/40">/</span>
+                    <a href="/projects/{{ project.id }}" class="text-white/80 hover:text-white transition-colors">{{ project.name }}</a>
+                    <span class="text-white/40">/</span>
+                    <span class="text-white/80">{{ t('input.notes') }}</span>
+                </div>
+                <div class="top-nav-actions">
+                    <span class="text-white/80 text-sm hidden sm:inline">{{ user.username }}</span>
+                    <a href="/logout" class="text-white/80 hover:text-white text-sm transition-colors">{{ t('auth.logout') }}</a>
+                </div>
             </div>
         </div>
     </nav>
     
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 app-page pb-8">
+        <div class="lg:hidden mb-4">
+            <button type="button" class="btn-secondary level-drawer-toggle" onclick="openLevelDrawer('directory-drawer')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+                {{ t('input.directories') }}
+            </button>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div class="lg:col-span-1">
+            <div id="directory-drawer" class="lg:col-span-1 level-drawer from-left bg-[#0d0d0d] p-3 lg:p-0 lg:bg-transparent">
                 <div class="card p-4">
-                    <h3 class="text-lg font-medium text-white mb-4">{{ t('input.directories') }}</h3>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-white">{{ t('input.directories') }}</h3>
+                        <button type="button" class="drawer-close" onclick="closeLevelDrawer('directory-drawer')" aria-label="Close">&times;</button>
+                    </div>
                     <div class="space-y-2">
                         <button onclick="document.getElementById('create-dir-modal').style.display = 'flex'" class="w-full px-4 py-2 bg-blue-900/30 text-blue-400 rounded-lg text-left hover:bg-blue-900/50 transition-colors">
                             + {{ t('input.create-directory') }}
@@ -291,7 +304,7 @@
         </div>
     </main>
     
-    <div id="create-dir-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50">
+    <div id="create-dir-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50" style="z-index: 70;">
         <div class="modal-content p-6 w-full max-w-md">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-semibold text-white">{{ t('input.create-directory') }}</h2>
@@ -322,7 +335,7 @@
         </div>
     </div>
     
-    <div id="confirm-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50">
+    <div id="confirm-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50" style="z-index: 70;">
         <div class="modal-content p-6 w-full max-w-md">
             <div class="flex justify-between items-center mb-6">
                 <h2 id="confirm-modal-title" class="text-xl font-semibold text-white">确认删除</h2>
@@ -343,7 +356,7 @@
         </div>
     </div>
     
-    <div id="create-note-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50">
+    <div id="create-note-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50" style="z-index: 70;">
         <div class="modal-content p-6 w-full max-w-5xl">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-semibold text-white">{{ t('input.create-note') }}</h2>
@@ -380,7 +393,7 @@
         </div>
     </div>
     
-    <div id="edit-note-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50">
+    <div id="edit-note-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50" style="z-index: 70;">
         <div class="modal-content p-6 w-full max-w-5xl">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-semibold text-white">{{ t('input.edit-note') }}</h2>
@@ -811,6 +824,10 @@
 
                     // Render Markdown content for each note
                     renderAllNotes();
+
+                    if (window.innerWidth < 1024) {
+                        closeAllLevelDrawers();
+                    }
                 })
                 .catch(error => {
                     document.getElementById('note-list').innerHTML = '<div class="text-center text-white/40 py-12">加载失败</div>';
