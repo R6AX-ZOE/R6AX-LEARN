@@ -1135,3 +1135,24 @@ msgstr "参考答案：%(reference)s"
 
 msgid "practice.grading-unavailable"
 msgstr "AI 判题暂时不可用，请自行对照参考答案。"
+
+msgid "project.import"
+msgstr "导入项目"
+
+msgid "project.export"
+msgstr "导出项目"
+
+msgid "project.export-hint"
+msgstr "以 JSON 格式下载项目数据"
+
+msgid "project.import-success"
+msgstr "项目导入成功"
+
+msgid "project.import-invalid"
+msgstr "无效的项目 JSON 文件"
+
+msgid "project.import-failed"
+msgstr "导入失败，请检查 JSON 文件。"
+
+msgid "project.no-description"
+msgstr "暂无描述"

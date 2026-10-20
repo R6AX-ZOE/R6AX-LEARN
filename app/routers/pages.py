@@ -1,27 +1,30 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.security import OAuth2PasswordRequestForm
-
-from datetime import date as _date, datetime, timedelta
 import json
 import secrets
+from datetime import date as _date
+from datetime import datetime, timedelta
+from urllib.parse import quote
 from uuid import uuid4
 
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.security import OAuth2PasswordRequestForm
+from jinja2 import Environment, FileSystemLoader
 from sqlalchemy import text
 
 from app.config import settings
 from app.core.database import get_db
-from app.core.security import verify_password, create_access_token
 from app.core.deps import get_current_user
-from app.models.user import User
+from app.core.security import create_access_token, verify_password
+from app.i18n.i18n import set_locale, t
 from app.models.input import Project
-from app.schemas.project import ProjectCreate
+from app.models.user import User
 from app.routers.practice import SESSION_SIZE, _available_question_count
 from app.services.practice_jobs import get_or_create_generation_job
-
-from app.i18n.i18n import t, set_locale, get_current_locale
-
-from jinja2 import Environment, FileSystemLoader
+from app.services.project_transfer import (
+    ProjectImportError,
+    export_project_payload,
+    import_project_payload,
+)
 
 router = APIRouter()
 
@@ -104,11 +107,57 @@ async def project_list(request: Request, current_user: User = Depends(get_curren
     
     csrf_token = request.cookies.get(CSRF_COOKIE) or secrets.token_urlsafe(32)
     template = jinja_env.get_template("pages/project_list.html")
-    html_content = template.render(request=request, user=current_user, projects=projects, csrf_token=csrf_token)
+    html_content = template.render(
+        request=request,
+        user=current_user,
+        projects=projects,
+        csrf_token=csrf_token,
+        imported=request.query_params.get("imported") == "1",
+    )
     response = HTMLResponse(content=html_content)
     if CSRF_COOKIE not in request.cookies:
         response.set_cookie(key=CSRF_COOKIE, value=csrf_token, **_csrf_cookie_kwargs())
     return response
+
+@router.post("/projects/import")
+async def import_project(request: Request, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    try:
+        payload = await request.json()
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        raise HTTPException(status_code=400, detail=t('project.import-invalid'))
+
+    try:
+        project_id = await import_project_payload(db, payload, current_user.id)
+        await db.commit()
+    except ProjectImportError as exc:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail=t(exc.message_key))
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail=t('project.import-failed'))
+
+    return JSONResponse({"project_id": project_id})
+
+@router.get("/projects/{project_id}/export")
+async def export_project(request: Request, project_id: str, current_user: User = Depends(get_current_user), db = Depends(get_db)):
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    try:
+        payload = await export_project_payload(db, project_id, current_user.id)
+    except LookupError:
+        raise HTTPException(status_code=404, detail=t('project.not-found'))
+
+    body = json.dumps(payload, ensure_ascii=False, default=str)
+    project_name = payload["project"].get("name") or "project"
+    encoded_name = quote(f"{project_name}.json", safe="")
+    headers = {
+        "Content-Disposition": f"attachment; filename=\"project.json\"; filename*=UTF-8''{encoded_name}"
+    }
+    return Response(content=body, media_type="application/json", headers=headers)
 
 @router.post("/projects")
 async def create_project(request: Request, name: str = Form(...), description: str = Form(""), current_user: User = Depends(get_current_user), db = Depends(get_db)):
@@ -184,6 +233,27 @@ async def project_detail(request: Request, project_id: str, current_user: User =
         {"uid": current_user.id, "pid": project_id}
     )
     practice_widgets = [dict(row._mapping) for row in ps_result.fetchall()]
+
+    stats_result = await db.execute(
+        text("""SELECT
+                    (SELECT COUNT(*) FROM notes n
+                     JOIN directories d ON n.directory_id = d.id
+                     WHERE d.project_id = :pid) AS notes_count,
+                    (SELECT COUNT(*) FROM teaching_sessions
+                     WHERE project_id = :pid) AS teaching_count,
+                    (SELECT COUNT(*) FROM practice_sessions
+                     WHERE project_id = :pid AND user_id = :uid) AS practice_count,
+                    (SELECT COUNT(*) FROM graphs
+                     WHERE project_id = :pid) AS graph_count"""),
+        {"pid": project_id, "uid": current_user.id}
+    )
+    stats_row = stats_result.first()
+    project_stats = dict(stats_row._mapping) if stats_row else {
+        "notes_count": 0,
+        "teaching_count": 0,
+        "practice_count": 0,
+        "graph_count": 0,
+    }
     
     # 连胜组件：项目内连续有学习活动（练习作答 / 教学消息 / 笔记）的天数
     act_result = await db.execute(
@@ -232,6 +302,7 @@ async def project_detail(request: Request, project_id: str, current_user: User =
         note_widgets=note_widgets,
         teaching_widgets=teaching_widgets,
         practice_widgets=practice_widgets,
+        project_stats=project_stats,
         streak_days=streak_days,
         default_topic=default_topic,
         directories_json=directories_json

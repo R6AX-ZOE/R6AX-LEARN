@@ -1124,3 +1124,24 @@ msgstr "Reference answer: %(reference)s"
 
 msgid "practice.grading-unavailable"
 msgstr "AI grading is temporarily unavailable. Please compare with the reference answer yourself."
+
+msgid "project.import"
+msgstr "Import Project"
+
+msgid "project.export"
+msgstr "Export Project"
+
+msgid "project.export-hint"
+msgstr "Download project data as JSON"
+
+msgid "project.import-success"
+msgstr "Project imported successfully"
+
+msgid "project.import-invalid"
+msgstr "Invalid project JSON file"
+
+msgid "project.import-failed"
+msgstr "Import failed. Please check the JSON file."
+
+msgid "project.no-description"
+msgstr "No description"

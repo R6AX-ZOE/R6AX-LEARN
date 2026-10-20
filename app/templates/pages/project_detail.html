@@ -289,25 +289,32 @@
                         <a href="/integration/{{ project.id }}" class="nav-item text-white/80"><svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>{{ t('integration.graph') }}</a>
                     </nav>
                 </div>
-                
+
+                <a href="/projects/{{ project.id }}/export"
+                   class="btn-secondary mt-4 w-full inline-flex items-center justify-center gap-2"
+                   title="{{ t('project.export-hint') }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    {{ t('project.export') }}
+                </a>
+
                 <div class="card p-6 mt-6">
                     <h3 class="text-lg font-medium text-white mb-4">{{ t('project.stats') }}</h3>
                     <div class="space-y-4">
                         <div class="flex justify-between">
                             <span class="text-white/60">{{ t('input.notes') }}</span>
-                            <span class="font-medium text-white">0</span>
+                            <span class="font-medium text-white">{{ project_stats.notes_count }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-white/60">{{ t('teaching.session') }}</span>
-                            <span class="font-medium text-white">0</span>
+                            <span class="font-medium text-white">{{ project_stats.teaching_count }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-white/60">{{ t('practice.practice') }}</span>
-                            <span class="font-medium text-white">0</span>
+                            <span class="font-medium text-white">{{ project_stats.practice_count }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-white/60">{{ t('integration.graph') }}</span>
-                            <span class="font-medium text-white">0</span>
+                            <span class="font-medium text-white">{{ project_stats.graph_count }}</span>
                         </div>
                     </div>
                 </div>

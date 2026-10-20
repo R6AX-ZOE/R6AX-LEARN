@@ -79,6 +79,16 @@
             background-color: #ff453a;
         }
 
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: none;
+        }
+
         .card {
             background-color: var(--dark-gray);
             border-radius: 8px;
@@ -122,6 +132,31 @@
             outline: none;
             border: 2px solid var(--apple-blue);
         }
+
+        .menu-item {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 9px 14px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.85);
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .project-description {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            overflow-wrap: anywhere;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-[#0d0d0d]">
@@ -139,47 +174,61 @@
     </nav>
 
     <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
-        <div class="flex justify-between items-center mb-8">
+        <div class="flex justify-between items-center gap-4 mb-8">
             <h1 class="heading-display text-white">{{ t('project.list') }}</h1>
-            <button onclick="document.getElementById('create-project-modal').style.display = 'flex'" class="btn-primary">
-                {{ t('project.create') }}
-            </button>
+            <div class="relative">
+                <button id="create-menu-button" type="button" class="btn-primary btn-icon"
+                        aria-haspopup="true" aria-expanded="false" aria-label="{{ t('project.create') }}"
+                        onclick="toggleCreateMenu(event)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <div id="create-menu" class="hidden absolute right-0 mt-2 w-52 overflow-hidden rounded-lg border border-white/10 bg-[#1a1a1a] shadow-2xl z-50">
+                    <button type="button" class="menu-item" onclick="openCreateModal()">{{ t('project.create') }}</button>
+                    <button type="button" class="menu-item" onclick="triggerImport()">{{ t('project.import') }}</button>
+                </div>
+            </div>
         </div>
 
-        <div class="card overflow-hidden">
-            <table class="w-full">
-                <thead class="bg-[#2a2a2a]">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-sm font-medium text-white/80">{{ t('project.name') }}</th>
-                        <th class="px-6 py-4 text-left text-sm font-medium text-white/80">{{ t('project.description') }}</th>
-                        <th class="px-6 py-4 text-left text-sm font-medium text-white/80">{{ t('common.created-at') }}</th>
-                        <th class="px-6 py-4 text-left text-sm font-medium text-white/80">{{ t('common.actions') }}</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-[#2a2a2a]">
-                    {% for project in projects %}
-                    <tr class="hover:bg-white/5 transition-colors">
-                        <td class="px-6 py-4">
-                            <a href="/projects/{{ project.id }}" class="link-text font-medium">{{ project.name }}</a>
-                        </td>
-                        <td class="px-6 py-4 text-white/80">{{ project.description }}</td>
-                        <td class="px-6 py-4 text-white/40 text-sm">{{ project.created_at[:16] if project.created_at else '' }}</td>
-                        <td class="px-6 py-4">
-                            <div class="flex space-x-4">
-                                <a href="#" class="link-text">{{ t('project.edit') }}</a>
-                                <a href="#" onclick="showDeleteModal('{{ project.id }}', '{{ project.name }}')" class="text-white/60 hover:text-red-400 text-sm transition-colors">{{ t('common.delete') }}</a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="4" class="px-6 py-12 text-center text-white/40">
-                            {{ t('project.empty') }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        {% if imported %}
+        <div class="mb-6 rounded-lg border border-green-500/30 bg-green-900/30 px-4 py-3 text-sm text-green-300">
+            {{ t('project.import-success') }}
+        </div>
+        {% endif %}
+        <div id="import-error" class="hidden mb-6 rounded-lg border border-red-500/30 bg-red-900/30 px-4 py-3 text-sm text-red-300"></div>
+
+        <input id="import-file-input" type="file" accept="application/json,.json" class="hidden" onchange="importProject(this)">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {% for project in projects %}
+            <article class="card p-5 flex flex-col gap-3 min-w-0 hover:border-white/10 transition-colors">
+                <div class="min-w-0">
+                    <a href="/projects/{{ project.id }}" class="link-text text-base font-medium block truncate">{{ project.name }}</a>
+                    <p class="project-description text-white/60 text-sm mt-2 min-h-[3.75rem]">
+                        {{ project.description or t('project.no-description') }}
+                    </p>
+                </div>
+                <div class="text-white/40 text-xs">
+                    {{ t('common.created-at') }}: {{ project.created_at[:16] if project.created_at else '' }}
+                </div>
+                <div class="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/5">
+                    <div class="flex items-center gap-3">
+                        <a href="#" class="text-white/60 hover:text-white text-sm transition-colors">{{ t('project.edit') }}</a>
+                        <button type="button" onclick='showDeleteModal({{ project.id|tojson }}, {{ project.name|tojson }})'
+                                class="text-white/60 hover:text-red-400 text-sm transition-colors">{{ t('common.delete') }}</button>
+                    </div>
+                    <a href="/projects/{{ project.id }}/export"
+                       class="btn-secondary inline-flex items-center gap-1.5 whitespace-nowrap !px-3 !py-1.5 text-xs"
+                       title="{{ t('project.export-hint') }}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        {{ t('project.export') }}
+                    </a>
+                </div>
+            </article>
+            {% else %}
+            <div class="card p-10 text-center text-white/40 sm:col-span-2 xl:col-span-3">
+                {{ t('project.empty') }}
+            </div>
+            {% endfor %}
         </div>
 
         <div id="create-project-modal" class="modal-overlay fixed inset-0 flex items-center justify-center hidden z-50">
@@ -198,7 +247,7 @@
                         <input type="text" name="name" class="input-field w-full" required>
                     </div>
                     <div class="mb-6">
-                        <label class="block text-white/80 text-sm font-medium mb-2">{{ t('project.description') }}（{{ t('common.optional') }}）</label>
+                        <label class="block text-white/80 text-sm font-medium mb-2">{{ t('project.description') }} ({{ t('common.optional') }})</label>
                         <textarea name="description" class="input-field w-full" rows="3"></textarea>
                     </div>
                     <div class="flex space-x-4">
@@ -223,7 +272,7 @@
                     </button>
                 </div>
                 <p class="text-white/80 mb-6">
-                    {{ t('project.delete-confirm') }} <span id="delete-project-name" class="font-medium text-white"></span>？
+                    {{ t('project.delete-confirm') }} <span id="delete-project-name" class="font-medium text-white"></span>?
                 </p>
                 <form id="delete-form" action="/projects/delete" method="post">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -243,11 +292,98 @@
     </main>
 
     <script>
+        const CSRF_TOKEN = {{ csrf_token | tojson }};
+        const IMPORT_INVALID_MESSAGE = {{ t('project.import-invalid') | tojson }};
+        const IMPORT_FAILED_MESSAGE = {{ t('project.import-failed') | tojson }};
+
+        function closeCreateMenu() {
+            document.getElementById('create-menu').classList.add('hidden');
+            document.getElementById('create-menu-button').setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleCreateMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('create-menu');
+            const button = document.getElementById('create-menu-button');
+            const willOpen = menu.classList.contains('hidden');
+            menu.classList.toggle('hidden', !willOpen);
+            button.setAttribute('aria-expanded', String(willOpen));
+        }
+
+        function openCreateModal() {
+            closeCreateMenu();
+            document.getElementById('create-project-modal').style.display = 'flex';
+        }
+
+        function triggerImport() {
+            closeCreateMenu();
+            document.getElementById('import-file-input').click();
+        }
+
+        function showImportError(message) {
+            const element = document.getElementById('import-error');
+            element.textContent = message;
+            element.classList.remove('hidden');
+        }
+
+        async function importProject(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            document.getElementById('import-error').classList.add('hidden');
+
+            let payload;
+            try {
+                payload = JSON.parse(await file.text());
+            } catch (error) {
+                showImportError(IMPORT_INVALID_MESSAGE);
+                input.value = '';
+                return;
+            }
+
+            try {
+                const response = await fetch('/projects/import', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': CSRF_TOKEN
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    let message = IMPORT_FAILED_MESSAGE;
+                    if (response.status === 400) {
+                        try {
+                            const data = await response.json();
+                            if (data && data.detail) message = String(data.detail);
+                        } catch (error) {
+                            message = IMPORT_FAILED_MESSAGE;
+                        }
+                    }
+                    throw new Error(message);
+                }
+                window.location.href = '/projects?imported=1';
+            } catch (error) {
+                showImportError(error && error.message ? error.message : IMPORT_FAILED_MESSAGE);
+            } finally {
+                input.value = '';
+            }
+        }
+
         function showDeleteModal(projectId, projectName) {
             document.getElementById('delete-project-id').value = projectId;
             document.getElementById('delete-project-name').textContent = projectName;
             document.getElementById('delete-project-modal').style.display = 'flex';
         }
+
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('#create-menu') && !event.target.closest('#create-menu-button')) {
+                closeCreateMenu();
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') closeCreateMenu();
+        });
     </script>
 </body>
 </html>
